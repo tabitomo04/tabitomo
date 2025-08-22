@@ -40,7 +40,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-web-services'
-	//implementation 'org.springframework.ai:spring-ai-starter-model-vertex-ai-gemini'
+	implementation 'org.springframework.ai:spring-ai-starter-model-vertex-ai-gemini'
 	implementation 'org.springframework.session:spring-session-jdbc'
 	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
     

@@ -4,13 +4,14 @@ public interface PathConstants {
     public static final String BASE = "";
 
     // 멤버
-    public static final String MEMBER="/member";
-    public static final String JOIN = MEMBER + "/join";
-    public static final String LOGIN = MEMBER + "/login";
-    public static final String LOGOUT = MEMBER + "/logout";
-    public static final String MEMBER_INFO = MEMBER + "/info";
-
+    public static final String AUTH="/auth";
+    public static final String JOIN = AUTH + "/join";
+    public static final String LOGIN = AUTH + "/login";
+    public static final String LOGOUT = AUTH + "/logout";
+    
     // 질문 페이지
+    public static final String MEMBER = "/member";
+    public static final String MEMBER_INFO = MEMBER + "/info";
     public static final String MEMBER_QUESTION = MEMBER + "/question";
     public static final String MEMBER_QUESTION_START = MEMBER_QUESTION + "/start";
     public static final String MEMBER_QUESTION_FORM = MEMBER_QUESTION + "/form";

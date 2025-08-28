@@ -40,13 +40,20 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-web-services'
-	implementation 'org.springframework.ai:spring-ai-starter-model-vertex-ai-gemini'
+	//implementation 'org.springframework.ai:spring-ai-starter-model-vertex-ai-gemini'
 	implementation 'org.springframework.session:spring-session-jdbc'
 	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+	
+	// MySQL Connector
+	runtimeOnly 'com.mysql:mysql-connector-j'
     
     // MapStruct
     implementation 'org.mapstruct:mapstruct:1.5.5.Final'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+    
+    // Cloud SQL
+    //implementation 'com.google.cloud.sql:mysql-socket-factory-connector-j-8:1.15.0'
+    //implementation 'mysql:mysql-connector-java:8.0.33'
     
     // OpenCSV
     implementation 'com.opencsv:opencsv:5.8'

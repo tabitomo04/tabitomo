@@ -1,0 +1,55 @@
+/* Common styles for question pages */
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+}
+
+/* Card header with image */
+.card-header {
+    position: relative;
+    overflow: hidden;
+    padding: 0;
+}
+
+.header-image {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 120px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.header-content {
+    position: relative;
+    z-index: 1;
+    padding: 1.25rem;
+    margin-left: 120px;
+}
+
+/* Question image styles */
+.question-image {
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .header-image {
+        width: 80px;
+    }
+    
+    .header-content {
+        margin-left: 80px;
+        padding: 0.75rem;
+    }
+    
+    .question-image {
+        max-height: 160px;
+    }
+}

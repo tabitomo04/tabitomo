@@ -1,49 +1,52 @@
 package com.koreatravel.tabitomo.service;
 
 import com.koreatravel.tabitomo.domain.dto.MemberDTO;
+import com.koreatravel.tabitomo.domain.dto.MemberFormDTO;
+import com.koreatravel.tabitomo.domain.entity.AddInfoEntity;
 import com.koreatravel.tabitomo.domain.entity.MemberEntity;
+import com.koreatravel.tabitomo.domain.entity.UserSelectedInfoEntity;
+import com.koreatravel.tabitomo.repository.AddInfoRepository;
 import com.koreatravel.tabitomo.repository.MemberRepository;
+import com.koreatravel.tabitomo.repository.UserSelectedInfoRepository;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.List;
+
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class MemberService implements UserDetailsService {
+public class MemberService {
 
     private final MemberRepository memberRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final UserSelectedInfoRepository userSelectedInfoRepository;
+    private final AddInfoRepository addInfoRepository;
 
-    @Transactional
-    public void registerNewMember(MemberDTO memberDTO) {
-        if (memberRepository.existsByEmail(memberDTO.getEmail())) {
-            throw new RuntimeException("Email already exists");
-        }
+    public MemberDTO getMemberByEmail(String email) {
+        MemberEntity member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
 
-        MemberEntity member = MemberEntity.builder()
-                .email(memberDTO.getEmail())
-                .password(passwordEncoder.encode(memberDTO.getPassword()))
-                .name(memberDTO.getName())
-                .role("ROLE_USER")
+        return MemberDTO.builder()
+                .email(member.getEmail())
+                .nickname(member.getNickname())
+                .countryId(member.getCountryId())
+                .isActive(member.isActive())
                 .build();
-
-        memberRepository.save(member);
     }
 
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        MemberEntity member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+    public void saveUserSelectedInfo(String email, List<MemberFormDTO> memberFormDTO) {
+        for (MemberFormDTO memberForm : memberFormDTO) {
+            UserSelectedInfoEntity userSelectedInfo = UserSelectedInfoEntity.builder()
+                    .infohighnum(memberForm.getHighnum())
+                    .infolownum(memberForm.getLownum())
+                    .email(email)
+                    .build();
+            userSelectedInfoRepository.save(userSelectedInfo);
+        }
+    }
 
-        return User.builder()
-                .username(member.getEmail())
-                .password(member.getPassword())
-                .roles(member.getRole().replace("ROLE_", ""))
-                .build();
+    public List<AddInfoEntity> getAddInfoList() {
+        return addInfoRepository.findAll();
     }
 }

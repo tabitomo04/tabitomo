@@ -1,35 +1,208 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Register</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원가입 - 타비토모</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        }
+        .card-header {
+            background-color: #4e73df;
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #4e73df;
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+        }
+        .btn-primary {
+            background-color: #4e73df;
+            border: none;
+            padding: 10px 0;
+            font-weight: 600;
+        }
+        .btn-primary:hover {
+            background-color: #2e59d9;
+        }
+        .btn-outline-primary {
+            color: #4e73df;
+            border-color: #4e73df;
+        }
+        .btn-outline-primary:hover {
+            background-color: #4e73df;
+            color: white;
+        }
+        .form-label {
+            font-weight: 500;
+        }
+        .signin-link {
+            text-align: center;
+            margin-top: 1rem;
+        }
+        .verification-status {
+            display: inline-block;
+            margin-left: 10px;
+            font-size: 0.875rem;
+        }
+        .verification-success {
+            color: #28a745;
+        }
+        .verification-error {
+            color: #dc3545;
+        }
+        .verification-input-group {
+            display: flex;
+            gap: 10px;
+        }
+        .verification-input-group input {
+            text-align: center;
+            letter-spacing: 2px;
+            font-weight: bold;
+        }
+        .countdown {
+            color: #6c757d;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+    </style>
 </head>
 <body>
-    <div class="container mt-5">
+    <div class="container py-5">
         <div class="row justify-content-center">
-            <div class="col-md-6">
+            <div class="col-md-8 col-lg-6">
                 <div class="card">
-                    <div class="card-header">
-                        <h3 class="text-center">Create an account</h3>
+                    <div class="card-header text-center py-3">
+                        <h3 class="mb-0">회원가입</h3>
                     </div>
-                    <div class="card-body">
-                        <form th:action="@{/register}" method="post" th:object="${memberDTO}">
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="email" th:field="*{email}" required>
+                    <div class="card-body p-4">
+                        <form th:action="@{/register}" method="post" th:object="${memberDTO}" id="registerForm" novalidate>
+                            <!-- 이메일 -->
+                            <div class="mb-4">
+                                <label for="email" class="form-label">이메일</label>
+                                <div class="input-group mb-2">
+                                    <input type="email" class="form-control" id="email" name="email" 
+                                           placeholder="example@example.com" required>
+                                    <button type="button" id="sendVerificationBtn" class="btn btn-outline-primary" 
+                                            onclick="sendVerificationCode()" disabled>인증번호 전송</button>
+                                </div>
+                                <div class="invalid-feedback">
+                                    유효한 이메일 주소를 입력해주세요.
+                                </div>
+                                <div id="emailError" class="text-danger small"></div>
+                                
+                                <!-- 인증번호 입력 -->
+                                <div id="verificationSection" class="mt-3" style="display: none;">
+                                    <div class="verification-input-group mb-2">
+                                        <input type="text" class="form-control" id="verificationCode" 
+                                               placeholder="인증번호 6자리" maxlength="6" disabled>
+                                        <button type="button" class="btn btn-primary" 
+                                                onclick="verifyCode()" id="verifyBtn" disabled>인증하기</button>
+                                    </div>
+                                    <div id="verificationMessage" class="small"></div>
+                                    <div id="countdown" class="countdown"></div>
+                                    <input type="hidden" id="emailVerified" name="emailVerified" value="false">
+                                </div>
                             </div>
-                            <div class="mb-3">
-                                <label for="password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="password" th:field="*{password}" required>
+                            
+                            <!-- 비밀번호 -->
+                            <div class="mb-4">
+                                <label for="password" class="form-label">비밀번호</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="password" th:field="*{password}" 
+                                           minlength="8" maxlength="20" required>
+                                    <button class="btn btn-outline-secondary toggle-password" type="button" 
+                                            data-target="password">
+                                        <i class="bi bi-eye-slash"></i>
+                                    </button>
+                                </div>
+                                <div class="form-text">8자 이상의 영문, 숫자, 특수문자를 포함해주세요.</div>
+                                <div class="invalid-feedback">
+                                    비밀번호는 8자 이상이어야 하며, 영문, 숫자, 특수문자를 모두 포함해야 합니다.
+                                </div>
                             </div>
-                            <div class="mb-3">
-                                <label for="name" class="form-label">Name</label>
-                                <input type="text" class="form-control" id="name" th:field="*{name}" required>
+                            
+                            <!-- 비밀번호 확인 -->
+                            <div class="mb-4">
+                                <label for="confirmPassword" class="form-label">비밀번호 확인</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="confirmPassword" 
+                                           minlength="8" maxlength="20" required>
+                                    <button class="btn btn-outline-secondary toggle-password" type="button" 
+                                            data-target="confirmPassword">
+                                        <i class="bi bi-eye-slash"></i>
+                                    </button>
+                                </div>
+                                <div class="invalid-feedback" id="passwordMismatch">
+                                    비밀번호가 일치하지 않습니다.
+                                </div>
                             </div>
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary">Register</button>
-                                <a href="/login" class="btn btn-link">Already have an account? Sign in</a>
+                            
+                            <!-- 닉네임 -->
+                            <div class="mb-4">
+                                <label for="nickname" class="form-label">닉네임</label>
+                                <input type="text" class="form-control" id="nickname" th:field="*{nickname}" 
+                                       minlength="2" maxlength="20" required>
+                                <div class="invalid-feedback">
+                                    닉네임은 2자 이상 20자 이하로 입력해주세요.
+                                </div>
+                            </div>
+                            
+                            <!-- 나이 -->
+                            <div class="mb-4">
+                                <label for="age" class="form-label">나이</label>
+                                <input type="number" class="form-control" id="age" name="age" 
+                                       min="1" max="120" required>
+                                <div class="invalid-feedback">
+                                    올바른 나이를 입력해주세요.
+                                </div>
+                            </div>
+                            
+                            <!-- 국가 -->
+                            <div class="mb-4">
+                                <label for="countryId" class="form-label">국가</label>
+                                <select class="form-select" id="countryId" th:field="*{countryId}" required>
+                                    <option value="" selected disabled>국가를 선택해주세요</option>
+                                    <option value="82">대한민국</option>
+                                    <option value="81">일본</option>
+                                    <option value="86">중국</option>
+                                    <option value="1">미국</option>
+                                    <option value="44">영국</option>
+                                    <option value="33">프랑스</option>
+                                    <option value="49">독일</option>
+                                    <option value="61">호주</option>
+                                    <option value="65">싱가포르</option>
+                                    <option value="60">말레이시아</option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    국가를 선택해주세요.
+                                </div>
+                            </div>
+                            
+                            <!-- 이름 -->
+                            <div class="mb-4">
+                                <label for="name" class="form-label">이름 (실명)</label>
+                                <input type="text" class="form-control" id="name" th:field="*{name}" 
+                                       minlength="2" maxlength="20" required>
+                                <div class="invalid-feedback">
+                                    이름을 입력해주세요.
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 mt-5">
+                                <button type="submit" class="btn btn-primary btn-lg">가입하기</button>
+                            </div>
+                            
+                            <div class="signin-link">
+                                이미 계정이 있으신가요? <a href="/login" class="text-primary">로그인</a>
                             </div>
                         </form>
                     </div>
@@ -37,5 +210,81 @@
             </div>
         </div>
     </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/email-verification.js"></script>
+    <script>
+        // Global functions that are called from HTML buttons
+        window.sendVerificationCode = function() {
+            if (window.emailVerification) {
+                window.emailVerification.sendVerificationCode();
+            }
+        };
+
+        window.verifyCode = function() {
+            if (window.emailVerification) {
+                window.emailVerification.verifyCode();
+            }
+        };
+        
+        // Initialize email verification and password toggle
+        $(document).ready(function() {
+            // Password toggle functionality
+            $('.toggle-password').click(function() {
+                const targetId = $(this).data('target');
+                const $input = $('#' + targetId);
+                const $icon = $(this).find('i');
+                
+                // Toggle input type
+                const type = $input.attr('type') === 'password' ? 'text' : 'password';
+                $input.attr('type', type);
+                
+                // Toggle icon
+                $icon.toggleClass('bi-eye bi-eye-slash');
+                
+                // Focus on the input field after toggle
+                $input.trigger('focus');
+            });
+            
+            // Password confirmation validation
+            $('#password, #confirmPassword').on('keyup', function() {
+                const password = $('#password').val();
+                const confirmPassword = $('#confirmPassword').val();
+                const $confirmInput = $('#confirmPassword');
+                const $mismatchMsg = $('#passwordMismatch');
+                
+                if (confirmPassword === '') {
+                    $confirmInput.removeClass('is-invalid is-valid');
+                    $mismatchMsg.hide();
+                    return;
+                }
+                
+                if (password !== confirmPassword) {
+                    $confirmInput.removeClass('is-valid').addClass('is-invalid');
+                    $mismatchMsg.show();
+                } else {
+                    $confirmInput.removeClass('is-invalid').addClass('is-valid');
+                    $mismatchMsg.hide();
+                }
+            });
+            
+            // Form submission validation
+            $('#registerForm').on('submit', function(e) {
+                const password = $('#password').val();
+                const confirmPassword = $('#confirmPassword').val();
+                
+                if (password !== confirmPassword) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    $('#confirmPassword').addClass('is-invalid');
+                    $('#passwordMismatch').show();
+                    $('html, body').animate({
+                        scrollTop: $('#confirmPassword').offset().top - 100
+                    }, 500);
+                }
+            });
+        });
+    </script>
 </body>
 </html>

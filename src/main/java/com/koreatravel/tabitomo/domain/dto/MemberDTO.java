@@ -20,7 +20,7 @@ public class MemberDTO {
     private String nickname;
     private int countryId;
     private String role;
-    private boolean enabled;
+    private boolean isActive;
     private String status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -34,7 +34,7 @@ public class MemberDTO {
                 .nickname(nickname)
                 .countryId(countryId)
                 .role(role != null ? role : "ROLE_USER")
-                .enabled(enabled)
+                .isActive(isActive)
                 .status(status)
                 .createdAt(createdAt != null ? createdAt.toString() : null)
                 .updatedAt(updatedAt != null ? updatedAt.toString() : null)
@@ -49,7 +49,7 @@ public class MemberDTO {
                 .nickname(member.getNickname())
                 .countryId(member.getCountryId())
                 .role(member.getRole())
-                .enabled(member.isEnabled())
+                .isActive(member.isActive())
                 .status(member.getStatus())
                 .createdAt(member.getCreatedAt() != null ? LocalDateTime.parse(member.getCreatedAt()) : null)
                 .updatedAt(member.getUpdatedAt() != null ? LocalDateTime.parse(member.getUpdatedAt()) : null)

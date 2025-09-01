@@ -1,19 +1,21 @@
 package com.koreatravel.tabitomo.domain.entity;
 
-import jakarta.persistence.Column;
+import com.koreatravel.tabitomo.id.AddInfoId;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
 
-@Entity
+@Entity 
+@IdClass(AddInfoId.class)
 @Table(name = "AddInfo")
 public class AddInfoEntity {
     @Id
-    private String highnum;
+    private int infohighnum;
 
     @Id
-    private String lownum;
+    private int infolownum;
 
-    @Column
     private String content;
 }

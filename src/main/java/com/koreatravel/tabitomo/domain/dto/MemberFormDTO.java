@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class MemberFormDTO {
-    private String highnum;
-    private String lownum;
+    private int highnum;
+    private int lownum;
     private String content;
 }

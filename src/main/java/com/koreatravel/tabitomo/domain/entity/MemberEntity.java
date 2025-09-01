@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "members")
+@Table(name = "Member")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -34,7 +34,7 @@ public class MemberEntity {
     private String role;
 
     @Builder.Default
-    private boolean enabled = true;
+    private boolean isActive = true;
 
     @Column
     private String status;

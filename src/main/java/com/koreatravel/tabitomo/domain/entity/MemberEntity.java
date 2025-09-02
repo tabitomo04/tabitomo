@@ -11,12 +11,8 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class MemberEntity {
-    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false)

@@ -9,20 +9,400 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
+    <!-- i18next -->
+    <script src="https://unpkg.com/i18next@21.6.0/dist/umd/i18next.min.js"></script>
     <!-- Custom CSS -->
     <link rel="stylesheet" th:href="@{/css/main.css}">
-</head>
-<body>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        
+        /* Language Selector Styles */
+        .language-selector {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .language-selector-button {
+            background: none;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 5px 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            color: #333;
+            background-color: white;
+        }
+        
+        .language-selector-button:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .language-selector {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .language-selector-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .language-selector-button i {
+            margin-right: 5px;
+        }
+        
+        .language-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            min-width: 140px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 1001;
+            border-radius: 4px;
+            border: 1px solid #e2e8f0;
+            margin-top: 8px;
+            padding: 5px 0;
+        }
+        
+        .language-dropdown.show {
+            display: block;
+            animation: fadeIn 0.2s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .language-option {
+            display: block;
+            width: 100%;
+            padding: 8px 16px;
+            text-align: left;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .language-option:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .language-option:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .language-option.active {
+            background-color: #f1f3f5;
+            font-weight: 500;
+        }
+        
+        /* Custom language dropdown */
+        .language-selector {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+        
+        .language-dropdown {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 120px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.1);
+            z-index: 1000;
+            right: 0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .language-dropdown a {
+            color: #333;
+            padding: 8px 16px;
+            text-decoration: none;
+            display: block;
+            text-align: left;
+        }
+        
+        .language-dropdown a:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .show-dropdown {
+            display: block !important;
+        }
+    </style>
+    
+    <script type="text/javascript">
+        // Initialize i18next
+        i18next.init({
+            lng: 'ko',
+            fallbackLng: 'ko',
+            resources: {
+                ko: {
+                    translation: {
+                        "welcome": "여행의 모든 것 - TabiTomo",
+                        "region": "지역",
+                        "theme": "테마",
+                        "course": "코스",
+                        "community": "커뮤니티",
+                        "login": "로그인",
+                        "signup": "회원가입",
+                        "search_placeholder": "어디로 여행가시나요?",
+                        "popular_regions": "인기 여행지",
+                        "popular_courses": "추천 여행 코스",
+                        "view_all": "더보기",
+                        "footer_about": "TabiTomo 소개",
+                        "footer_terms": "이용약관",
+                        "footer_privacy": "개인정보처리방침",
+                        "footer_contact": "문의하기"
+                    }
+                },
+                en: {
+                    translation: {
+                        "welcome": "All About Travel - TabiTomo",
+                        "region": "Region",
+                        "theme": "Theme",
+                        "course": "Course",
+                        "community": "Community",
+                        "login": "Login",
+                        "signup": "Sign Up",
+                        "search_placeholder": "Where are you traveling to?",
+                        "popular_regions": "Popular Destinations",
+                        "popular_courses": "Recommended Travel Courses",
+                        "view_all": "View All",
+                        "footer_about": "About TabiTomo",
+                        "footer_terms": "Terms of Service",
+                        "footer_privacy": "Privacy Policy",
+                        "footer_contact": "Contact Us"
+                    }
+                },
+                ja: {
+                    translation: {
+                        "welcome": "旅のすべて - TabiTomo",
+                        "region": "地域",
+                        "theme": "テーマ",
+                        "course": "コース",
+                        "community": "コミュニティ",
+                        "login": "ログイン",
+                        "signup": "新規登録",
+                        "search_placeholder": "旅行先はどこですか？",
+                        "popular_regions": "人気の観光地",
+                        "popular_courses": "おすすめの旅行コース",
+                        "view_all": "もっと見る",
+                        "footer_about": "TabiTomoについて",
+                        "footer_terms": "利用規約",
+                        "footer_privacy": "プライバシーポリシー",
+                        "footer_contact": "お問い合わせ"
+                    }
+                }
+            }
+        });
+
+        // Update content when language changes
+        function updateContent() {
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                element.textContent = i18next.t(key);
+            });
+        }
+
+        // Change language
+        function changeLanguage(lang) {
+            i18next.changeLanguage(lang, (err, t) => {
+                if (err) return console.log('Error loading language', err);
+                updateContent();
+                document.documentElement.lang = lang;
+                setCookie('preferred_language', lang, 30);
+                
+                // Update active state in language selector
+                document.querySelectorAll('.language-option').forEach(option => {
+                    if (option.dataset.lang === lang) {
+                        option.classList.add('active');
+                        document.getElementById('currentLanguage').textContent = option.textContent;
+                    } else {
+                        option.classList.remove('active');
+                    }
+                });
+            });
+        }
+
+        // Function to set a cookie
+        function setCookie(name, value, days) {
+            let expires = '';
+            if (days) {
+                const date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                expires = '; expires=' + date.toUTCString();
+            }
+            document.cookie = name + '=' + (value || '') + expires + '; path=/';
+        }
+        
+        // Function to get a cookie value by name
+        function getCookie(name) {
+            const nameEQ = name + '=';
+            const ca = document.cookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        // Initialize when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM fully loaded');
+            // Initialize with saved language or default to Korean
+            const savedLang = getCookie('preferred_language') || 'ko';
+            changeLanguage(savedLang);
+            setupLanguageSelector();
+        });
+        
+        // Also try to initialize immediately in case DOM is already loaded
+        if (document.readyState !== 'loading') {
+            console.log('DOM already loaded, initializing...');
+            const savedLang = getCookie('preferred_language') || 'ko';
+            changeLanguage(savedLang);
+            setupLanguageSelector();
+        }
+        
+        function initLanguageSelector() {
+            console.log('Initializing language selector...');
+            // Load saved language preference or default to Korean
+            const savedLang = getCookie('preferred_language') || 'ko';
+            
+            // Set up event listeners first
+            setupLanguageSelector();
+            
+            // Update UI and translate if needed
+            updateLanguageUI(savedLang);
+            
+            // Always translate on page load if not Korean
+            if (savedLang !== 'ko') {
+                translatePage(savedLang).then(() => {
+                    console.log('Initial translation complete');
+                }).catch(error => {
+                    console.error('Initial translation failed:', error);
+                });
+            }
+        };
+        
+        function updateLanguageUI(lang) {
+            // Update active state of language buttons
+            document.querySelectorAll('.language-option').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === lang);
+            });
+            
+            // Update button text
+            const buttonText = document.querySelector('.language-selector-button span');
+            if (buttonText) {
+                const langNames = {
+                    'ko': '한국어',
+                    'en': 'English',
+                    'ja': '日本語',
+                    'zh-CN': '中文(简体)',
+                    'zh-TW': '中文(繁體)'
+                };
+                buttonText.textContent = langNames[lang] || '언어';
+            }
+        }
+        
+        function setupLanguageSelector() {
+            console.log('Setting up language selector...');
+            const button = document.getElementById('languageButton');
+            const dropdown = document.getElementById('languageDropdown');
+            
+            if (!button || !dropdown) {
+                console.error('Language selector elements not found');
+                console.log('Button exists:', !!button);
+                console.log('Dropdown exists:', !!dropdown);
+                return;
+            }
+            
+            console.log('Language selector elements found');
+            
+            // Toggle dropdown on button click
+            button.addEventListener('click', function(e) {
+                console.log('Language button clicked');
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Current classes:', dropdown.className);
+                dropdown.classList.toggle('show');
+                console.log('After toggle - classes:', dropdown.className);
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function() {
+                dropdown.classList.remove('show');
+            });
+            
+            // Keep dropdown open when clicking inside
+            dropdown.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+            
+            // Handle language selection
+            dropdown.querySelectorAll('.language-option').forEach(option => {
+                option.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const lang = this.dataset.lang;
+                    setCookie('preferred_language', lang, 30);
+                    updateLanguageUI(lang);
+                    dropdown.classList.remove('show');
+                    
+                    changeLanguage(lang);
+                });
+            });
+        }
+        
+        // Toggle language dropdown
+        function toggleLanguageDropdown() {
+            document.getElementById('languageDropdown').classList.toggle('show-dropdown');
+        }
+        
+        // Close dropdown when clicking outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.language-selector') && !event.target.closest('.language-selector')) {
+                var dropdowns = document.getElementsByClassName('language-dropdown');
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show-dropdown')) {
+                        openDropdown.classList.remove('show-dropdown');
+                    }
+                }
+            }
+        }
+    </script>
+    <body>
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top">
         <div class="container">
             <!-- Logo -->
             <a class="navbar-brand" href="/">
                 <img src="/image/tomo.png" alt="TabiTomo" class="img-fluid">
+                <span data-i18n="welcome" style="margin-left: 10px;"></span>
             </a>
             
             <!-- Mobile Toggle Button -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             
@@ -30,13 +410,13 @@
             <div class="collapse navbar-collapse" id="navbarContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link" href="/region">지역</a>
+                        <a class="nav-link" href="/login" data-i18n="login"></a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/attractions">관광지 목록</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/plans">여행 계획</a>
+                        <a class="nav-link" href="/theme" data-i18n="theme"></a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/stories">여행 스토리북</a>
@@ -45,6 +425,20 @@
                 
                 <!-- Search and User Section (Desktop) -->
                 <div class="d-flex align-items-center">
+                    <!-- Language Selector -->
+                    <div class="language-selector me-3">
+                        <button class="language-selector-button" id="languageButton">
+                            <i class="bi bi-translate"></i>
+                            <span id="currentLanguage">한국어</span>
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+                        <div class="language-dropdown" id="languageDropdown">
+                            <a href="#" class="language-option active" data-lang="ko" onclick="changeLanguage('ko')">한국어</a>
+                            <a href="#" class="language-option" data-lang="en" onclick="changeLanguage('en')">English</a>
+                            <a href="#" class="language-option" data-lang="ja" onclick="changeLanguage('ja')">日本語</a>
+                        </div>
+                    </div>
+                    
                     <!-- Search Button (Desktop) -->
                     <button class="btn btn-link text-dark me-3 search-button" data-bs-toggle="tooltip" title="검색">
                         <i class="bi bi-search fs-5"></i>
@@ -52,7 +446,7 @@
                     
                     <!-- Search Box (Hidden by default) -->
                     <div class="search-box d-none">
-                        <input type="text" class="form-control" placeholder="여행지, 관광지 검색">
+                        <input class="form-control me-2" type="search" data-i18n="[placeholder]search_placeholder" aria-label="Search">
                         <button class="btn"><i class="bi bi-search"></i></button>
                     </div>
                     

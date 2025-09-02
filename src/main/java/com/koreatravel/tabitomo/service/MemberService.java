@@ -38,8 +38,8 @@ public class MemberService {
     public void saveUserSelectedInfo(String email, List<MemberFormDTO> memberFormDTO) {
         for (MemberFormDTO memberForm : memberFormDTO) {
             UserSelectedInfoEntity userSelectedInfo = UserSelectedInfoEntity.builder()
-                    .infohighnum(memberForm.getHighnum())
-                    .infolownum(memberForm.getLownum())
+                    .infohighnum(memberForm.getInfohighnum())
+                    .infolownum(memberForm.getInfolownum())
                     .email(email)
                     .build();
             userSelectedInfoRepository.save(userSelectedInfo);

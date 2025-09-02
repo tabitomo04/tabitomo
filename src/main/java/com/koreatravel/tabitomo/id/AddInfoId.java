@@ -2,7 +2,10 @@ package com.koreatravel.tabitomo.id;
 
 import java.io.Serializable;
 import java.util.Objects;
-
+/*
+    데이터베이스 중 ID가 2개 이상인 경우 새로 만들어서 해야 함,
+    AddInfo 테이블의 infohighnum과 infolownum을 합쳐서 ID로 사용
+ */
 public class AddInfoId implements Serializable {
     private int infohighnum;
     private int infolownum;

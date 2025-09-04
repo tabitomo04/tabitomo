@@ -20,6 +20,18 @@ public interface PathConstants {
     // 여행
     public static final String TRAVEL = "/travel";
     public static final String TRAVEL_LIST = TRAVEL + "/list";
+    public static final String TRAVEL_DETAIL = TRAVEL + "/detail";
+
+    public static final String TRAVEL_SIGHT = TRAVEL + "/sight";
+    public static final String TRAVEL_SIGHT_LIST = TRAVEL_SIGHT + "/list";
+    public static final String TRAVEL_SIGHT_DETAIL = TRAVEL_SIGHT + "/detail";
+
+    public static final String TRAVEL_CITY = TRAVEL + "/city";
+    public static final String TRAVEL_CITY_LIST = TRAVEL_CITY + "/list";
+    public static final String TRAVEL_CITY_DETAIL = TRAVEL_CITY + "/detail";
+
+    public static final String FAVORITE = TRAVEL + "/favorite";
+    public static final String FAVORITE_PLACE_LIST = FAVORITE + "/list";
     // 하단에 추가 바람!
 
     // 여행 스토리북

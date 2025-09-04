@@ -32,7 +32,8 @@ public class AuthService {
         MemberEntity member = MemberEntity.builder()
                 .email(memberDTO.getEmail())
                 .password(passwordEncoder.encode(memberDTO.getPassword()))
-                .name(memberDTO.getName())
+                .nickname(memberDTO.getNickname())
+                .countryId(memberDTO.getCountryId())
                 .role("ROLE_USER")
                 .build();
 

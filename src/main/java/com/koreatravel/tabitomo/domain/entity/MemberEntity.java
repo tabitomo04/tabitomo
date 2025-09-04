@@ -18,9 +18,6 @@ public class MemberEntity {
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false)
-    private String name;
-
     @Column(unique = true)
     private String nickname;
 

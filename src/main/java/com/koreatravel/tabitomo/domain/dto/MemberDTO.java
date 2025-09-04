@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
 public class MemberDTO {
     private String email;
     private String password;
-    private String name;
     private String nickname;
     private int countryId;
     private String role;
@@ -28,7 +27,6 @@ public class MemberDTO {
         return MemberEntity.builder()
                 .email(email)
                 .password(password)
-                .name(name)
                 .nickname(nickname)
                 .countryId(countryId)
                 .role(role != null ? role : "ROLE_USER")
@@ -42,7 +40,6 @@ public class MemberDTO {
     public static MemberDTO fromEntity(MemberEntity member) {
         return MemberDTO.builder()
                 .email(member.getEmail())
-                .name(member.getName())
                 .nickname(member.getNickname())
                 .countryId(member.getCountryId())
                 .role(member.getRole())

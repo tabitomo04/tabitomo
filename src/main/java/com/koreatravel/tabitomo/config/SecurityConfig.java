@@ -35,7 +35,12 @@ public class SecurityConfig {
                     "/webjars/**",
                     "/h2-console/**",
                     PathConstants.JOIN,
-                    PathConstants.LOGIN
+                    PathConstants.LOGIN,
+                    PathConstants.TRAVEL_SIGHT_LIST + "/**",
+                    PathConstants.TRAVEL_SIGHT_DETAIL + "/**",
+                    PathConstants.TRAVEL_CITY_LIST + "/**",
+                    PathConstants.TRAVEL_CITY_DETAIL + "/**"
+
                 ).permitAll()
                 // 인증된 사용자만 접근 가능한 경로
                 .requestMatchers(

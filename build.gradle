@@ -73,6 +73,11 @@ dependencies {
 	// Jakarta Validation
 	implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
 	implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
+
+	implementation 'net.coobird:thumbnailator:0.4.19' //이미지 압축, 리사이즈 라이브러리
+	implementation 'org.jsoup:jsoup:1.16.1' // html 파싱
+
+
 }
 
 dependencyManagement {

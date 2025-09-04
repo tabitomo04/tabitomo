@@ -1,0 +1,180 @@
+     body {
+       font-family: "Noto Sans KR", sans-serif;
+       margin: 0;
+       padding: 0;
+       background: #fff;
+       color: #333;
+     }
+
+     .profile-container {
+       max-width: 1000px;
+       margin: 0 auto;
+       padding: 20px;
+     }
+
+     .profile-header {
+       display: flex;
+       gap: 20px;
+       align-items: flex-start;
+       margin-bottom: 40px;
+     }
+
+     .profile-img {
+       width: 100px;
+       height: 100px;
+       border-radius: 50%;
+     }
+
+     .profile-info h1 {
+       margin: 0;
+       font-size: 24px;
+     }
+
+     .email {
+       color: gray;
+       margin: 5px 0;
+     }
+
+     .intro {
+       margin: 10px 0;
+       font-size: 14px;
+       line-height: 1.5;
+     }
+
+     .tags span {
+       display: inline-block;
+       background: #f1f1f1;
+       margin: 2px;
+       padding: 5px 10px;
+       border-radius: 15px;
+       font-size: 12px;
+     }
+
+     .btn {
+       border: 1px solid #333;
+       background: #fff;
+       padding: 8px 12px;
+       margin: 5px;
+       cursor: pointer;
+       border-radius: 5px;
+       font-size: 14px;
+       text-decoration: none;
+       color: inherit;
+     }
+
+     .btn.primary {
+       background: black;
+       color: white;
+       text-decoration: none;
+
+     }
+
+     .section-header {
+       display: flex;
+       justify-content: space-between;
+       align-items: center;
+     }
+
+     .card-list {
+       display: flex;
+       gap: 15px;
+       margin: 20px 0;
+     }
+
+     .card {
+       flex: 1;
+       border: 1px solid #ddd;
+       padding: 15px;
+       border-radius: 8px;
+       background: #fafafa;
+     }
+
+     .card h3 {
+       margin-top: 0;
+       font-size: 18px;
+     }
+
+     .desc {
+       font-size: 14px;
+       color: #555;
+     }
+
+     .card-footer {
+       display: flex;
+       justify-content: space-between;
+       font-size: 12px;
+       margin-top: 10px;
+       color: #777;
+     }
+
+     .card-list.small .card {
+       flex: none;
+       width: 200px;
+       font-size: 14px;
+       text-align: center;
+     }
+
+     .btn.more {
+       display: block;
+       margin: 10px auto;
+     }
+     .grid {
+           display: grid;
+           grid-template-columns: repeat(3, 1fr);
+           gap: 20px;
+         }
+         .card {
+           border: 1px solid #ccc;
+           border-radius: 10px;
+           padding: 14px;
+           display: flex;
+           flex-direction: column;
+           justify-content: space-between;
+           height: 240px;
+         }
+         .card .likes {
+           text-align: right;
+           font-size: 13px;
+           margin-bottom: 6px;
+         }
+         .card h3 {
+           font-size: 15px;
+           margin: 0 0 8px;
+           font-weight: bold;
+         }
+         .card p {
+           font-size: 13px;
+           color: #444;
+           margin: 0 0 10px;
+           line-height: 1.4;
+         }
+         .card .meta {
+           font-size: 12px;
+           color: #555;
+           display: flex;
+           justify-content: space-between;
+           align-items: center;
+         }
+         .link {
+             display:block;
+             text-decoration: none;  /* 밑줄 제거 */
+             color: inherit;         /* 글자색 유지 */
+         }
+
+         .thumbnail {
+             width: 280px;
+             height: 158px;
+             overflow: hidden;
+             border-radius: 5px;
+             display: flex;               /* flexbox 적용 */
+             justify-content: center;     /* 가로 중앙 */
+             align-items: center;         /* 세로 중앙 */
+             margin: 0 auto;  /* 부모 기준으로 가로 중앙 */
+         }
+
+         .thumbnail img {
+             width: 90%;
+             height: 90%;
+             object-fit: cover;
+             object-position: center center;
+         }

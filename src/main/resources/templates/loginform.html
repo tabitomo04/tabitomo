@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>로그인</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #fff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+    .login-container {
+        border: 2px solid #2e4c4c;
+        border-radius: 30px;
+        padding: 40px;
+        width: 400px;
+        text-align: center;
+    }
+    .login-container h2 {
+        margin-bottom: 20px;
+        color: #2e4c4c;
+    }
+    .login-container label {
+        display: block;
+        text-align: left;
+        margin: 10px 0 5px;
+        font-weight: bold;
+        color: #2e4c4c;
+    }
+    .login-container input[type="email"],
+    .login-container input[type="password"] {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border-radius: 20px;
+        border: 1px solid #ccc;
+    }
+    .options {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 15px;
+        font-size: 14px;
+    }
+    .login-container button {
+        width: 100%;
+        padding: 12px;
+        border-radius: 20px;
+        border: none;
+        background: #2e4c4c;
+        color: #fff;
+        font-size: 16px;
+        cursor: pointer;
+    }
+    .login-container .links {
+        margin-top: 15px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+    }
+    .login-container .links a {
+        text-decoration: none;
+        color: #333;
+        cursor: pointer;
+    }
+
+    /* 모달 안 비밀번호 찾기 스타일 일부 보정 */
+    .password-find-box {
+        padding: 20px;
+    }
+    .reset-button {
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        background: #f0f0f0;
+        font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+<div class="login-container">
+  <h2>로그인</h2>
+  <form th:action="@{/login}" method="post">
+    <label for="email">이메일</label>
+    <input type="email" id="email" name="email" placeholder="이메일 입력" required>
+
+    <label for="password">비밀번호</label>
+    <input type="password" id="password" name="password" placeholder="비밀번호 입력" required>
+
+    <div class="options">
+      <label><input type="checkbox" name="rememberEmail"> 이메일 기억하기</label>
+      <label><input type="checkbox" name="autoLogin"> 자동 로그인</label>
+    </div>
+
+    <button type="submit">로그인</button>
+
+    <div class="links">
+      <!-- 모달 열기 버튼 -->
+      <a href="#" data-bs-toggle="modal" data-bs-target="#passwordModal">비밀번호 찾기</a>
+      <a href="#">회원가입</a>
+    </div>
+  </form>
+</div>
+
+<!-- 🔹 비밀번호 찾기 모달 -->
+<div class="modal fade" id="passwordModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">비밀번호 찾기</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <!-- 기존 비밀번호 찾기 HTML 내용(body 내부만) 삽입 -->
+        <div class="password-find-box">
+          <form id="passwordFindForm" onsubmit="return false;">
+            <!-- 이메일 인증 -->
+            <div class="mb-4">
+              <div class="form-group">
+                <label for="email" class="form-label">이메일 주소</label>
+                <div class="input-group">
+                  <input type="email" class="form-control" id="emailFind" name="email"
+                         placeholder="example@example.com" required>
+                  <button class="btn btn-outline-primary" type="button" id="sendCodeBtn"
+                          style="min-width: 120px;" disabled>
+                    인증번호 발송
+                  </button>
+                </div>
+                <div id="emailError" class="error-message text-danger small mt-1" style="display:none;"></div>
+                <div id="emailStatus" class="form-text text-muted mt-1" style="display: none;"></div>
+              </div>
+
+              <!-- 인증번호 입력 -->
+              <div class="form-group mt-3" id="codeField" style="display: none;">
+                <label for="verificationCode" class="form-label">인증번호</label>
+                <div class="input-group">
+                  <input type="text" class="form-control" id="verificationCode"
+                         placeholder="이메일로 전송된 6자리 인증번호" maxlength="6">
+                  <span class="input-group-text">
+                              <span id="countdown">03:00</span>
+                          </span>
+                  <button class="btn btn-outline-secondary" type="button" id="verifyCodeBtn">
+                    인증확인
+                  </button>
+                </div>
+                <div id="codeError" class="error-message text-danger small mt-1" style="display:none;"></div>
+                <div id="codeSuccess" class="success-message text-success small mt-1" style="display:none;">
+                  이메일 인증 완료!
+                </div>
+              </div>
+            </div>
+          </form>
+          <button class="reset-button" id="resetBtn">비밀번호 재설정</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let verificationCode = '';
+  let countdownInterval;
+
+  // 이메일 입력 유효성 검사
+  $('#emailFind').on('input', function () {
+      const email = $(this).val().trim();
+      const $sendBtn = $('#sendCodeBtn');
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const isValid = emailRegex.test(email);
+
+      $sendBtn.prop('disabled', !isValid);
+
+      if (!isValid && email !== '') {
+          $('#emailError').text('유효한 이메일 주소를 입력해주세요.').show();
+      } else {
+          $('#emailError').hide();
+      }
+  });
+
+  // 인증번호 발송
+  $('#sendCodeBtn').click(async function () {
+      const email = $('#emailFind').val().trim();
+      if (!email) {
+          $('#emailError').text('이메일을 입력해주세요.').show();
+          return;
+      }
+
+      const $btn = $(this);
+      $btn.prop('disabled', true).text('전송 중...');
+
+      try {
+          const response = await fetch('/api/email/send-verification', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email })
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+              verificationCode = data.verificationCode;
+              $('#codeField').show();
+              $('#verificationCode').focus();
+              startCountdown();
+              $('#emailStatus').text('인증번호가 전송되었습니다. 이메일을 확인해주세요.').show();
+          } else {
+              throw new Error(data.message || '인증번호 전송 실패');
+          }
+      } catch (error) {
+          $('#emailError').text(error.message).show();
+      } finally {
+          $btn.prop('disabled', false).text('인증번호 발송');
+      }
+  });
+
+  // 인증번호 확인
+  $('#verifyCodeBtn').click(function () {
+      const inputCode = $('#verificationCode').val().trim();
+
+      if (!inputCode) {
+          $('#codeError').text('인증번호를 입력해주세요.').show();
+          return;
+      }
+
+      if (inputCode === verificationCode) {
+          clearInterval(countdownInterval);
+          $('#sendCodeBtn')
+              .prop('disabled', true)
+              .text('인증 완료')
+              .removeClass('btn-outline-primary')
+              .addClass('btn-success');
+
+          $('#codeError').hide();
+          $('#codeSuccess').show();
+
+          $('<input>').attr({
+              type: 'hidden',
+              id: 'emailVerified',
+              name: 'emailVerified',
+              value: 'true'
+          }).appendTo('#passwordFindForm');
+      } else {
+          $('#codeError').text('인증번호가 일치하지 않습니다.').show();
+      }
+  });
+
+  // 비밀번호 재설정 버튼
+  $('#resetBtn').click(function () {
+      if ($('#emailVerified').val() !== 'true') {
+          alert('이메일 인증을 먼저 완료해주세요.');
+          return;
+      }
+      window.location.href = '/reset-password';
+  });
+
+  // 타이머 시작
+  function startCountdown() {
+      let timeLeft = 180;
+
+      if (countdownInterval) {
+          clearInterval(countdownInterval);
+      }
+      updateCountdown(timeLeft);
+
+      countdownInterval = setInterval(() => {
+          timeLeft--;
+          updateCountdown(timeLeft);
+
+          if (timeLeft <= 0) {
+              clearInterval(countdownInterval);
+              $('#codeError').text('인증 시간이 만료되었습니다. 다시 시도해주세요.').show();
+              $('#verificationCode').prop('disabled', true);
+              $('#verifyCodeBtn').prop('disabled', true);
+          }
+      }, 1000);
+  }
+
+  function updateCountdown(seconds) {
+      const minutes = Math.floor(seconds / 60);
+      const remainingSeconds = seconds % 60;
+      $('#countdown').text(`${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`);
+  }
+</script>
+</body>
+</html>

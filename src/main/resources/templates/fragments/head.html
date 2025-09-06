@@ -1,0 +1,78 @@
+<th:block th:fragment="head">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabitomo - 여행의 동반자</title>
+    <link rel="icon" href="/image/pabicone.png" type="image/png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- Additional CSS -->
+    <link rel="stylesheet" href="/css/editor.css">
+    <link rel="stylesheet" href="/css/map-styles.css">
+    <link rel="stylesheet" href="/css/modal.css">
+    <link rel="stylesheet" href="/css/mypage.css">
+    <link rel="stylesheet" href="/css/storylist.css">
+    <link rel="stylesheet" href="/css/storyview.css">
+    <link rel="stylesheet" href="/css/tripselect.css">
+    
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script src="/js/main.js"></script>
+    <script src="/js/map-utils.js"></script>
+    <script src="/js/media.js"></script>
+    <script src="/js/modal.js"></script>
+    
+    <!-- Google 번역 위젯 스크립트 -->
+    <script type="text/javascript">
+    function googleTranslateElementInit() {
+        new google.translate.TranslateElement({
+            pageLanguage: 'ko',
+            includedLanguages: 'ko,en,ja',
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+        }, 'google_translate_element');
+    }
+    </script>
+    <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <script>
+    // 구글 번역 언어 선택을 세션에 저장하고, 페이지 로드 시 자동 적용
+    function setGoogleTranslateLang(lang) {
+        sessionStorage.setItem('google_translate_lang', lang);
+        var select = document.querySelector('#google_translate_element select');
+        if (select) {
+            select.value = lang;
+            select.dispatchEvent(new Event('change'));
+        }
+    }
+
+    // 언어 선택 시 이벤트 감지 및 저장
+    document.addEventListener('change', function(e) {
+        if (e.target && e.target.parentNode && e.target.parentNode.id === 'google_translate_element') {
+            setGoogleTranslateLang(e.target.value);
+        }
+    }, true);
+
+    // 페이지 로드 시 세션 언어 적용
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            var lang = sessionStorage.getItem('google_translate_lang');
+            var select = document.querySelector('#google_translate_element select');
+            if (lang && select) {
+                select.value = lang;
+                select.dispatchEvent(new Event('change'));
+                // 구글 번역 드롭다운 option 텍스트 커스텀
+                for (var i = 0; i < select.options.length; i++) {
+                    var opt = select.options[i];
+                    if (opt.value === 'ko') opt.text = '한국어';
+                    if (opt.value === 'en') opt.text = 'English';
+                    if (opt.value === 'ja') opt.text = '日本語';
+                }
+            }
+        }, 1000); // 위젯 렌더링 대기
+    });
+    </script>
+</head>

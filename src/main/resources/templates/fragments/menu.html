@@ -1,7 +1,3 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark" th:fragment="menu">
     <div class="container">
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -10,27 +6,27 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="/" th:classappend="${request.requestURI == '/' ? 'active' : ''}">
+                    <a class="nav-link" href="/" th:classappend="${#httpServletRequest.requestURI == '/' ? 'active' : ''}">
                         <i class="fas fa-home"></i> <span th:text="#{menu.home}">Home</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/tripselect/step1" th:classappend="${request.requestURI.startsWith('/tripselect') ? 'active' : ''}">
+                    <a class="nav-link" href="/tripselect/step1" th:classappend="${#httpServletRequest.requestURI.startsWith('/tripselect') ? 'active' : ''}">
                         <i class="fas fa-route"></i> <span th:text="#{menu.travel}">여행지 추천</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/accommodation" th:classappend="${request.requestURI.startsWith('/accommodation') ? 'active' : ''}">
+                    <a class="nav-link" href="/accommodation" th:classappend="${#httpServletRequest.requestURI.startsWith('/accommodation') ? 'active' : ''}">
                         <i class="fas fa-hotel"></i> <span th:text="#{menu.accommodation}">숙소</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/restaurant" th:classappend="${request.requestURI.startsWith('/restaurant') ? 'active' : ''}">
+                    <a class="nav-link" href="/restaurant" th:classappend="${#httpServletRequest.requestURI.startsWith('/restaurant') ? 'active' : ''}">
                         <i class="fas fa-utensils"></i> <span th:text="#{menu.restaurant}">맛집</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/community" th:classappend="${request.requestURI.startsWith('/community') ? 'active' : ''}">
+                    <a class="nav-link" href="/community" th:classappend="${#httpServletRequest.requestURI.startsWith('/community') ? 'active' : ''}">
                         <i class="fas fa-users"></i> <span th:text="#{menu.community}">스토리북</span>
                     </a>
                 </li>
@@ -57,9 +53,6 @@
                     </button>
                 </form>
             </div>
-           
         </div>
     </div>
 </nav>
-</body>
-</html>

@@ -25,8 +25,8 @@ public class FavoritePlaceEntity {
     @Column
     private String email;
     
-    @Column
-    private String place_id;
+    @Column(name = "place_id")
+    private Long placeId;
     
     @Column
     private LocalDateTime createdAt;

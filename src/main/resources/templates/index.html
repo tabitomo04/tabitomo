@@ -1,17 +1,41 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       lang="ko" id="htmlTag">
-<head th:replace="~{fragments/header :: head}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tabitomo - 여행의 동반자</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-<!-- Header -->
-<div th:replace="~{fragments/header :: header}"></div>
-
-<!-- Navigation Menu -->
-<div th:replace="~{fragments/menu :: menu}"></div>
+<header class="bg-primary text-white p-3">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>Tabitomo</h1>
+        </div>
+    </div>
+</header>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">
+                        <i class="fas fa-home"></i> <span>Home</span>
+                    </a>
+                </li>
+            </ul>
+            <div class="d-flex">
+                <a href="/login" class="btn btn-outline-light me-2">
+                    <i class="fas fa-sign-in-alt"></i> <span>로그인</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
 
 <!-- Main Content -->
 <main class="py-5">
@@ -38,7 +62,7 @@
                 <!-- Destination 1 -->
                 <div class="col-md-4">
                     <div class="card h-100">
-                        <img src="/image/local image/seoul.png" class="card-img-top" alt="서울">
+                        <img th:src="@{/image/local%20image/seoul.png}" class="card-img-top" alt="서울">
                         <div class="card-body">
                             <h5 class="card-title" th:text="#{index.seoul.title}">서울</h5>
                             <p class="card-text" th:text="#{index.seoul.description}">현대적인 도시와 전통이 어우러진 대한민국의 수도</p>
@@ -49,7 +73,7 @@
                 <!-- Destination 2 -->
                 <div class="col-md-4">
                     <div class="card h-100">
-                        <img src="/image/local image/tokyo.jpg" class="card-img-top" alt="도쿄">
+                        <img th:src="@{/image/local%20image/tokyo.jpg}" class="card-img-top" alt="도쿄">
                         <div class="card-body">
                             <h5 class="card-title" th:text="#{index.tokyo.title}">도쿄</h5>
                             <p class="card-text" th:text="#{index.tokyo.description}">화려한 네온사인과 전통이 공존하는 일본의 수도</p>
@@ -60,7 +84,7 @@
                 <!-- Destination 3 -->
                 <div class="col-md-4">
                     <div class="card h-100">
-                        <img src="/image/local image/bali.jpg" class="card-img-top" alt="발리">
+                        <img th:src="@{/image/local%20image/bali.jpg}" class="card-img-top" alt="발리">
                         <div class="card-body">
                             <h5 class="card-title" th:text="#{index.bali.title}">발리</h5>
                             <p class="card-text" th:text="#{index.bali.description}">푸른 바다와 아름다운 해변으로 유명한 휴양지</p>
@@ -166,18 +190,16 @@
     </section>
 </main>
 
-<!-- Footer -->
-<footer th:replace="~{fragments/footer :: footer}"></footer>
+<footer class="bg-dark text-white mt-5">
+    <div class="container py-4">
+        <div class="text-center">
+            <p class="mb-0">&copy; 2025 Tabitomo. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
 
-<!-- Scripts -->
-<script>
-    // Initialize tooltips
-    document.addEventListener('DOMContentLoaded', function() {
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-    });
-</script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>

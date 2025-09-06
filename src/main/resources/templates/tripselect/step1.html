@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>여행지 선택 1단계 - 지역 및 기간</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/tripselect.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="progress mb-4">
+            <div class="progress-bar" role="progressbar" style="width: 25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
+        </div>
+        
+        <h2 class="mb-4">어디로 떠나시나요?</h2>
+        
+        <form id="tripForm" action="/trip/step2" method="post" th:object="${tripForm}">
+            <div class="mb-3">
+                <label for="destination" class="form-label">여행지</label>
+                <select class="form-select" id="destination" name="destination" required>
+                    <option value="">여행지를 선택해주세요</option>
+                    <option value="서울특별시">서울특별시</option>
+                    <option value="부산광역시">부산광역시</option>
+                    <option value="대구광역시">대구광역시</option>
+                    <option value="인천광역시">인천광역시</option>
+                    <option value="광주광역시">광주광역시</option>
+                    <option value="대전광역시">대전광역시</option>
+                    <option value="울산광역시">울산광역시</option>
+                    <option value="세종특별자치시">세종특별자치시</option>
+                    <option value="경기도">경기도</option>
+                    <option value="강원특별자치도">강원특별자치도</option>
+                    <option value="충청북도">충청북도</option>
+                    <option value="충청남도">충청남도</option>
+                    <option value="전북특별자치도">전북특별자치도</option>
+                    <option value="전라남도">전라남도</option>
+                    <option value="경상북도">경상북도</option>
+                    <option value="경상남도">경상남도</option>
+                    <option value="제주특별자치도">제주특별자치도</option>
+                </select>
+            </div>
+
+                <div class="mb-3">
+                    <label for="accommodationBudget" class="form-label">숙소 예산(1박 기준)</label>
+                    <select class="form-select" id="accommodationBudget" name="accommodationBudget" required>
+                        <option value="">예산을 선택해주세요</option>
+                        <option value="50000">5만원 이하</option>
+                        <option value="100000">5~10만원</option>
+                        <option value="150000">10~15만원</option>
+                        <option value="200000">15~20만원</option>
+                        <option value="200001">20만원 이상</option>
+                    </select>
+                </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">원하는 부대시설을 선택하세요</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="facilities" value="조식" id="facilityBreakfast">
+                            <label class="form-check-label" for="facilityBreakfast">조식</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="facilities" value="수영장" id="facilityPool">
+                            <label class="form-check-label" for="facilityPool">수영장</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="facilities" value="주차" id="facilityParking">
+                            <label class="form-check-label" for="facilityParking">주차</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="facilities" value="와이파이" id="facilityWifi">
+                            <label class="form-check-label" for="facilityWifi">와이파이</label>
+                        </div>
+                        <!-- 필요시 추가 부대시설 옵션 -->
+                    </div>
+            
+            <div class="mb-3">
+                <label for="startDate" class="form-label">출발일</label>
+                <input type="date" class="form-control" id="startDate" name="startDate" required>
+            </div>
+            <div class="mb-3">
+                <label for="nights" class="form-label">몇 박 여행인가요?</label>
+                <select class="form-select" id="nights" name="nights" required>
+                    <option value="">박 수를 선택해주세요</option>
+                    <option value="1">1박 2일</option>
+                    <option value="2">2박 3일</option>
+                    <option value="3">3박 4일</option>
+                    <option value="4">4박 5일</option>
+                    <option value="5">5박 6일</option>
+                </select>
+            </div>
+            
+            <div class="d-flex justify-content-between mt-4">
+                <a href="/" class="btn btn-secondary">이전</a>
+                <button type="submit" class="btn btn-primary">다음</button>
+            </div>
+        </form>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Set minimum date to today
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('startDate').min = today;
+    </script>
+</body>
+</html>

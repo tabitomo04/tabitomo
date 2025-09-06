@@ -2,7 +2,6 @@ package com.koreatravel.tabitomo.domain.entity.member;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -15,7 +14,7 @@ import java.time.LocalDateTime;
 public class MemberEntity {
 
     @Id
-    @Column(name = "email", nullable = false, unique = true)
+    @Column(name = "email", nullable = false, unique = true, length = 100)
     private String email; // 이메일
 
     @Column(nullable = false)
@@ -27,18 +26,29 @@ public class MemberEntity {
     @Column
     private int gender;
 
-    @Column
-    private int country_id;
+    @Column(name = "country_id")
+    private int countryId;
 
     @Column
     private boolean isActive;
 
-    @Column
-    private LocalDateTime created_at;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
     @Column
     private int age;
 
-    @Column
-    private LocalDateTime updated_at;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+    
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+    
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }

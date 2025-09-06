@@ -1,6 +1,6 @@
 package com.koreatravel.tabitomo.domain.dto.member;
 
-import com.koreatravel.tabitomo.domain.entity.MemberEntity;
+import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

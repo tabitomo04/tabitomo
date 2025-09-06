@@ -1,4 +1,4 @@
-package com.koreatravel.tabitomo.domain.entity;
+package com.koreatravel.tabitomo.domain.entity.member;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

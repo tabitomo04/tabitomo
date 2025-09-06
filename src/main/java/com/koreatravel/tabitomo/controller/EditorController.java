@@ -1,11 +1,12 @@
 package com.koreatravel.tabitomo.controller;
 
 
-import com.koreatravel.tabitomo.domain.dto.SaveRequestDTO;
-import com.koreatravel.tabitomo.domain.dto.StorybookDTO;
-import com.koreatravel.tabitomo.domain.dto.StorybookListDTO;
-import com.koreatravel.tabitomo.domain.dto.TempsaveDTO;
-import com.koreatravel.tabitomo.service.EditorService;
+import com.koreatravel.tabitomo.domain.dto.storybook.SaveRequestDTO;
+import com.koreatravel.tabitomo.domain.dto.storybook.StorybookDTO;
+import com.koreatravel.tabitomo.domain.dto.storybook.StorybookListDTO;
+import com.koreatravel.tabitomo.domain.dto.trip.TempsaveDTO;
+import com.koreatravel.tabitomo.service.storybook.EditorService;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

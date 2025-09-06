@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>여행하는 작가 프로필</title>
+  <link rel="stylesheet" href="css/mypage.css">
+  <link rel="stylesheet" href="css/modal.css">
+  <script>
+
+
+  </script>
+</head>
+<body>
+<div class="profile-container">
+  <!-- 프로필 영역 -->
+  <div class="profile-header">
+
+    <div class="profile-info">
+      <h1>여행하는 작가</h1>
+      <p class="email">traveler@email.com</p>
+      <input type="hidden" id="userEmail" th:value="'test@example.com'">
+      <p class="intro">
+        세계 각지의 여행지 경험을 기록하는 여행 작가입니다. 새로운 문화와 음식을 탐험하는 것을 좋아하며,
+        특히 자연 관광지와 지역적인 소박한 매력에 관심이 많습니다.
+      </p>
+      <div class="tags">
+        <span>#여행</span><span>#작가</span><span>#사진</span><span>#리뷰</span><span>#문화탐방</span>
+      </div>
+      <button class="btn">프로필 편집</button>
+    </div>
+  </div>
+
+  <!-- 내 스토리북 -->
+  <section class="story-section">
+    <div class="section-header">
+      <h2>내 스토리북</h2>
+      <div class="story-buttons">
+        <a class="btn" id="templistBtn">임시저장본</a>
+        <a class="btn primary" onclick="checkTemp()" th:href="@{'/editor'}">새 스토리 작성</a>
+      </div>
+    </div>
+    <div class="grid">
+
+      <div th:if="${storylist}" th:each="storylist, status: ${storylist}">
+        <a class="link" th:href="@{'/view?booknum=' + ${storylist.booknum}}">
+          <div class="card">
+            <div class="likes">❤ <span th:text="${storylist.likes}"></span></div>
+            <div class="thumbnail">
+              <img th:src="@{${storylist.thumbnail}}" alt="썸네일">
+            </div>
+            <h3 th:text="${storylist.title}"></h3>
+            <p th:text="${storylist.subtitle}"></p>
+            <div class="meta">
+              <span th:text="${storylist.booknum}"></span>
+              <span th:text="${#temporals.format(storylist.createDate, 'yy.MM.dd')}"></span>
+            </div>
+          </div>
+        </a>
+      </div>
+
+    </div>
+
+    <button class="btn more">더 보기 +</button>
+  </section>
+
+  <!-- 저장한 여행지 -->
+  <section class="saved-section">
+    <h2>저장한 여행지</h2>
+    <div class="card-list small">
+      <div class="card">산토리니, 그리스 <br><span>2024년 봄 예정</span></div>
+      <div class="card">마추픽추, 페루 <br><span>2025년 봄 예정</span></div>
+      <div class="card">밀포드 사운드, 뉴질랜드 <br><span>2024년 12월 예정</span></div>
+      <div class="card">마라케시, 모로코 <br><span>2025년 3월 예정</span></div>
+    </div>
+    <button class="btn more">더 보기 +</button>
+  </section>
+</div>
+
+<!-- 모달창 -->
+<div id="templistModal" class="templistModal">
+  <div class="modal-content">
+    <h2>모달창 제목</h2>
+    <p>모달창 내용 </p>
+    <button id="closeBtn">Modal닫기</button>
+    </div>
+  </div>
+<script>
+  const modal = document.querySelector('#templistModal');
+  const closeBtn = document.querySelector('#closeBtn');
+  const templistBtn = document.querySelector('#templistBtn');
+
+  templistBtn.addEventListener("click", ()=> {
+      modal.style.display="block";
+  });
+  closeBtn.addEventListener("click", ()=>{
+      modal.style.display="none";
+  });
+</script>
+
+</body>
+</html>

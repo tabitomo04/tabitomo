@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>AI 여행 챗봇</title>
+    <style>
+        body {
+            font-family: "Arial", sans-serif;
+            background-color: #f2f2f2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .chat-container {
+            width: 400px;
+            height: 600px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .chat-header {
+            background: #2979FF;
+            color: #fff;
+            padding: 15px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header .header-title {
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        .chat-header .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-header button {
+            background: #ff9800;
+            border: none;
+            color: white;
+            font-weight: bold;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .chat-header button:hover {
+            background: #e68900;
+        }
+
+        .chat-header button[disabled] {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        #chat-box {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message {
+            max-width: 70%;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .message.bot {
+            background: #f1f1f1;
+            align-self: flex-start;
+        }
+
+        .message.user {
+            background: #0078ff;
+            color: #fff;
+            align-self: flex-end;
+        }
+
+        #categories, #questions {
+            display: none;
+            padding: 10px;
+            background-color: #ff9800;
+            text-align: center;
+        }
+
+        #categories.visible, #questions.visible {
+            display: block;
+        }
+
+        #categories button {
+            margin: 5px;
+            padding: 8px 15px;
+            border: none;
+            background: #ff5722;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 20px;
+            transition: background 0.3s;
+        }
+
+        #categories button:hover {
+            background: #e64a19;
+        }
+
+        #questions div {
+            padding: 5px;
+            border-bottom: 1px solid #ddd;
+            cursor: pointer;
+            background: #fff3e0;
+            border-radius: 8px;
+            margin: 3px 0;
+        }
+
+        .chat-input {
+            display: flex;
+            border-top: 1px solid #ddd;
+            padding: 5px;
+            align-items: center;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 20px;
+            outline: none;
+            margin-right: 5px;
+        }
+
+        .chat-input button {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            color: #fff;
+            background: #2979FF;
+            border: none;
+            cursor: pointer;
+            border-radius: 50%;
+            font-size: 18px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background 0.3s;
+            position: relative;
+        }
+
+        /* Styles for the send button (Telegram-like paper airplane) */
+        .chat-input button.send-btn {
+            background-color: #0078ff;
+        }
+        .chat-input button.send-btn:hover {
+            background-color: #0056b3;
+        }
+
+        /* SVG 아이콘 스타일 */
+        .chat-input button.send-btn svg {
+            width: 24px; /* SVG 크기 조절 */
+            height: 24px;
+            fill: white; /* 아이콘 색상 */
+            margin-left: 4px;
+        }
+
+
+        #feedback-modal {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            width: 80%;
+            max-width: 300px;
+            text-align: center;
+        }
+
+        #feedback-modal h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        #feedback-modal .close-btn {
+            position: absolute;
+            top: 0;
+            right: 0;
+            font-size: 1.5em;
+            cursor: pointer;
+            padding: 5px 10px;
+            line-height: 1;
+        }
+
+        .rating-stars {
+            font-size: 2em;
+            color: #ccc;
+            margin-bottom: 15px;
+        }
+
+        .rating-stars .star {
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .rating-stars .star.active {
+            color: #ffc107;
+        }
+
+        .rating-stars .star:hover {
+            color: #ffc107;
+        }
+
+        .feedback-form textarea {
+            width: 90%;
+            height: 80px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            resize: none;
+        }
+
+        .feedback-form button {
+            background: #2979FF;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<div class="chat-container">
+    <div class="chat-header">
+        <span class="header-title">토모한테 뭐든지 물어봐요!</span>
+        <div class="header-buttons">
+            <button id="new-chat">새 채팅</button>
+            <button id="feedback-btn">피드백</button>
+        </div>
+    </div>
+
+    <div class="chat-messages" id="chat-box">
+    </div>
+
+    <div id="categories"></div>
+    <div id="questions"></div>
+
+    <div class="chat-input">
+        <button id="toggle-categories">+</button>
+        <input type="text" id="message" placeholder="메시지를 입력하세요">
+        <button id="send-btn" class="send-btn">
+            <svg viewBox="0 0 24 24" fill="white" width="24px" height="24px">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+            </svg>
+        </button>
+    </div>
+
+    <div id="feedback-modal">
+        <span class="close-btn">&times;</span>
+        <h3>답변이 마음에 드셨나요?</h3>
+        <div class="feedback-form">
+            <div class="rating-stars">
+                <span class="star" data-rating="1">★</span>
+                <span class="star" data-rating="2">★</span>
+                <span class="star" data-rating="3">★</span>
+                <span class="star" data-rating="4">★</span>
+                <span class="star" data-rating="5">★</span>
+            </div>
+            <textarea id="feedback-text" placeholder="자유로운 의견을 남겨주세요." style="width: 100%; height: 50px;"></textarea>
+            <button id="submit-feedback-btn">피드백 제출</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentRating = 0;
+
+    document.addEventListener("DOMContentLoaded", () => {
+        loadChatHistory();
+        checkFeedbackSubmitted();
+    });
+
+    function loadChatHistory() {
+        const chatBox = document.getElementById("chat-box");
+        const chatHistory = JSON.parse(sessionStorage.getItem("chatHistory"));
+
+        if (!chatHistory || chatHistory.length === 0) {
+            const initialMessage = { sender: "bot", message: "안녕하세요 토모에요! 무엇을 도와드릴까요?" };
+            saveToSessionStorage(initialMessage.sender, initialMessage.message);
+            chatBox.innerHTML = `<div class='message ${initialMessage.sender}'>${initialMessage.message}</div>`;
+        } else {
+            chatBox.innerHTML = ''; // Clear box before loading
+            chatHistory.forEach(chat => {
+                chatBox.innerHTML += `<div class='message ${chat.sender}'>${chat.message}</div>`;
+            });
+        }
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function saveToSessionStorage(sender, message) {
+        let chatHistory = JSON.parse(sessionStorage.getItem("chatHistory")) || [];
+        chatHistory.push({ sender: sender, message: message });
+        sessionStorage.setItem("chatHistory", JSON.stringify(chatHistory));
+    }
+
+    async function containsForbiddenWord(text) {
+        try {
+            const response = await fetch('/chat/check-word', {
+                method: 'POST',
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ word: text })
+            });
+            const data = await response.json();
+            return data.isForbidden;
+        } catch (error) {
+            console.error("금지어 검사 API 호출 실패. 에러:", error);
+            return false;
+        }
+    }
+
+    // 수정된 sendMessage() 함수
+async function sendMessage() {
+    const messageInput = document.getElementById("message");
+    const userMessage = messageInput.value.trim();
+
+    if (!userMessage) return;
+
+    const isForbidden = await containsForbiddenWord(userMessage);
+    if (isForbidden) {
+        alert("욕설이나 부적절한 단어는 입력할 수 없습니다.");
+        return;
+    }
+
+    const chatBox = document.getElementById("chat-box");
+    chatBox.innerHTML += `<div class='message user'>${userMessage}</div>`;
+    saveToSessionStorage("user", userMessage);
+    messageInput.value = "";
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    try {
+        // Get the entire chat history from sessionStorage to provide context
+        const chatHistory = JSON.parse(sessionStorage.getItem("chatHistory")) || [];
+
+        const aiResponse = await fetch("/chat/send", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            // Sending both the new message and the full chat history
+            body: JSON.stringify({ message: userMessage, chatHistory: chatHistory })
+        });
+
+        const aiData = await aiResponse.json();
+
+        if (aiData && aiData.reply) {
+            const botAnswer = aiData.reply;
+            chatBox.innerHTML += `<div class='message bot'>${botAnswer}</div>`;
+            saveToSessionStorage("bot", botAnswer);
+        } else {
+            const errorMessage = "답변을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.";
+            chatBox.innerHTML += `<div class='message bot'>${errorMessage}</div>`;
+            saveToSessionStorage("bot", errorMessage);
+        }
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+    } catch (error) {
+        const errorMessage = `통신 에러: ${error.message}`;
+        chatBox.innerHTML += `<div class='message bot'>${errorMessage}</div>`;
+        saveToSessionStorage("bot", errorMessage);
+        console.error("Fetch error:", error);
+    }
+}
+
+    function checkFeedbackSubmitted() {
+        const isSubmitted = sessionStorage.getItem("feedbackSubmitted");
+        const feedbackBtn = document.getElementById("feedback-btn");
+        if (isSubmitted === "true") {
+            feedbackBtn.disabled = true;
+            feedbackBtn.textContent = "피드백 제출 완료";
+        } else {
+            feedbackBtn.disabled = false;
+            feedbackBtn.textContent = "피드백";
+        }
+    }
+
+    document.getElementById("send-btn").addEventListener("click", sendMessage);
+    document.getElementById("message").addEventListener("keypress", (event) => {
+        if (event.key === "Enter") {
+            sendMessage();
+        }
+    });
+
+    document.getElementById("new-chat").addEventListener("click", () => {
+        sessionStorage.removeItem("chatHistory");
+        sessionStorage.removeItem("feedbackSubmitted");
+        loadChatHistory();
+        checkFeedbackSubmitted();
+    });
+
+    document.getElementById("feedback-btn").addEventListener("click", () => {
+        const chatHistory = JSON.parse(sessionStorage.getItem("chatHistory"));
+        if (!chatHistory || chatHistory.length <= 1) {
+            alert("피드백을 남길 채팅 기록이 없습니다. 대화를 시작해주세요.");
+            return;
+        }
+        if (sessionStorage.getItem("feedbackSubmitted") === "true") {
+            alert("이미 피드백을 제출했습니다. 새 채팅을 시작해주세요.");
+            return;
+        }
+
+        document.getElementById("feedback-modal").style.display = "block";
+    });
+
+    document.querySelector(".close-btn").addEventListener("click", () => {
+        document.getElementById("feedback-modal").style.display = "none";
+    });
+
+    document.querySelectorAll(".rating-stars .star").forEach(star => {
+        star.addEventListener("click", () => {
+            const rating = star.getAttribute("data-rating");
+            currentRating = parseInt(rating);
+            document.querySelectorAll(".rating-stars .star").forEach(s => s.classList.remove("active"));
+            for (let i = 0; i < rating; i++) {
+                document.querySelectorAll(".rating-stars .star")[i].classList.add("active");
+            }
+        });
+    });
+
+    document.getElementById("submit-feedback-btn").addEventListener("click", async () => {
+        const rating = currentRating;
+        const feedbackText = document.getElementById("feedback-text").value;
+        const feedbackModal = document.getElementById("feedback-modal");
+
+        const chatHistory = JSON.parse(sessionStorage.getItem("chatHistory"));
+        if (!chatHistory || chatHistory.length < 2) {
+            alert("피드백을 남길 채팅 기록이 없습니다.");
+            return;
+        }
+
+        const feedbackData = {
+            rating: parseInt(rating),
+            feedbackText: feedbackText,
+            chatHistory: chatHistory
+        };
+
+        const isForbidden = await containsForbiddenWord(feedbackText);
+        if (isForbidden) {
+            alert("욕설이나 부적절한 단어는 피드백에 포함할 수 없습니다.");
+            return;
+        }
+
+        try {
+            const response = await fetch("/chat/feedback", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(feedbackData)
+            });
+
+            if (response.ok) {
+                alert("피드백이 제출되었습니다. 감사합니다!");
+                sessionStorage.setItem("feedbackSubmitted", "true");
+                checkFeedbackSubmitted();
+            } else {
+                const errorText = await response.text();
+                throw new Error("서버 에러: " + errorText);
+            }
+        } catch (error) {
+            alert("피드백 제출에 실패했습니다. 이미 제출했거나 서버 오류일 수 있습니다.");
+            console.error("Feedback submission error:", error);
+        } finally {
+            feedbackModal.style.display = "none";
+            document.getElementById("feedback-text").value = "";
+            document.querySelectorAll(".rating-stars .star").forEach(s => s.classList.remove("active"));
+            currentRating = 0;
+        }
+    });
+
+    document.getElementById("toggle-categories").addEventListener("click", async () => {
+        const categoriesDiv = document.getElementById("categories");
+        const questionsDiv = document.getElementById("questions");
+        const toggleBtn = document.getElementById("toggle-categories");
+
+        if (categoriesDiv.classList.contains('visible') || questionsDiv.classList.contains('visible')) {
+            categoriesDiv.classList.remove('visible');
+            questionsDiv.classList.remove('visible');
+            toggleBtn.textContent = "+";
+        } else {
+            try {
+                const response = await fetch("/chat/categories");
+                const categories = await response.json();
+
+                categoriesDiv.innerHTML = "";
+                if (categories.length === 0) {
+                    categoriesDiv.innerHTML = "카테고리가 없습니다.";
+                } else {
+                    categories.forEach(cat => {
+                        const button = document.createElement("button");
+                        button.textContent = cat.name;
+                        button.dataset.id = cat.categoryId;
+                        categoriesDiv.appendChild(button);
+                    });
+                }
+                categoriesDiv.classList.add('visible');
+            } catch (error) {
+                console.error("카테고리 로드 실패:", error);
+                categoriesDiv.innerHTML = "카테고리 로드 실패. 서버 오류일 수 있습니다.";
+            }
+            toggleBtn.textContent = "x";
+        }
+    });
+
+    document.getElementById("categories").addEventListener("click", async (event) => {
+        if (event.target.tagName === 'BUTTON') {
+            const categoryId = event.target.dataset.id;
+            const categoriesDiv = document.getElementById("categories");
+            const questionsDiv = document.getElementById("questions");
+
+            categoriesDiv.classList.remove('visible');
+            questionsDiv.innerHTML = "";
+
+            try {
+                const response = await fetch(`/chat/qa/${categoryId}`);
+                const questions = await response.json();
+
+                if (questions.length === 0) {
+                    questionsDiv.innerHTML = "<div>질문이 없습니다.</div>";
+                } else {
+                    questions.forEach(qa => {
+                        const div = document.createElement("div");
+                        div.textContent = qa.question;
+                        div.dataset.id = qa.qaId;
+                        questionsDiv.appendChild(div);
+                    });
+                }
+                questionsDiv.classList.add('visible');
+            } catch (error) {
+                console.error("질문 로드 실패:", error);
+            }
+        }
+    });
+
+    document.getElementById("questions").addEventListener("click", async (event) => {
+        if (event.target.tagName === 'DIV' && event.target.dataset.id) {
+            const qaId = event.target.dataset.id;
+            const questionText = event.target.textContent;
+
+            const chatBox = document.getElementById("chat-box");
+            chatBox.innerHTML += `<div class='message user'>${questionText}</div>`;
+            saveToSessionStorage("user", questionText);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            const questionsDiv = document.getElementById("questions");
+            const toggleBtn = document.getElementById("toggle-categories");
+            questionsDiv.classList.remove('visible');
+            toggleBtn.textContent = "+";
+
+            try {
+                const response = await fetch(`/chat/answer/${qaId}`);
+                const answer = await response.text();
+
+                chatBox.innerHTML += `<div class='message bot'>${answer}</div>`;
+                saveToSessionStorage("bot", answer);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            } catch (error) {
+                console.error("답변 로드 실패:", error);
+                chatBox.innerHTML += `<div class='message bot'>답변을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</div>`;
+                saveToSessionStorage("bot", "답변을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
+            }
+        }
+    });
+</script>
+</body>
+</html>

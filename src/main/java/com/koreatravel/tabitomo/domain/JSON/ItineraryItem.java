@@ -2,7 +2,6 @@ package com.koreatravel.tabitomo.domain.JSON;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator; // JsonCreator import 추가
 

@@ -1,4 +1,4 @@
-package com.koreatravel.tabitomo.domain.dto;
+package com.koreatravel.tabitomo.domain.dto.trip;
 
 import java.util.Collections;
 import java.util.List;

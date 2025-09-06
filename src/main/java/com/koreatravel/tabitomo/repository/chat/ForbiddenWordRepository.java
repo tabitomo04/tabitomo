@@ -1,0 +1,12 @@
+package com.koreatravel.tabitomo.repository.chat;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.koreatravel.tabitomo.domain.entity.chat.ForbiddenWordEntity;
+
+@Repository
+public interface ForbiddenWordRepository extends JpaRepository<ForbiddenWordEntity, Integer> {
+    // Spring Data JPA가 자동으로 CRUD(생성, 조회, 수정, 삭제) 기능을 제공합니다.
+    // 여기에 추가적인 메서드가 필요할 경우 정의할 수 있습니다.
+}

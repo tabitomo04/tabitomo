@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="ko">
+<head th:replace="~{fragments/header :: head}">
+    <title>마이페이지 - Tabitomo</title>
+</head>
+<body>
+<!-- Header -->
+<div th:replace="~{fragments/header :: header}"></div>
+
+<!-- Navigation Menu -->
+<div th:replace="~{fragments/menu :: menu}"></div>
+
+<!-- Main Content -->
+<main class="container py-5">
+    <h1 class="mb-4">마이페이지</h1>
+
+    <!-- Error Message Display -->
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <section>
+        <h2 class="h3 mb-3">나의 여행 계획</h2>
+        <div th:if="${tripPlans.isEmpty()}" class="alert alert-info" role="alert">
+            저장된 여행 계획이 없습니다.
+        </div>
+
+        <div class="list-group" th:unless="${tripPlans.isEmpty()}">
+            <a th:each="plan : ${tripPlans}" th:href="@{/trips/{id}(id=${plan.id})}" class="list-group-item list-group-item-action flex-column align-items-start">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1" th:text="${plan.planName}">여행 계획 이름</h5>
+                    <small th:text="${#temporals.format(plan.createdAt, 'yyyy-MM-dd HH:mm')}">3 days ago</small>
+                </div>
+                <p class="mb-1">여기를 클릭하여 상세 내용을 확인하세요.</p>
+            </a>
+        </div>
+    </section>
+</main>
+
+<!-- Footer -->
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

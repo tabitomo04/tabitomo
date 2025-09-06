@@ -1,4 +1,4 @@
-package com.koreatravel.tabitomo.domain.entity;
+package com.koreatravel.tabitomo.domain.entity.trip;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
+
+import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

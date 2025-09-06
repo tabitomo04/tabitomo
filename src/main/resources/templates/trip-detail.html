@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="ko">
+<head th:replace="~{fragments/header :: head}">
+    <title>여행 계획 상세 - Tabitomo</title>
+    <link rel="stylesheet" href="/css/tripselect.css">
+</head>
+<body>
+<!-- Header -->
+<div th:replace="~{fragments/header :: header}"></div>
+
+<!-- Navigation Menu -->
+<div th:replace="~{fragments/menu :: menu}"></div>
+
+<!-- Main Content -->
+<main class="container py-5">
+    <h1 class="mb-4" th:text="${tripPlan.planName}">여행 계획 이름</h1>
+
+    <!-- 저장된 여행 계획 내용을 컨테이너 div로 감싸서 렌더링 -->
+    <div>
+        <th:block th:utext="${tripPlan.planDetails}"></th:block>
+    </div>
+
+    <div class="mt-4">
+        <a th:href="@{/mypage}" class="btn btn-primary">마이페이지로 돌아가기</a>
+    </div>
+</main>
+
+<!-- Footer -->
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

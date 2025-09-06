@@ -1,4 +1,4 @@
-package com.koreatravel.tabitomo.domain.dto;
+package com.koreatravel.tabitomo.domain.dto.chat;
 
 import java.util.List;
 import java.util.Map;

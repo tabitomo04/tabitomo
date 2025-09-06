@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <title>edit</title>
+
+  <!--ckeditor css-->
+  <link rel="stylesheet" href="css/editor.css">
+  <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/46.0.1/ckeditor5.css" crossorigin>
+
+
+  <script src="js/jquery-3.7.1.min.js"></script>
+  <link rel="stylesheet" href="css/modal.css">
+
+
+</head>
+
+
+<body>
+<div class="center-div">
+  <h1 style="font-size: 40px;">스토리북 수정</h1>
+  <a th:href="@{'/mypage'}">다른 페이지로 이동 (모달창 테스트용)</a>
+  <!-- post 글이면 post.booknum, temp 글이면 hidden으로 tempId -->
+  <input type="hidden" id="booknum" th:value="${post != null} ? ${post.booknum} : ''" >
+  <input type="hidden" id="tempId" th:if="${temp != null}" th:value="${temp.tempId}" >
+  <input type="hidden" id="savetype" th:value="${temp != null} ? 'temp' : 'post'" >
+
+  <div>
+    <table style="border: 2px solid #333; border-collapse: separate; width: 100%; margin-bottom:30px">
+      <thead>
+      <tr>
+        <td colspan="5">
+          <input type="text" id="title" class="title-input" th:value="${temp != null} ? ${temp.title} : ${post.title}" name="title" maxlength="100" style="color: #444444; font-weight: bold;">
+        </td>
+      </tr>
+      <tr>
+        <td colspan="5">
+          <input type="text" id="subtitle" class="subtitle-input"
+                 th:value="${temp != null} ? ${temp.subtitle} : ${post.subtitle}"
+                 name="subtitle"
+                 maxlength="100"
+                 style="color: #aaa;"
+                 th:placeholder="${#strings.isEmpty(temp?.subtitle) and #strings.isEmpty(post?.subtitle) ? '부제목을 입력하세요' : ''}">
+        </td>
+      </tr>
+      </thead>
+    </table>
+
+    <table style="width: 100%;">
+      <tbody>
+      <tr>
+        <td colspan="5">
+          <div class="main-container">
+            <div class="editor-container editor-container_classic-editor" id="editor-container">
+              <div class="editor-container__editor">
+                <textarea id="input-contents" th:utext="${temp != null} ? ${temp.content} : ${post.content}"></textarea> <!-- contents -->
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+    <div style="text-align:right">
+      <button th:if="${temp == null}" class="saveButton btn btn-dark" type="button">저장</button>
+      <button th:if="${temp != null}" class="tempButton btn btn-dark" type="button">임시저장</button>
+      <button th:if="${temp != null}" class="saveButton btn btn-dark" type="button" >저장</button>
+      <br>
+    </div>
+  </div>
+</div>
+
+<!-- 모달창 -->
+<div id="leaveModal" class="modal">
+  <div class="modal-content">
+    <p id="modalMessage">계속 작성하시겠습니까?</p>
+    <div class="modal-buttons">
+      <button id="yesBtn">예</button>
+      <button id="noBtn">아니오</button>
+    </div>
+  </div>
+</div>
+
+<div id="leavesaveModal" class="Leavemodal">
+  <div class="Leavemodal-content">
+    <p id="modalsaveMessage">계속 작성하시겠습니까?</p>
+    <div class="Leavemodal-buttons">
+      <button id="saveBtn">예</button>
+      <button id="nosaveBtn">아니오</button>
+      <button id="cancelBtn">취소</button>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+<!--ckeditor js -->
+<script src="https://cdn.ckeditor.com/ckeditor5/46.0.1/ckeditor5.umd.js" crossorigin></script>
+<script src="https://cdn.ckeditor.com/ckeditor5/46.0.1/translations/ko.umd.js" crossorigin></script>
+<script src="https://cdn.ckbox.io/ckbox/2.6.1/ckbox.js" crossorigin></script>
+<script src="js/main.js"></script>
+
+<!--modal js-->
+<script src="js/modal.js"></script>
+
+</body>
+</html>

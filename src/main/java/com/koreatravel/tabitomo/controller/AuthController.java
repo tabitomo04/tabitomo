@@ -1,8 +1,10 @@
 package com.koreatravel.tabitomo.controller;
 
-import com.koreatravel.tabitomo.domain.dto.MemberDTO;
-import com.koreatravel.tabitomo.domain.entity.MemberEntity;
-import com.koreatravel.tabitomo.service.MemberService;
+import com.koreatravel.tabitomo.domain.dto.member.MemberDTO;
+import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
+import com.koreatravel.tabitomo.service.member.MemberService;
+import com.koreatravel.tabitomo.PathConstants;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,19 +22,19 @@ public class AuthController {
     }
 
     // 로그인 페이지 이동
-    @GetMapping("/login")
+    @GetMapping(PathConstants.LOGIN)
     public String loginPage() {
         return "loginform"; // templates/login.html
     }
 
     // 회원가입 페이지 이동
-    @GetMapping("/signup")
+    @GetMapping(PathConstants.SIGNUP)
     public String signupPage() {
         return "signupform"; // templates/signup.html
     }
 
     // 회원가입 처리
-    @PostMapping("/signup")
+    @PostMapping(PathConstants.SIGNUP)
     public String signup(@ModelAttribute MemberDTO member, Model model) {
         // DTO → Entity 변환
         MemberEntity memberEntity = MemberDTO.setEntity(member);
@@ -45,7 +47,7 @@ public class AuthController {
     }
 
     // 로그인 처리
-    @PostMapping("/login")
+    @PostMapping(PathConstants.LOGIN)
     public String login(Model model) {
         // TODO: 로그인 검증 (서비스 호출 → 세션 저장)
         model.addAttribute("message", "로그인 성공!");

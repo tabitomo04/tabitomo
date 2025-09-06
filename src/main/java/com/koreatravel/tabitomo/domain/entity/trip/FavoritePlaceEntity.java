@@ -1,4 +1,4 @@
-package com.koreatravel.tabitomo.domain.entity;
+package com.koreatravel.tabitomo.domain.entity.trip;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;

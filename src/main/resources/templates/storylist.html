@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>여행 스토리 검색 페이지</title>
+
+  <link rel="stylesheet" href= "css/storylist.css">
+</head>
+<body>
+<div class="container">
+  <h1>당신의 여행 이야기를 들려주세요</h1>
+
+  <div class="search-box">
+    <input type="text" placeholder="검색어를 입력하세요" />
+    <button>검색</button>
+  </div>
+
+  <div class="filters">
+    <button>HOT</button>
+    <button>NEW</button>
+  </div>
+
+  <div class="grid">
+
+
+    <div th:if="${storylist}" th:each="storylist, status: ${storylist}">
+      <a class="link" th:href="@{'/view?booknum=' + ${storylist.booknum}}">
+        <div class="card">
+      <div class="likes">❤ <span th:text="${storylist.likes}"></span></div>
+      <div class="thumbnail">
+        <img th:src="@{${storylist.thumbnail}}" alt="썸네일">
+      </div>
+      <h3 th:text="${storylist.title}"></h3>
+      <p th:text="${storylist.subtitle}"></p>
+      <div class="meta">
+        <span th:text="${storylist.booknum}"></span>
+        <span th:text="${#temporals.format(storylist.createDate, 'yy.MM.dd')}"></span>
+      </div>
+      </div>
+      </a>
+
+    </div>
+
+
+  </div>
+</div>
+</body>
+</html>

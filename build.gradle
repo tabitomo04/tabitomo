@@ -31,7 +31,6 @@ ext {
 }
 
 dependencies {
-	// Spring Boot Starters
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-data-rest'
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
@@ -39,48 +38,68 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	implementation 'org.springframework.boot:spring-boot-starter-web-services'
-
-	// MySQL Driver (compile 시점에도 필요하므로 implementation 으로 수정)
-	implementation 'com.mysql:mysql-connector-j:8.4.0'
-
-	// Spring AI (Vertex AI Gemini)
-	// implementation 'org.springframework.ai:spring-ai-starter-model-vertex-ai-gemini'
-
-	// JDBC Session (DB 세션 관리 필요 없으면 제거 가능)
-	// implementation 'org.springframework.session:spring-session-jdbc'
-
-	// Thymeleaf + Security
+	implementation 'org.springframework.ai:spring-ai-starter-model-vertex-ai-gemini'
+	implementation 'org.springframework.session:spring-session-jdbc'
 	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
-
+    
+	// Jakarta Mail
+	implementation 'com.sun.mail:jakarta.mail:2.0.1'  // Explicit Jakarta Mail API
+    
 	// MapStruct
-	implementation 'org.mapstruct:mapstruct:1.5.5.Final'
-	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
-
-	// OpenCSV
-	implementation 'com.opencsv:opencsv:5.8'
-
-	// Lombok
+    implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+    
+    // OpenCSV
+    implementation 'com.opencsv:opencsv:5.8'
+    
+    // Spring Cloud Function
+    implementation 'org.springframework.cloud:spring-cloud-function-context:4.1.1'
 	compileOnly 'org.projectlombok:lombok'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	runtimeOnly 'com.mysql:mysql-connector-j'
 	annotationProcessor 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 
-	// Jakarta Mail API
+	// Test dependencies
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+	testImplementation 'com.h2database:h2'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testImplementation 'io.projectreactor:reactor-test'
+
+	// Email
 	implementation 'com.sun.mail:jakarta.mail:2.0.1'
 
 	// Jakarta Validation
 	implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
 	implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
 
-	// DevTools
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	implementation 'net.coobird:thumbnailator:0.4.19' //이미지 압축, 리사이즈 라이브러리
+	implementation 'org.jsoup:jsoup:1.16.1' // html 파싱
 
-	// Test Dependencies
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.springframework.security:spring-security-test'
-	testImplementation 'com.h2database:h2'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	    
+    // Google Cloud Services
+    implementation 'com.google.cloud:google-cloud-translate:2.38.0'
+    
+    // Utilities
+    implementation 'org.mapstruct:mapstruct:1.6.0'
+    implementation 'com.opencsv:opencsv:5.9'
+    implementation 'org.jsoup:jsoup:1.17.2'
+
+	implementation 'com.fasterxml.jackson.core:jackson-databind'
 }
 
-// Spring Cloud Function 제거 (필요하다면 다시 추가 가능)
-// implementation 'org.springframework.cloud:spring-cloud-function-context:4.1.1'
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.ai:spring-ai-bom:${springAiVersion}"
+	}
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+

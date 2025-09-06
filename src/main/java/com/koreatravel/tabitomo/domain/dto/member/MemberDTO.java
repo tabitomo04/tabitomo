@@ -1,11 +1,8 @@
-package com.koreatravel.tabitomo.domain.dto;
+package com.koreatravel.tabitomo.domain.dto.member;
 
 import com.koreatravel.tabitomo.domain.entity.MemberEntity;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-
-import java.lang.reflect.Member;
 
 @Data
 @NoArgsConstructor

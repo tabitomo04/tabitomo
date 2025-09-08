@@ -1,126 +1,194 @@
 package com.koreatravel.tabitomo.controller;
 
-import com.koreatravel.tabitomo.domain.dto.member.MemberDTO;
-import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
+import com.koreatravel.tabitomo.domain.dto.member.*;
+import com.koreatravel.tabitomo.exception.DuplicateResourceException;
+import com.koreatravel.tabitomo.exception.UnauthorizedException;
+import com.koreatravel.tabitomo.exception.ValidationException;
 import com.koreatravel.tabitomo.service.member.MemberService;
-import com.koreatravel.tabitomo.PathConstants;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.WebAttributes;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
-import jakarta.validation.Valid;
+import com.koreatravel.tabitomo.PathConstants;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Controller
 @RequiredArgsConstructor
+@RequestMapping(PathConstants.AUTH)
 public class AuthController {
+    
     private final MemberService memberService;
 
-    // 로그인 페이지 이동
-    @GetMapping(PathConstants.LOGIN)
-    public String loginPage(
-            @RequestParam(value = "error", required = false) String error,
-            @RequestParam(value = "exception", required = false) String exception,
-            Model model) {
-        
-        model.addAttribute("error", error);
-        model.addAttribute("exception", exception);
-        return "loginform";
-    }
-
-    // 회원가입 페이지 이동
-    @GetMapping(PathConstants.SIGNUP)
-    public String signupPage(Model model) {
-        if (!model.containsAttribute("memberDTO")) {
-            model.addAttribute("memberDTO", new MemberDTO());
-        }
-        return "signupform";
-    }
-
-    // 회원가입 처리
+    /**
+     * 회원가입 처리
+     */
     @PostMapping(PathConstants.SIGNUP)
-    public String signup(
-            @Valid @ModelAttribute("memberDTO") MemberDTO memberDTO,
-            BindingResult bindingResult,
-            RedirectAttributes redirectAttributes) {
-        
-        // 비밀번호 확인 검증
-        if (!memberDTO.getPassword().equals(memberDTO.getConfirmPassword())) {
-            bindingResult.rejectValue("confirmPassword", "error.memberDTO", "비밀번호가 일치하지 않습니다.");
-        }
+    public ResponseEntity<?> register(
+            @Valid @RequestBody RegisterDTO registerDTO,
+            BindingResult bindingResult) {
         
         if (bindingResult.hasErrors()) {
-            log.warn("회원가입 유효성 검사 실패: {}", bindingResult.getAllErrors());
-            redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.memberDTO", bindingResult);
-            redirectAttributes.addFlashAttribute("memberDTO", memberDTO);
-            return "redirect:" + PathConstants.SIGNUP;
+            Map<String, String> errors = new HashMap<>();
+            bindingResult.getFieldErrors().forEach(error ->
+                errors.put(error.getField(), error.getDefaultMessage()));
+            return ResponseEntity.badRequest().body(errors);
         }
         
         try {
-            // DTO → Entity 변환
-            MemberEntity memberEntity = MemberDTO.setEntity(memberDTO);
-            // DB 저장
-            memberService.register(memberEntity);
+            // 비밀번호 확인 검증
+            if (!registerDTO.isPasswordMatching()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("message", "비밀번호가 일치하지 않습니다."));
+            }
             
-            redirectAttributes.addFlashAttribute("message", "회원가입이 완료되었습니다. 로그인해주세요.");
-            return "redirect:" + PathConstants.LOGIN;
-            
-        } catch (DataIntegrityViolationException e) {
-            log.error("회원가입 중 데이터 무결성 오류 발생: {}", e.getMessage());
-            bindingResult.reject("signup.failed", "이미 사용 중인 이메일 또는 닉네임입니다.");
-            redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.memberDTO", bindingResult);
-            redirectAttributes.addFlashAttribute("memberDTO", memberDTO);
-            return "redirect:" + PathConstants.SIGNUP;
-            
+            memberService.register(registerDTO);
+            return ResponseEntity.ok(Map.of("message", "회원가입이 완료되었습니다. 이메일을 확인해주세요."));
+        } catch (DuplicateResourceException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("message", e.getMessage()));
         } catch (Exception e) {
-            log.error("회원가입 처리 중 오류 발생: {}", e.getMessage(), e);
-            bindingResult.reject("signup.failed", "회원가입 처리 중 오류가 발생했습니다.");
-            redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.memberDTO", bindingResult);
-            redirectAttributes.addFlashAttribute("memberDTO", memberDTO);
-            return "redirect:" + PathConstants.SIGNUP;
+            log.error("회원가입 중 오류 발생: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("message", "회원가입 처리 중 오류가 발생했습니다."));
         }
     }
 
-    // 로그인 성공 핸들러 (Spring Security가 처리)
-    @GetMapping("/login/success")
+    /**
+     * 이메일 인증 처리
+     */
+    @GetMapping(PathConstants.VERIFY_EMAIL)
+    public String verifyEmail(@RequestParam String token, RedirectAttributes redirectAttributes) {
+        try {
+            memberService.verifyEmail(token);
+            redirectAttributes.addFlashAttribute("message", "이메일 인증이 완료되었습니다. 로그인해주세요.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/login";
+    }
+
+    /**
+     * 로그인 성공 핸들러 (Spring Security가 처리)
+     */
+    @GetMapping(PathConstants.LOGIN_SUCCESS)
     public String loginSuccess() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         log.info("로그인 성공: {}", auth.getName());
         return "redirect:/";
     }
     
-    // 로그인 실패 핸들러 (Spring Security가 처리)
-    @GetMapping("/login/failure")
-    public String loginFailure(HttpServletRequest request, RedirectAttributes redirectAttributes) {
+    /**
+     * 로그인 실패 핸들러 (Spring Security가 처리)
+     */
+    @GetMapping(PathConstants.LOGIN_ERROR)
+    public String loginError(HttpServletRequest request, org.springframework.ui.Model model) {
         HttpSession session = request.getSession(false);
-        String errorMessage = "아이디 또는 비밀번호가 올바르지 않습니다.";
-        
+        String errorMessage = null;
         if (session != null) {
-            Exception exception = (Exception) request.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+            Exception exception = (Exception) session.getAttribute("SPRING_SECURITY_LAST_EXCEPTION");
             if (exception != null) {
-                errorMessage = exception.getMessage();
+                if (exception instanceof org.springframework.security.authentication.BadCredentialsException) {
+                    errorMessage = "이메일 또는 비밀번호가 올바르지 않습니다.";
+                } else if (exception instanceof org.springframework.security.authentication.DisabledException) {
+                    errorMessage = "이메일 인증이 완료되지 않았습니다. 이메일을 확인해주세요.";
+                } else {
+                    errorMessage = "로그인 중 오류가 발생했습니다: " + exception.getMessage();
+                }
             }
         }
-        
-        redirectAttributes.addFlashAttribute("error", true);
-        redirectAttributes.addFlashAttribute("message", errorMessage);
-        return "redirect:" + PathConstants.LOGIN;
+        model.addAttribute("error", errorMessage != null ? errorMessage : "로그인에 실패했습니다.");
+        return "auth/login";
     }
     
-    // 로그아웃 성공 핸들러 (Spring Security가 처리)
-    @GetMapping("/logout/success")
+    /**
+     * 로그아웃 성공 핸들러 (Spring Security가 처리)
+     */
+    @GetMapping(PathConstants.LOGOUT_SUCCESS)
     public String logoutSuccess(RedirectAttributes redirectAttributes) {
         redirectAttributes.addFlashAttribute("message", "로그아웃 되었습니다.");
-        return "redirect:" + PathConstants.LOGIN;
+        return "redirect:/login";
+    }
+
+    /**
+     * 비밀번호 재설정 요청
+     */
+    @PostMapping(PathConstants.REQUEST_PASSWORD_RESET)
+    public ResponseEntity<?> requestPasswordReset(@RequestBody Map<String, String> request) {
+        try {
+            memberService.requestPasswordReset(request.get("email"));
+            return ResponseEntity.ok(Map.of("message", "비밀번호 재설정 링크가 이메일로 전송되었습니다."));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    /**
+     * 비밀번호 재설정 처리
+     */
+    @PostMapping(PathConstants.RESET_PASSWORD)
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordDTO resetPasswordDTO, 
+                                         BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            Map<String, String> errors = new HashMap<>();
+            bindingResult.getFieldErrors().forEach(error -> 
+                errors.put(error.getField(), error.getDefaultMessage()));
+            return ResponseEntity.badRequest().body(errors);
+        }
+
+        try {
+            // 비밀번호 확인 검증
+            if (!resetPasswordDTO.isPasswordMatching()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("message", "새 비밀번호가 일치하지 않습니다."));
+            }
+            
+            memberService.resetPassword(resetPasswordDTO);
+            return ResponseEntity.ok(Map.of("message", "비밀번호가 성공적으로 변경되었습니다."));
+            
+        } catch (UnauthorizedException e) {
+            log.warn("비밀번호 재설정 실패 - 인증 오류: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", e.getMessage()));
+                    
+        } catch (ValidationException e) {
+            log.warn("비밀번호 재설정 실패 - 유효성 검증 오류: {}", e.getMessage());
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", e.getMessage()));
+                    
+        } catch (Exception e) {
+            log.error("비밀번호 재설정 중 오류 발생: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("message", "비밀번호 재설정 중 오류가 발생했습니다."));
+        }
+    }
+
+    /**
+     * 이메일 중복 확인
+     */
+    @PostMapping(PathConstants.CHECK_EMAIL)
+    public ResponseEntity<?> checkEmail(@RequestBody Map<String, String> request) {
+        boolean isAvailable = memberService.isEmailAvailable(request.get("email"));
+        return ResponseEntity.ok(Map.of("available", isAvailable));
+    }
+
+    /**
+     * 닉네임 중복 확인
+     */
+    @PostMapping(PathConstants.CHECK_NICKNAME)
+    public ResponseEntity<?> checkNickname(@RequestBody Map<String, String> request) {
+        boolean isAvailable = memberService.isNicknameAvailable(request.get("nickname"));
+        return ResponseEntity.ok(Map.of("available", isAvailable));
     }
 }

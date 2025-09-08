@@ -3,13 +3,21 @@ package com.koreatravel.tabitomo;
 public interface PathConstants {
     public static final String BASE = "";
 
-    // 멤버
-    public static final String AUTH="/auth";
+    // 인증
+    public static final String AUTH = "/auth";
     public static final String SIGNUP = AUTH + "/signup";
     public static final String LOGIN = AUTH + "/login";
     public static final String LOGOUT = AUTH + "/logout";
+    public static final String VERIFY_EMAIL = AUTH + "/verify-email";
+    public static final String LOGIN_SUCCESS = LOGIN + "/success";
+    public static final String LOGIN_ERROR = LOGIN + "-error";
+    public static final String LOGOUT_SUCCESS = LOGOUT + "/success";
+    public static final String REQUEST_PASSWORD_RESET = AUTH + "/request-password-reset";
+    public static final String RESET_PASSWORD = AUTH + "/reset-password";
+    public static final String CHECK_EMAIL = AUTH + "/check-email";
+    public static final String CHECK_NICKNAME = AUTH + "/check-nickname";
     
-    // 질문 페이지
+    // 멤버
     public static final String MEMBER = "/member";
     public static final String MEMBER_INFO = MEMBER + "/info";
     public static final String MEMBER_QUESTION = MEMBER + "/question";

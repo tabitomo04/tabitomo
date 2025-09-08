@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: layout(~{::#content}, ~{::title}, ~{::link}, ~{::script})}">
+<head>
+    <title>로그인 - 타비토모</title>
+    <link rel="stylesheet" th:href="@{/css/auth.css}">
+</head>
+<body>
+    <div id="content">
+        <div class="auth-container">
+            <div class="auth-logo">
+                <img th:src="@{/images/logo.svg}" alt="타비토모 로고">
+                <h1 class="h4 mb-4 fw-bold">로그인</h1>
+            </div>
+            
+            <form id="loginForm" th:action="@{/login}" method="post" novalidate>
+                <div class="mb-3">
+                    <div class="form-floating">
+                        <input type="email" class="form-control" id="username" name="username" 
+                               placeholder="이메일" required>
+                        <label for="username">이메일</label>
+                        <div class="invalid-feedback">이메일을 입력해주세요.</div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="form-floating">
+                        <input type="password" class="form-control" id="password" name="password" 
+                               placeholder="비밀번호" required>
+                        <label for="password">비밀번호</label>
+                        <div class="invalid-feedback">비밀번호를 입력해주세요.</div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="remember-me" name="remember-me">
+                        <label class="form-check-label" for="remember-me">로그인 상태 유지</label>
+                    </div>
+                    <a href="/find-password" class="text-decoration-none">비밀번호 찾기</a>
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-100 py-2 mb-3">로그인</button>
+                
+                <div class="d-grid gap-2">
+                    <a href="/oauth2/authorization/google" class="btn btn-outline-dark">
+                        <i class="bi bi-google me-2"></i>Google로 로그인
+                    </a>
+                    <a href="/oauth2/authorization/naver" class="btn btn-success text-white">
+                        <i class="bi bi-chat-dots-fill me-2"></i>네이버로 로그인
+                    </a>
+                    <a href="/oauth2/authorization/kakao" class="btn btn-warning">
+                        <i class="bi bi-chat-square-text-fill me-2"></i>카카오로 로그인
+                    </a>
+                </div>
+                
+                <div class="auth-footer mt-4">
+                    아직 회원이 아니신가요? <a href="/signup">회원가입</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script th:inline="javascript">
+        // Form validation
+        (function() {
+            'use strict';
+            
+            // Fetch the form we want to apply custom Bootstrap validation styles to
+            const form = document.getElementById('loginForm');
+            
+            // Prevent submission if form is invalid
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                
+                form.classList.add('was-validated');
+            }, false);
+            
+            // Show error message if login failed
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            
+            if (error) {
+                let errorMessage = '이메일 또는 비밀번호가 올바르지 않습니다.';
+                
+                // You can add more specific error messages based on the error parameter
+                if (error === 'disabled') {
+                    errorMessage = '이메일 인증이 완료되지 않았습니다. 이메일을 확인해주세요.';
+                }
+                
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-danger alert-dismissible fade show mt-3';
+                alertDiv.role = 'alert';
+                alertDiv.innerHTML = `
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    ${errorMessage}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                
+                form.prepend(alertDiv);
+            }
+        })();
+    </script>
+</body>
+</html>

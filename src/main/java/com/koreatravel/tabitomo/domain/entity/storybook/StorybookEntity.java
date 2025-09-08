@@ -3,42 +3,57 @@ package com.koreatravel.tabitomo.domain.entity.storybook;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
+
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
 @Entity
 @Builder
-@Table(name = "storybook")
-@EntityListeners(AuditingEntityListener.class)
+@Getter
+@Setter
+@Table(name = "Storybook")
 public class StorybookEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer booknum;
 
-    @Column(name = "title")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "email", referencedColumnName = "email", nullable = false)
+    private MemberEntity member;
+
+    @Column(name = "title", nullable = false)
     private String title;
 
-    @Column(name = "subtitle")
+    @Column(name = "subtitle", nullable = false)
     private String subtitle;
 
     @Column(columnDefinition = "TEXT") // HTML 내용을 저장하기 위해 TEXT 타입으로 설정
     private String content;
 
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
-    @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable = false, updatable = false)
-    private LocalDateTime createDate; // 생성 시간
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 
-
-    @Column(name = "updated_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP", insertable = false, updatable = false)
-    private LocalDateTime updateDate;
-
-    @Column(name = "likes", columnDefinition = "integer default 0")
+    @Column(nullable = false, columnDefinition = "integer default 0")
     private int likes;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }

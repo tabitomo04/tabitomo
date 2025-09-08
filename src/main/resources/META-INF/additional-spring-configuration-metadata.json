@@ -1,0 +1,84 @@
+{
+  "properties": [
+    {
+      "name": "app.base-url",
+      "type": "java.lang.String",
+      "description": "Base URL of the application (e.g., https://example.com)"
+    },
+    {
+      "name": "app.password-reset-token-expiry-hours",
+      "type": "java.lang.Integer",
+      "description": "Expiration time for password reset tokens in hours",
+      "defaultValue": 24
+    },
+    {
+      "name": "app.supported-languages",
+      "type": "java.util.List<java.lang.String>",
+      "description": "List of supported language codes (e.g., ko, en, ja)"
+    },
+    {
+      "name": "app.google.gemini.api-key",
+      "type": "java.lang.String",
+      "description": "API key for Google Gemini service"
+    },
+    {
+      "name": "app.gemini.api.url",
+      "type": "java.lang.String",
+      "description": "Base URL for Gemini API"
+    },
+    {
+      "name": "app.kakao.local.api.key",
+      "type": "java.lang.String",
+      "description": "Kakao Local API key"
+    },
+    {
+      "name": "app.kakao.api.key",
+      "type": "java.lang.String",
+      "description": "Kakao API key"
+    },
+    {
+      "name": "app.kakao.js.key",
+      "type": "java.lang.String",
+      "description": "Kakao JavaScript key"
+    },
+    {
+      "name": "app.openweathermap.api.key",
+      "type": "java.lang.String",
+      "description": "OpenWeatherMap API key"
+    },
+    {
+      "name": "app.pixabay.api.key",
+      "type": "java.lang.String",
+      "description": "Pixabay API key"
+    },
+    {
+      "name": "app.google.maps.api.key",
+      "type": "java.lang.String",
+      "description": "Google Maps API key"
+    },
+    {
+      "name": "app.google.cloud.translation.api-key",
+      "type": "java.lang.String",
+      "description": "Google Cloud Translation API key"
+    }
+  ],
+  "hints": [
+    {
+      "name": "app.supported-languages",
+      "values": [
+        {
+          "value": "ko",
+          "description": "Korean"
+        },
+        {
+          "value": "en",
+          "description": "English"
+        },
+        {
+          "value": "ja",
+          "description": "Japanese"
+        }
+      ]
+    }
+  ]
+}

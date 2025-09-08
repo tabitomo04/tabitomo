@@ -9,24 +9,33 @@ import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import java.util.ArrayList;
+import java.util.List;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.OneToMany;
 
 @Entity
-@Data
+@Table(name = "AddInfo")
+@Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @IdClass(AddInfoId.class)
-@Table(name = "AddInfo")
 public class AddInfoEntity {
+    @Id
+    @Column(name = "infohighnum", nullable = false)
+    private Integer infoHighNum;
 
     @Id
-    private int infohighnum;
+    @Column(name = "infolownum", nullable = false)
+    private Integer infoLowNum;
 
-    @Id
-    private int infolownum;
+    @Column(nullable = false, length = 100)
+    private String infoName;
 
-    @Column
-    private String content;
+    @OneToMany(mappedBy = "addInfo", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserSelectedInfoEntity> userSelectedInfos = new ArrayList<>();
 }

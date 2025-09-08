@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::#content}, ~{::title}, ~{::link})"}">
+<head>
+    <title>회원가입 완료 - 타비토모</title>
+    <link rel="stylesheet" th:href="@{/css/auth.css}">
+</head>
+<body>
+    <div id="content">
+        <div class="auth-container text-center">
+            <div class="mb-4">
+                <i class="bi bi-envelope-check-fill text-primary" style="font-size: 4rem;"></i>
+            </div>
+            
+            <h2 class="h4 mb-3 fw-bold">회원가입이 완료되었습니다!</h2>
+            
+            <p class="text-muted mb-4">
+                <span th:text="'안녕하세요, ' + ${email} + '님!'"></span><br>
+                가입해주셔서 감사합니다. 이메일 인증을 완료하시면 모든 서비스를 이용하실 수 있습니다.
+            </p>
+            
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                인증 메일이 도착하지 않으셨나요? 
+                <a href="#" id="resendEmail" class="alert-link">인증 메일 다시 보내기</a>
+            </div>
+            
+            <div class="d-grid gap-2 mt-4">
+                <a href="/login" class="btn btn-primary">로그인 하기</a>
+                <a href="/" class="btn btn-outline-secondary">홈으로 가기</a>
+            </div>
+        </div>
+    </div>
+    
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const email = urlParams.get('email');
+            const resendEmailBtn = document.getElementById('resendEmail');
+            
+            if (email) {
+                // Update email in the message
+                const emailElement = document.querySelector('span[th:text*="email"]');
+                if (emailElement) {
+                    emailElement.textContent = '안녕하세요, ' + email + '님!';
+                }
+                
+                // Resend verification email
+                resendEmailBtn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    
+                    try {
+                        const response = await fetch('/api/email/resend-verification', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ email: email })
+                        });
+                        
+                        if (response.ok) {
+                            alert('인증 메일이 다시 전송되었습니다. 이메일을 확인해주세요.');
+                        } else {
+                            const data = await response.json();
+                            throw new Error(data.message || '인증 메일 전송에 실패했습니다.');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert(error.message || '인증 메일 전송 중 오류가 발생했습니다.');
+                    }
+                });
+            } else {
+                // No email provided, redirect to home
+                window.location.href = '/';
+            }
+        });
+    </script>
+</body>
+</html>

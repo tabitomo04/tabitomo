@@ -18,7 +18,7 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "trip")
+@Table(name = "Trip")
 public class TripEntity {
 
     @Id
@@ -53,6 +53,13 @@ public class TripEntity {
 
     public enum Visibility {
         PRIVATE, LINK, PUBLIC
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
     }
 
     @Builder

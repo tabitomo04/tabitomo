@@ -14,7 +14,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
-public class AddInfoId implements Serializable {
-    private Integer infoHighNum;
-    private Integer infoLowNum;
+public class FavoritePlaceId implements Serializable  {
+    private String memberEmail;
+    private String placeId;
 }

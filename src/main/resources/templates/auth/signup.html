@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::#content}, ~{::title}, ~{::link}, ~{::script})"}">
+<head>
+    <title>회원가입 - 타비토모</title>
+    <link rel="stylesheet" th:href="@{/css/auth.css}">
+</head>
+<body>
+    <div id="content">
+        <div class="auth-container">
+            <div class="auth-logo">
+                <img th:src="@{/images/logo.svg}" alt="타비토모 로고">
+                <h1 class="h4 mb-4 fw-bold">회원가입</h1>
+            </div>
+            
+            <form id="signupForm" novalidate>
+                <!-- Step 1: Email Verification -->
+                <div id="step1">
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   placeholder="이메일" required>
+                            <select class="form-select" id="emailDomain" style="max-width: 150px;">
+                                <option value="@naver.com">@naver.com</option>
+                                <option value="@gmail.com">@gmail.com</option>
+                                <option value="@daum.net">@daum.net</option>
+                                <option value="@kakao.com">@kakao.com</option>
+                                <option value="@nate.com">@nate.com</option>
+                                <option value="">직접입력</option>
+                            </select>
+                        </div>
+                        <div id="emailError" class="error-message"></div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="verification-input-group">
+                            <input type="text" class="form-control" id="verificationCode" 
+                                   placeholder="인증번호 6자리" maxlength="6" disabled>
+                            <button type="button" class="btn btn-outline-primary" id="sendVerificationBtn">
+                                인증번호 받기
+                            </button>
+                        </div>
+                        <div class="verification-timer d-none" id="verificationTimer">
+                            <span id="time">03:00</span> 남음
+                        </div>
+                        <div id="verificationError" class="error-message"></div>
+                        <div id="verificationSuccess" class="success-message d-none">
+                            <i class="bi bi-check-circle"></i> 인증이 완료되었습니다.
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary w-100 py-2 mb-3" id="nextBtn1" disabled>
+                        다음 단계로
+                    </button>
+                </div>
+                
+                <!-- Step 2: Password & Personal Info -->
+                <div id="step2" class="d-none">
+                    <div class="mb-3">
+                        <div class="form-floating">
+                            <input type="password" class="form-control" id="password" name="password" 
+                                   placeholder="비밀번호 (8~20자, 영문, 숫자, 특수문자 포함)" required
+                                   pattern="^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,20}$">
+                            <label for="password">비밀번호 (8~20자, 영문, 숫자, 특수문자 포함)</label>
+                            <div class="invalid-feedback">
+                                비밀번호는 8~20자리이며, 영문, 숫자, 특수문자를 모두 포함해야 합니다.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-floating">
+                            <input type="password" class="form-control" id="confirmPassword" 
+                                   placeholder="비밀번호 확인" required>
+                            <label for="confirmPassword">비밀번호 확인</label>
+                            <div id="passwordMatchError" class="error-message"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <div class="form-floating flex-grow-1">
+                                <input type="text" class="form-control" id="nickname" name="nickname" 
+                                       placeholder="닉네임 (2~10자, 한글/영문/숫자)" required
+                                       pattern="^[가-힣a-zA-Z0-9]{2,10}$">
+                                <label for="nickname">닉네임 (2~10자, 한글/영문/숫자)</label>
+                                <div class="invalid-feedback">
+                                    닉네임은 2~10자리 한글, 영문, 숫자만 사용 가능합니다.
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary" id="checkNicknameBtn">
+                                중복확인
+                            </button>
+                        </div>
+                        <div id="nicknameError" class="error-message"></div>
+                        <div id="nicknameSuccess" class="success-message d-none">
+                            <i class="bi bi-check-circle"></i> 사용 가능한 닉네임입니다.
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-floating">
+                            <select class="form-select" id="country" name="countryId" required>
+                                <option value="" selected disabled>국가를 선택해주세요</option>
+                                <!-- Countries will be loaded via JavaScript -->
+                            </select>
+                            <label for="country">국가</label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-floating">
+                            <select class="form-select" id="language" name="languageId" required>
+                                <option value="" selected disabled>주 사용 언어를 선택해주세요</option>
+                                <!-- Languages will be loaded via JavaScript -->
+                            </select>
+                            <label for="language">주 사용 언어</label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">성별</label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="gender" id="male" value="1" required>
+                                <label class="form-check-label" for="male">남성</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="gender" id="female" value="2">
+                                <label class="form-check-label" for="female">여성</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="gender" id="other" value="3">
+                                <label class="form-check-label" for="other">기타</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="gender" id="preferNotToSay" value="0">
+                                <label class="form-check-label" for="preferNotToSay">선택 안함</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <button type="button" class="btn btn-outline-secondary" id="prevBtn1">이전</button>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">가입 완료</button>
+                    </div>
+                </div>
+            </form>
+            
+            <div class="auth-footer mt-4">
+                이미 계정이 있으신가요? <a href="/login">로그인</a>
+            </div>
+        </div>
+    </div>
+    
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const signupForm = document.getElementById('signupForm');
+            const step1 = document.getElementById('step1');
+            const step2 = document.getElementById('step2');
+            const emailInput = document.getElementById('email');
+            const emailDomain = document.getElementById('emailDomain');
+            const verificationCode = document.getElementById('verificationCode');
+            const sendVerificationBtn = document.getElementById('sendVerificationBtn');
+            const verificationTimer = document.getElementById('verificationTimer');
+            const timeDisplay = document.getElementById('time');
+            const nextBtn1 = document.getElementById('nextBtn1');
+            const prevBtn1 = document.getElementById('prevBtn1');
+            const submitBtn = document.getElementById('submitBtn');
+            const passwordInput = document.getElementById('password');
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+            const nicknameInput = document.getElementById('nickname');
+            const checkNicknameBtn = document.getElementById('checkNicknameBtn');
+            const countrySelect = document.getElementById('country');
+            const languageSelect = document.getElementById('language');
+            
+            // State
+            let isEmailVerified = false;
+            let isNicknameAvailable = false;
+            let countdown;
+            let timeLeft = 180; // 3 minutes in seconds
+            
+            // Email domain handling
+            emailDomain.addEventListener('change', function() {
+                if (emailDomain.value) {
+                    const emailParts = emailInput.value.split('@');
+                    emailInput.value = emailParts[0] + emailDomain.value;
+                }
+            });
+            
+            // Send verification code
+            sendVerificationBtn.addEventListener('click', async function() {
+                const email = emailInput.value.trim();
+                
+                if (!email) {
+                    showError('emailError', '이메일을 입력해주세요.');
+                    return;
+                }
+                
+                if (!validateEmail(email)) {
+                    showError('emailError', '유효한 이메일 주소를 입력해주세요.');
+                    return;
+                }
+                
+                try {
+                    // Check if email is already registered
+                    const response = await fetch('/api/auth/check-email', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ email: email })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (!data.available) {
+                        showError('emailError', '이미 가입된 이메일입니다.');
+                        return;
+                    }
+                    
+                    // Send verification email
+                    const verificationResponse = await fetch('/api/email/send-verification', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ email: email })
+                    });
+                    
+                    const verificationData = await verificationResponse.json();
+                    
+                    if (verificationResponse.ok) {
+                        // Enable verification code input
+                        verificationCode.disabled = false;
+                        verificationCode.focus();
+                        
+                        // Start countdown
+                        startCountdown();
+                        
+                        // For development only - auto-fill the verification code
+                        if (verificationData.verificationCode) {
+                            verificationCode.value = verificationData.verificationCode;
+                            verifyCode();
+                        }
+                        
+                        showSuccess('verificationSuccess');
+                    } else {
+                        throw new Error(verificationData.message || '인증번호 전송에 실패했습니다.');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showError('verificationError', error.message || '인증번호 전송 중 오류가 발생했습니다.');
+                }
+            });
+            
+            // Verify code
+            verificationCode.addEventListener('input', function() {
+                if (this.value.length === 6) {
+                    verifyCode();
+                }
+            });
+            
+            async function verifyCode() {
+                const code = verificationCode.value;
+                
+                if (code.length !== 6) {
+                    showError('verificationError', '인증번호 6자리를 입력해주세요.');
+                    return false;
+                }
+                
+                // In a real app, you would verify the code with the server
+                // For this example, we'll simulate a successful verification
+                isEmailVerified = true;
+                nextBtn1.disabled = false;
+                verificationTimer.classList.add('d-none');
+                showSuccess('verificationSuccess');
+                clearInterval(countdown);
+                
+                return true;
+            }
+            
+            // Countdown timer
+            function startCountdown() {
+                timeLeft = 180; // Reset to 3 minutes
+                updateTimerDisplay();
+                verificationTimer.classList.remove('d-none');
+                
+                clearInterval(countdown);
+                
+                countdown = setInterval(() => {
+                    timeLeft--;
+                    updateTimerDisplay();
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(countdown);
+                        verificationCode.disabled = true;
+                        showError('verificationError', '인증 시간이 만료되었습니다. 다시 시도해주세요.');
+                    }
+                }, 1000);
+            }
+            
+            function updateTimerDisplay() {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+            
+            // Form navigation
+            nextBtn1.addEventListener('click', function() {
+                if (!isEmailVerified) {
+                    showError('verificationError', '이메일 인증을 완료해주세요.');
+                    return;
+                }
+                
+                step1.classList.add('d-none');
+                step2.classList.remove('d-none');
+                
+                // Load countries and languages
+                loadCountries();
+                loadLanguages();
+            });
+            
+            prevBtn1.addEventListener('click', function() {
+                step2.classList.add('d-none');
+                step1.classList.remove('d-none');
+            });
+            
+            // Check nickname availability
+            checkNicknameBtn.addEventListener('click', async function() {
+                const nickname = nicknameInput.value.trim();
+                
+                if (!nickname) {
+                    showError('nicknameError', '닉네임을 입력해주세요.');
+                    return;
+                }
+                
+                if (!/^[가-힣a-zA-Z0-9]{2,10}$/.test(nickname)) {
+                    showError('nicknameError', '닉네임은 2~10자리 한글, 영문, 숫자만 사용 가능합니다.');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch('/api/auth/check-nickname', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ nickname: nickname })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.available) {
+                        isNicknameAvailable = true;
+                        showSuccess('nicknameSuccess');
+                        hideError('nicknameError');
+                    } else {
+                        isNicknameAvailable = false;
+                        showError('nicknameError', '이미 사용 중인 닉네임입니다.');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showError('nicknameError', '닉네임 확인 중 오류가 발생했습니다.');
+                }
+            });
+            
+            // Password confirmation
+            confirmPasswordInput.addEventListener('input', validatePasswordMatch);
+            passwordInput.addEventListener('input', validatePasswordMatch);
+            
+            function validatePasswordMatch() {
+                const password = passwordInput.value;
+                const confirmPassword = confirmPasswordInput.value;
+                
+                if (confirmPassword && password !== confirmPassword) {
+                    showError('passwordMatchError', '비밀번호가 일치하지 않습니다.');
+                    return false;
+                } else {
+                    hideError('passwordMatchError');
+                    return true;
+                }
+            }
+            
+            // Form submission
+            signupForm.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                
+                // Validate all fields
+                if (!signupForm.checkValidity()) {
+                    event.stopPropagation();
+                    signupForm.classList.add('was-validated');
+                    return;
+                }
+                
+                if (!isEmailVerified) {
+                    showError('verificationError', '이메일 인증을 완료해주세요.');
+                    step2.classList.add('d-none');
+                    step1.classList.remove('d-none');
+                    return;
+                }
+                
+                if (!isNicknameAvailable) {
+                    showError('nicknameError', '닉네임 중복 확인을 해주세요.');
+                    return;
+                }
+                
+                if (!validatePasswordMatch()) {
+                    return;
+                }
+                
+                // Prepare form data
+                const formData = {
+                    email: emailInput.value,
+                    password: passwordInput.value,
+                    confirmPassword: confirmPasswordInput.value,
+                    nickname: nicknameInput.value,
+                    countryId: countrySelect.value,
+                    languageId: languageSelect.value,
+                    gender: document.querySelector('input[name="gender"]:checked').value
+                };
+                
+                try {
+                    const response = await fetch('/api/auth/signup', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(formData)
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        // Redirect to success page or show success message
+                        window.location.href = '/signup/success?email=' + encodeURIComponent(emailInput.value);
+                    } else {
+                        throw new Error(data.message || '회원가입에 실패했습니다.');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert(error.message || '회원가입 중 오류가 발생했습니다.');
+                }
+            });
+            
+            // Load countries from API
+            async function loadCountries() {
+                try {
+                    // In a real app, fetch from your API
+                    // const response = await fetch('/api/countries');
+                    // const countries = await response.json();
+                    
+                    // Mock data
+                    const countries = [
+                        { id: 1, name: '대한민국', code: 'KR' },
+                        { id: 2, name: '미국', code: 'US' },
+                        { id: 3, name: '일본', code: 'JP' },
+                        { id: 4, name: '중국', code: 'CN' },
+                        { id: 5, name: '베트남', code: 'VN' },
+                        { id: 6, name: '태국', code: 'TH' },
+                        { id: 7, name: '필리핀', code: 'PH' },
+                        { id: 8, name: '인도네시아', code: 'ID' },
+                        { id: 9, name: '말레이시아', code: 'MY' },
+                        { id: 10, name: '싱가포르', code: 'SG' }
+                    ];
+                    
+                    countrySelect.innerHTML = '<option value="" selected disabled>국가를 선택해주세요</option>';
+                    countries.forEach(country => {
+                        const option = document.createElement('option');
+                        option.value = country.id;
+                        option.textContent = country.name;
+                        countrySelect.appendChild(option);
+                    });
+                } catch (error) {
+                    console.error('Error loading countries:', error);
+                }
+            }
+            
+            // Load languages from API
+            async function loadLanguages() {
+                try {
+                    // In a real app, fetch from your API
+                    // const response = await fetch('/api/languages');
+                    // const languages = await response.json();
+                    
+                    // Mock data
+                    const languages = [
+                        { id: 1, name: '한국어', code: 'ko' },
+                        { id: 2, name: 'English', code: 'en' },
+                        { id: 3, name: '日本語', code: 'ja' },
+                        { id: 4, name: '中文', code: 'zh' },
+                        { id: 5, name: 'Tiếng Việt', code: 'vi' },
+                        { id: 6, name: 'ภาษาไทย', code: 'th' },
+                        { id: 7, name: 'Filipino', code: 'fil' },
+                        { id: 8, name: 'Bahasa Indonesia', code: 'id' },
+                        { id: 9, name: 'Bahasa Melayu', code: 'ms' }
+                    ];
+                    
+                    languageSelect.innerHTML = '<option value="" selected disabled>주 사용 언어를 선택해주세요</option>';
+                    languages.forEach(language => {
+                        const option = document.createElement('option');
+                        option.value = language.id;
+                        option.textContent = language.name;
+                        languageSelect.appendChild(option);
+                    });
+                } catch (error) {
+                    console.error('Error loading languages:', error);
+                }
+            }
+            
+            // Helper functions
+            function validateEmail(email) {
+                const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return re.test(String(email).toLowerCase());
+            }
+            
+            function showError(elementId, message) {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    element.textContent = message;
+                    element.classList.remove('d-none');
+                }
+            }
+            
+            function hideError(elementId) {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    element.textContent = '';
+                    element.classList.add('d-none');
+                }
+            }
+            
+            function showSuccess(elementId) {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    element.classList.remove('d-none');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

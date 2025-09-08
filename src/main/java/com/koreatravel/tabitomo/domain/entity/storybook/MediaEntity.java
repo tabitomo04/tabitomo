@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Data
 @Entity
 @Builder
-@Table(name = "media")
+@Table(name = "Media")
 public class MediaEntity {
 
     @Id
@@ -24,14 +24,22 @@ public class MediaEntity {
     private Integer num;
 
     @Column(name = "status")
-    private String status;
+    private MediaStatus status;
 
     @Column(name = "media_url", length = 255)
     private String mediaUrl;
 
     @Column(name = "media_type", length = 30)
-    private String mediaType;
+    private MediaType mediaType;
 
     @Column(name = "uploaded_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime uploadTime;
+
+    public enum MediaStatus {
+        upload, temp
+    }
+
+    public enum MediaType {
+        image, video
+    }
 }

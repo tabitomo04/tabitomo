@@ -16,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class KakaoLocalApiClient {
 
-    @Value("${kakao.local.api.key}")
+    @Value("${app.kakao.local.api.key}")
     private String kakaoLocalApiKey;
 
     private final RestTemplate restTemplate;

@@ -1,43 +1,34 @@
 package com.koreatravel.tabitomo.domain.entity.trip;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.Column;
+import jakarta.persistence.*;
+import lombok.*;
 import java.time.LocalDateTime;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Setter;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
 import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
-import com.koreatravel.tabitomo.id.FavoritePlaceId;
-
-import jakarta.persistence.IdClass;
 
 @Entity
-@Table(name = "FavoritePlace")
-@Getter @Setter
+@Table(name = "favorite_place")
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@IdClass(FavoritePlaceId.class)
 public class FavoritePlaceEntity {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    private Integer id;
+
+    @Column(name = "member_email", nullable = false, length = 100)
+    private String memberEmail;
+
+    @Column(name = "place_id", nullable = false, length = 50)
+    private String placeId;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "email", referencedColumnName = "email", nullable = false)
+    @JoinColumn(name = "member_email", referencedColumnName = "email", insertable = false, updatable = false)
     private MemberEntity member;
 
-    @Id
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "place_id", referencedColumnName = "id", nullable = false)
-    private PlaceEntity place;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @PrePersist

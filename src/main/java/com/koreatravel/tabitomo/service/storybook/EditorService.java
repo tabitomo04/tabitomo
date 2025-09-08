@@ -6,6 +6,8 @@ import com.koreatravel.tabitomo.domain.dto.storybook.StorybookDTO;
 import com.koreatravel.tabitomo.domain.dto.storybook.StorybookListDTO;
 import com.koreatravel.tabitomo.domain.dto.trip.TempsaveDTO;
 import com.koreatravel.tabitomo.domain.entity.storybook.MediaEntity;
+import com.koreatravel.tabitomo.domain.entity.storybook.MediaEntity.MediaStatus;
+import com.koreatravel.tabitomo.domain.entity.storybook.MediaEntity.MediaType;
 import com.koreatravel.tabitomo.domain.entity.storybook.StorybookEntity;
 import com.koreatravel.tabitomo.domain.entity.storybook.TempsaveEntity;
 import com.koreatravel.tabitomo.repository.storybook.MediaRepository;
@@ -52,11 +54,11 @@ public class EditorService {
 
         // 글 + 미디어 DTO로 변환
         StorybookDTO dto = StorybookDTO.builder()
-                .booknum(entity.getBooknum())
+                .booknum(entity.getBookNum())
                 .title(entity.getTitle())
                 .subtitle(entity.getSubtitle())
                 .content(entity.getContent())
-                .createDate(entity.getCreateDate())
+                .createDate(entity.getCreatedAt())
                 .likes(entity.getLikes())
                 .build();
 
@@ -77,7 +79,7 @@ public class EditorService {
             entity.setContent(saveRequestDTO.getContent());
 
             // temp 미디어 조회
-            List<MediaEntity> mediaList = mediaRepository.findByNumAndStatus(saveRequestDTO.getTempId(), "temp");
+            List<MediaEntity> mediaList = mediaRepository.findByBookNumAndStatus(saveRequestDTO.getTempId(), MediaStatus.TEMP);
 
             // 서버 파일 삭제
             for (MediaEntity media : mediaList) {
@@ -94,10 +96,9 @@ public class EditorService {
                 }
             }
 
-            // 기존 임시저장 글의 미디어 삭제 (temp)
-            mediaRepository.deleteByNumAndStatus(saveRequestDTO.getTempId(), "temp");
-        }
-        else {
+            // 미디어 데이터 삭제
+            mediaRepository.deleteByBookNumAndStatus(saveRequestDTO.getTempId(), MediaEntity.MediaStatus.TEMP);
+        } else {
             // 새 임시저장
             entity = TempsaveEntity.builder()
                     .title(saveRequestDTO.getTitle())
@@ -108,7 +109,6 @@ public class EditorService {
         tempsaveRepository.save(entity);
 
         return entity.getTempId();
-
     }
 
     /**
@@ -127,11 +127,11 @@ public class EditorService {
             String src = img.attr("src");
 
             MediaEntity media = MediaEntity.builder()
-                    .num(tempId)
-                    .status("temp")
+                    .displayOrder(tempId)
+                    .status(MediaStatus.TEMP)
                     .mediaUrl(src)
-                    .mediaType("image")
-                    .uploadTime(LocalDateTime.now())
+                    .mediaType(MediaType.IMAGE)
+                    .uploadedAt(LocalDateTime.now())
                     .build();
 
             mediaRepository.save(media);
@@ -142,16 +142,15 @@ public class EditorService {
             String videoUrl = video.attr("data-oembed-url");
 
             MediaEntity media = MediaEntity.builder()
-                    .num(tempId)
-                    .status("temp")
+                    .displayOrder(tempId)
+                    .status(MediaStatus.TEMP)
                     .mediaUrl(videoUrl)
-                    .mediaType("video")
-                    .uploadTime(LocalDateTime.now())
+                    .mediaType(MediaType.VIDEO)
+                    .uploadedAt(LocalDateTime.now())
                     .build();
 
             mediaRepository.save(media);
         }
-
     }
 
     /**
@@ -170,7 +169,7 @@ public class EditorService {
     public void delete(Integer booknum) {
 
         // 미디어 조회
-        List<MediaEntity> mediaList = mediaRepository.findByNumAndStatus(booknum, "upload");
+        List<MediaEntity> mediaList = mediaRepository.findByBookNumAndStatus(booknum, MediaStatus.UPLOAD);
 
         // 서버 파일 삭제
         for (MediaEntity media : mediaList) {
@@ -186,8 +185,9 @@ public class EditorService {
                 }
             }
         }
+
         // 미디어 데이터 삭제
-        mediaRepository.deleteByNum(booknum);
+        mediaRepository.deleteByBookNumAndStatus(booknum, MediaStatus.UPLOAD);
 
         // 스토리북 삭제
         StorybookEntity entity = storybookRepository.findById(booknum).orElse(null);
@@ -224,7 +224,7 @@ public class EditorService {
         if (saveRequestDTO.getTempId() != null) {
 
             // 미디어 조회
-            List<MediaEntity> mediaList = mediaRepository.findByNumAndStatus(saveRequestDTO.getTempId(), "temp");
+            List<MediaEntity> mediaList = mediaRepository.findByBookNumAndStatus(saveRequestDTO.getTempId(), MediaEntity.MediaStatus.TEMP);
 
             // 서버 파일 삭제
             for (MediaEntity media : mediaList) {
@@ -241,7 +241,7 @@ public class EditorService {
                 }
             }
 
-            mediaRepository.deleteByNumAndStatus(saveRequestDTO.getTempId(),"temp");
+            mediaRepository.deleteByBookNumAndStatus(saveRequestDTO.getTempId(), MediaEntity.MediaStatus.TEMP);
             tempsaveRepository.deleteById(saveRequestDTO.getTempId());
         }
 
@@ -253,7 +253,7 @@ public class EditorService {
                 .build();
 
         storybookRepository.save(entity);
-        return entity.getBooknum();
+        return entity.getBookNum();
     }
 
     /**
@@ -274,7 +274,7 @@ public class EditorService {
             entity.setContent(saveRequestDTO.getContent());
 
             // 미디어 조회
-            List<MediaEntity> mediaList = mediaRepository.findByNumAndStatus(saveRequestDTO.getBooknum(), "upload");
+            List<MediaEntity> mediaList = mediaRepository.findByBookNumAndStatus(saveRequestDTO.getBooknum(), MediaStatus.UPLOAD);
 
             // 서버 파일 삭제
             for (MediaEntity media : mediaList) {
@@ -292,7 +292,7 @@ public class EditorService {
             }
 
             // 기존 미디어 삭제 (upload)
-            mediaRepository.deleteByNumAndStatus(saveRequestDTO.getBooknum(), "upload");
+            mediaRepository.deleteByBookNumAndStatus(saveRequestDTO.getBooknum(), MediaStatus.UPLOAD);
         } else {
             // 새 글 저장
             entity = StorybookEntity.builder()
@@ -303,7 +303,7 @@ public class EditorService {
         }
 
         storybookRepository.save(entity);
-        return entity.getBooknum();
+        return entity.getBookNum();
     }
 
     /**
@@ -320,11 +320,12 @@ public class EditorService {
         // image 저장
         for (Element img : images) {
             MediaEntity media = MediaEntity.builder()
-                    .num(booknum)
-                    .status("upload")
+                    .bookNum(booknum)
+                    .displayOrder(booknum)
+                    .status(MediaStatus.UPLOAD)
                     .mediaUrl(img.attr("src"))
-                    .mediaType("image")
-                    .uploadTime(LocalDateTime.now())
+                    .mediaType(MediaType.IMAGE)
+                    .uploadedAt(LocalDateTime.now())
                     .build();
             mediaRepository.save(media);
         }
@@ -332,20 +333,25 @@ public class EditorService {
         // video 저장
         for (Element video : videos) {
             MediaEntity media = MediaEntity.builder()
-                    .num(booknum)
-                    .status("upload")
+                    .bookNum(booknum)
+                    .displayOrder(booknum)
+                    .status(MediaStatus.UPLOAD)
                     .mediaUrl(video.attr("data-oembed-url"))
-                    .mediaType("video")
-                    .uploadTime(LocalDateTime.now())
+                    .mediaType(MediaType.VIDEO)
+                    .uploadedAt(LocalDateTime.now())
                     .build();
             mediaRepository.save(media);
         }
     }
 
-
+    /**
+     * 임시 저장된 미디어 삭제
+     * @param tempId 삭제할 임시 저장 ID
+     */
+    @Transactional
     public void tempdel(Integer tempId) {
         // 미디어 조회
-        List<MediaEntity> mediaList = mediaRepository.findByNumAndStatus(tempId, "temp");
+        List<MediaEntity> mediaList = mediaRepository.findByBookNumAndStatus(tempId, MediaStatus.TEMP);
 
         // 서버 파일 삭제
         for (MediaEntity media : mediaList) {
@@ -362,13 +368,7 @@ public class EditorService {
             }
         }
         // 미디어 데이터 삭제
-        mediaRepository.deleteByNum(tempId);
-
-        // 스토리북 삭제
-        TempsaveEntity entity = tempsaveRepository.findById(tempId).orElse(null);
-        if (entity != null) {
-            tempsaveRepository.delete(entity);
-        }
+        mediaRepository.deleteByBookNumAndStatus(tempId, MediaStatus.TEMP);
     }
 }
 

@@ -15,14 +15,14 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.OneToMany;
 
 @Entity
-@Table(name = "Language")
+@Table(name = "language")
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class LanguageEntity {
     @Id
-    @Column(name = "lang_id", nullable = false)
+    @Column(name = "lang_id", nullable = false, columnDefinition = "INT")
     private Integer langId;
 
     @Column(name = "lang_code", nullable = false, length = 10)
@@ -32,5 +32,6 @@ public class LanguageEntity {
     private String langName;
 
     @OneToMany(mappedBy = "language", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<CountryEntity> countries = new ArrayList<>();
 }

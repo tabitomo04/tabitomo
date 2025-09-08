@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@Builder
+@Builder(toBuilder = true)
 public class StorybookDTO {
     private Integer booknum;
     private String title;
@@ -21,4 +21,8 @@ public class StorybookDTO {
     private LocalDateTime updateDate;
     private Integer likes;
 
+    // Builder pattern implementation
+    public static StorybookDTOBuilder builder() {
+        return new StorybookDTOBuilder();
+    }
 }

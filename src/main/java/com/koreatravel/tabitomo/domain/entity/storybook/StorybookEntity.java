@@ -1,11 +1,9 @@
 package com.koreatravel.tabitomo.domain.entity.storybook;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -17,34 +15,42 @@ import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
 @Builder
 @Getter
 @Setter
-@Table(name = "Storybook")
+@Table(name = "storybook")
+@ToString
 public class StorybookEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer booknum;
+    @Column(name = "book_num", nullable = false)
+    private Integer bookNum;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "email", referencedColumnName = "email", nullable = false)
+    @JoinColumn(name = "email", referencedColumnName = "email", nullable = false, insertable = false, updatable = false)
     private MemberEntity member;
 
-    @Column(name = "title", nullable = false)
+    @Column(name = "email", nullable = false, length = 50)
+    private String email;
+
+    @Builder.Default
+    @Column(name = "likes", nullable = false, columnDefinition = "INT DEFAULT 0")
+    private Integer likes = 0;
+
+    @Column(name = "title", nullable = false, length = 100)
     private String title;
 
-    @Column(name = "subtitle", nullable = false)
+    @Column(name = "subtitle", nullable = false, length = 100)
     private String subtitle;
 
-    @Column(columnDefinition = "TEXT") // HTML 내용을 저장하기 위해 TEXT 타입으로 설정
+    @Column(name = "content", columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false)
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
     private LocalDateTime updatedAt;
-
-    @Column(nullable = false, columnDefinition = "integer default 0")
-    private int likes;
 
     @PrePersist
     protected void onCreate() {
@@ -55,5 +61,10 @@ public class StorybookEntity {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+    
+    // Builder pattern implementation
+    public static StorybookEntityBuilder builder() {
+        return new StorybookEntityBuilder();
     }
 }

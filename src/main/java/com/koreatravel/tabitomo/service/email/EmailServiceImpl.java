@@ -1,7 +1,6 @@
 package com.koreatravel.tabitomo.service.email;
 
 import com.koreatravel.tabitomo.exception.EmailSendingException;
-import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

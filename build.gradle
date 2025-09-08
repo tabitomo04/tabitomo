@@ -23,7 +23,9 @@ configurations {
 
 repositories {
     mavenCentral()
-    maven { url 'https://repo.spring.io/milestone' }  // For Spring AI
+    maven {
+        url = 'https://repo.spring.io/milestone'  // For Spring AI
+    }
 }
 
 ext {
@@ -54,6 +56,10 @@ dependencies {
     
     // Spring Session
     implementation 'org.springframework.session:spring-session-jdbc'
+    
+    // Database
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'mysql:mysql-connector-java:8.0.33'
     
     // Thymeleaf
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
@@ -112,6 +118,7 @@ dependencies {
     testImplementation 'com.h2database:h2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
+
 
 dependencyManagement {
     imports {

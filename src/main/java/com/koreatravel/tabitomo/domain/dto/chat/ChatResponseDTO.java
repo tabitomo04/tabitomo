@@ -1,14 +1,12 @@
 package com.koreatravel.tabitomo.domain.dto.chat;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @AllArgsConstructor
-@NoArgsConstructor // 기본 생성자 추가
+@NoArgsConstructor
+@Builder(toBuilder = true)
 public class ChatResponseDTO {
     private String reply;
     private String answerSource;
@@ -17,5 +15,10 @@ public class ChatResponseDTO {
 
     public ChatResponseDTO(String reply) {
         this.reply = reply;
+    }
+    
+    // Builder pattern implementation
+    public static ChatResponseDTOBuilder builder() {
+        return new ChatResponseDTOBuilder();
     }
 }

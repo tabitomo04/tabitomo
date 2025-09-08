@@ -23,11 +23,12 @@ public class OpenAiService {
 
     private final WebClient webClient;
 
-    @Value("${google.gemini.api-key}")
+    @Value("${app.gemini.api.key}")
     private String apiKey;
 
     // Gemini API URL (Google Generative Language API)
-    private final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent";
+    @Value("${app.gemini.api.url}")
+    private String GEMINI_URL;
 
 
     public ChatResponseDTO getChatResponse(ChatRequestDTO req) {

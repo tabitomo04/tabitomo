@@ -5,9 +5,10 @@
 <head>
     <title>로그인 - 타비토모</title>
     <link rel="stylesheet" th:href="@{/css/auth.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 </head>
 <body>
-    <div id="content">
+    <div id="content" th:fragment="content">
         <div class="auth-container">
             <div class="auth-logo">
                 <img th:src="@{/images/logo.svg}" alt="타비토모 로고">
@@ -98,7 +99,6 @@
                 alertDiv.innerHTML = `
                     <i class="bi bi-exclamation-triangle-fill me-2"></i>
                     ${errorMessage}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 `;
                 
                 form.prepend(alertDiv);

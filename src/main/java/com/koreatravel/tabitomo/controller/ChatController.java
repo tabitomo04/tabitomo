@@ -32,10 +32,10 @@ public class ChatController {
     private final AnswerService answerService;
     private final ChatService chatService;
 
-    @Value("${gemini.api.url}")
+    @Value("${app.gemini.api.url}")
     private String geminiApiUrl;
 
-    @Value("${google.gemini.api-key}")
+    @Value("${app.gemini.api.key}")
     private String geminiApiKey;
 
     @GetMapping("/categories")

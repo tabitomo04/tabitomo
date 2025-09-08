@@ -19,29 +19,30 @@ import lombok.Builder;
 
 
 @Entity
-@Table(name = "Country")
+@Table(name = "country")
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class CountryEntity {
     @Id
-    @Column(name = "country_id", nullable = false)
+    @Column(name = "country_id", nullable = false, columnDefinition = "INT")
     private Integer countryId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "lang_id", nullable = false)
+    @JoinColumn(name = "lang_id")
     private LanguageEntity language;
 
     @Column(name = "country_name", nullable = false, length = 50)
     private String countryName;
 
-    @Column(nullable = false, length = 50)
+    @Column(name = "region", nullable = false, length = 50)
     private String region;
 
     @Column(name = "iso_code", nullable = false, length = 3)
     private String isoCode;
 
     @OneToMany(mappedBy = "country", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<MemberEntity> members = new ArrayList<>();
 }

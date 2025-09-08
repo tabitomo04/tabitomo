@@ -32,6 +32,40 @@ public class AuthController {
     private final MemberService memberService;
 
     /**
+     * 로그인 페이지
+     */
+    @GetMapping(PathConstants.LOGIN)
+    public String loginPage() {
+        return "auth/login";
+    }
+
+    /**
+     * 회원가입 페이지
+     */
+    @GetMapping(PathConstants.SIGNUP)
+    public String signupPage() {
+        return "auth/signup";
+    }
+
+    /**
+     * 비밀번호 찾기 페이지
+     */
+    @GetMapping(PathConstants.REQUEST_PASSWORD_RESET)
+    public String forgotPasswordPage() {
+        return "auth/forgot-password";
+    }
+
+    /**
+     * 비밀번호 재설정 페이지
+     */
+    @GetMapping(PathConstants.RESET_PASSWORD)
+    public String resetPasswordPage(@RequestParam String token, org.springframework.ui.Model model) {
+        model.addAttribute("token", token);
+        return "auth/reset-password";
+    }
+
+
+    /**
      * 회원가입 처리
      */
     @PostMapping(PathConstants.SIGNUP)
@@ -109,7 +143,7 @@ public class AuthController {
             }
         }
         model.addAttribute("error", errorMessage != null ? errorMessage : "로그인에 실패했습니다.");
-        return "auth/login";
+        return "auth/login.html";
     }
     
     /**

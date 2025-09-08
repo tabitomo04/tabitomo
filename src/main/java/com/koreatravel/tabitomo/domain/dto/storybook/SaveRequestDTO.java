@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@Builder
+@Builder(toBuilder = true)
 public class SaveRequestDTO {
     private Integer booknum;
     private Integer tempId;
@@ -16,4 +16,9 @@ public class SaveRequestDTO {
     private String title;
     private String subtitle;
     private String content;
+    
+    // Builder pattern implementation
+    public static SaveRequestDTOBuilder builder() {
+        return new SaveRequestDTOBuilder();
+    }
 }

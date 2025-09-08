@@ -2,38 +2,38 @@ package com.koreatravel.tabitomo.domain.entity.member;
 
 import com.koreatravel.tabitomo.id.UserSelectedInfoId;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.IdClass;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinColumns;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
-@Table(name = "UserSelectedInfo")
-@Getter @Setter
+@Table(name = "user_selected_info")
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @IdClass(UserSelectedInfoId.class)
 public class UserSelectedInfoEntity {
     @Id
+    @Column(name = "info_high_num", nullable = false, columnDefinition = "INT")
+    private Integer infoHighNum;
+
+    @Id
+    @Column(name = "info_low_num", nullable = false, columnDefinition = "INT")
+    private Integer infoLowNum;
+
+    @Id
+    @Column(name = "email", nullable = false, length = 255, columnDefinition = "VARCHAR(255)")
+    private String email;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumns({
-        @JoinColumn(name = "infohighnum", referencedColumnName = "infohighnum"),
-        @JoinColumn(name = "infolownum", referencedColumnName = "infolownum")
+        @JoinColumn(name = "info_high_num", referencedColumnName = "info_high_num", insertable = false, updatable = false),
+        @JoinColumn(name = "info_low_num", referencedColumnName = "info_low_num", insertable = false, updatable = false)
     })
     private AddInfoEntity addInfo;
 
-    @Id
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "email", referencedColumnName = "email", nullable = false)
+    @JoinColumn(name = "email", referencedColumnName = "email", insertable = false, updatable = false)
     private MemberEntity member;
 }

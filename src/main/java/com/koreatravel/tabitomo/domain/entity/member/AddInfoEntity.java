@@ -18,7 +18,7 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.OneToMany;
 
 @Entity
-@Table(name = "AddInfo")
+@Table(name = "add_info")
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -26,16 +26,20 @@ import jakarta.persistence.OneToMany;
 @IdClass(AddInfoId.class)
 public class AddInfoEntity {
     @Id
-    @Column(name = "infohighnum", nullable = false)
+    @Column(name = "info_high_num", nullable = false)
     private Integer infoHighNum;
 
     @Id
-    @Column(name = "infolownum", nullable = false)
+    @Column(name = "info_low_num", nullable = false)
     private Integer infoLowNum;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 100, name = "info_name")
     private String infoName;
 
+    @Column(length = 255, name = "content")
+    private String content;
+
     @OneToMany(mappedBy = "addInfo", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<UserSelectedInfoEntity> userSelectedInfos = new ArrayList<>();
 }

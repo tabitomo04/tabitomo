@@ -5,7 +5,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 
 import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
@@ -18,19 +17,19 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "Trip")
+@Table(name = "trip")
 public class TripEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "trip_id")
+    @Column(name = "trip_id", columnDefinition = "BIGINT NOT NULL AUTO_INCREMENT")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "email", referencedColumnName = "email", nullable = false)
+    @JoinColumn(name = "email", referencedColumnName = "email", nullable = false, columnDefinition = "VARCHAR(100) NOT NULL")
     private MemberEntity member;
 
-    @Column(nullable = false, length = 100)
+    @Column(name = "title", nullable = false, length = 100)
     private String title;
 
     @Column(name = "start_date", nullable = false)
@@ -40,8 +39,7 @@ public class TripEntity {
     private LocalDate endDate;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
-    @ColumnDefault("'PRIVATE'")
+    @Column(name = "visibility", nullable = false, columnDefinition = "ENUM('PRIVATE', 'LINK', 'PUBLIC') DEFAULT 'PRIVATE'")
     private Visibility visibility = Visibility.PRIVATE;
 
     @CreationTimestamp

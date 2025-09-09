@@ -32,10 +32,16 @@ public class ChatController {
     private final AnswerService answerService;
     private final ChatService chatService;
 
-    @Value("${app.gemini.api.url}")
-    private String geminiApiUrl;
-
-    @Value("${app.gemini.api.key}")
+    @Value("${spring.ai.vertex.ai.gemini.api-endpoint}")
+    private String geminiApiEndpoint;
+    
+    @Value("${spring.ai.vertex.ai.project-id}")
+    private String projectId;
+    
+    @Value("${spring.ai.vertex.ai.location}")
+    private String location;
+    
+    @Value("${app.google.cloud.translation.api-key}")
     private String geminiApiKey;
 
     @GetMapping("/categories")

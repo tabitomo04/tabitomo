@@ -31,7 +31,7 @@ repositories {
 ext {
     set('snippetsDir', file("build/generated-snippets"))
     set('springAiVersion', "1.0.1")
-    set('mapstructVersion', "1.6.0")
+    set('mapstructVersion', "1.6.0.Beta2")
     set('openCsvVersion', "5.9")
     set('jsoupVersion', "1.17.2")
     set('googleCloudTranslateVersion', "2.38.0")
@@ -52,14 +52,17 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-cache'
     
     // Spring AI
-    implementation 'org.springframework.ai:spring-ai-starter-model-vertex-ai-gemini'
+    implementation ("org.springframework.ai:spring-ai-vertex-ai-gemini:${springAiVersion}") {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-webflux'
+    }
     
     // Spring Session
     implementation 'org.springframework.session:spring-session-jdbc'
     
     // Database
-    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-core:9.22.3'
     implementation 'mysql:mysql-connector-java:8.0.33'
+    implementation 'org.flywaydb:flyway-mysql:9.22.3'
     
     // Thymeleaf
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
@@ -70,7 +73,7 @@ dependencies {
     ext['thymeleaf-layout-dialect.version'] = '3.2.1'
     
     // Jakarta Mail
-    implementation 'com.sun.mail:jakarta.mail:2.0.1'
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
     
     // MapStruct
     implementation "org.mapstruct:mapstruct:${mapstructVersion}"
@@ -88,12 +91,9 @@ dependencies {
     // Google Cloud Services
     implementation "com.google.cloud:google-cloud-translate:${googleCloudTranslateVersion}"
     
-    // Jakarta Validation
-    implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
-    implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
+    // Jakarta Validation (provided by spring-boot-starter-validation)
     
-    // Jackson
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    // Jackson (provided by spring-boot-starter-json)
     
     // Lombok
     compileOnly 'org.projectlombok:lombok'

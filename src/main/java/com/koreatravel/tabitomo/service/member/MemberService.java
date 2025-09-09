@@ -20,6 +20,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import com.koreatravel.tabitomo.config.security.MemberDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -160,13 +161,18 @@ public class MemberService {
      */
     public MemberEntity getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new UnauthorizedException("인증된 사용자가 없습니다.");
+        if (authentication == null || authentication.getPrincipal() == null) {
+            throw new UnauthorizedException("No authenticated user found");
         }
         
-        String email = authentication.getName();
-        return memberRepository.findByEmail(email)
-            .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다."));
+        if (authentication.getPrincipal() instanceof MemberDetails) {
+            return ((MemberDetails) authentication.getPrincipal()).getMember();
+        } else if (authentication.getPrincipal() instanceof String) {
+            // Handle case where principal is just a string (e.g., anonymous user)
+            throw new UnauthorizedException("User not authenticated");
+        } else {
+            throw new UnauthorizedException("Unexpected principal type: " + authentication.getPrincipal().getClass().getName());
+        }
     }
     
     /**

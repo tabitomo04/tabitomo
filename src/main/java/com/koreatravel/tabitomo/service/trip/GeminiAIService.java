@@ -18,6 +18,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -32,18 +33,28 @@ import com.opencsv.exceptions.CsvException;
  // TourRecommendation import 추가
 
 @Service
+@Profile("prod")
 public class GeminiAIService {
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(GeminiAIService.class);
 
-    @Value("${google.gemini.api-key}")
-    private String geminiApiKey;
-
-    @Value("${google.maps.api.key}")
+    @Value("${spring.ai.vertex.ai.gemini.api-endpoint}")
+    private String geminiApiEndpoint;
+    
+    @Value("${spring.ai.vertex.ai.project-id}")
+    private String projectId;
+    
+    @Value("${spring.ai.vertex.ai.location}")
+    private String location;
+    
+    @Value("${app.google.maps.api.key}")
     private String googleApiKey;
-
-    @Value("${pixabay.api.key}")
+    
+    @Value("${app.pixabay.api.key}")
     private String pixabayApiKey;
+    
+    @Value("${app.google.cloud.translation.api-key}")
+    private String translationApiKey;
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
@@ -100,18 +111,25 @@ public class GeminiAIService {
     }
 
     public TourRecommendationDTO getRecommendation(String destination, String duration, String theme, String priceRange) {
-        String apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=" + geminiApiKey;
-
+        // Construct the Vertex AI Gemini API endpoint
+        String apiUrl = String.format("https://%s/v1/projects/%s/locations/%s/publishers/google/models/gemini-pro:generateContent",
+            geminiApiEndpoint, projectId, location);
+            
+        // Create headers with authentication
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(translationApiKey);  // Using the same API key for authentication
 
         StringBuilder promptBuilder = new StringBuilder();
-        // duration이 숫자라면 자연어로 변환
+        // Convert duration to natural language if it's a number
         String durationText = duration;
         try {
             int nights = Integer.parseInt(duration);
             int days = nights + 1;
             durationText = String.format("%d박 %d일", nights, days);
-        } catch (Exception e) {
-            // 이미 자연어면 그대로 사용
+        } catch (NumberFormatException e) {
+            // If it's already in natural language, use it as is
+            logger.debug("Using provided duration text: {}", duration);
         }
         promptBuilder.append(String.format(
             "사용자가 요청한 여행지, 기간, 테마에 맞춰서 상세한 여행 코스와 숙소를 추천해줘. 각 장소에 대한 설명을 포함하고, 검색 가능한 실제 장소 이름을 사용해줘. '(가상)'이라는 단어는 이름에 넣지마. 위도와 경도는 내가 직접 찾을거야. 이미지 URL은 제공하지마.\n" +
@@ -199,32 +217,33 @@ public class GeminiAIService {
             "}\n"
         );
 
-        String promptText = promptBuilder.toString();
-
         try {
-            // ObjectMapper를 사용하여 JSON 요청 본문을 안전하게 생성합니다.
-            Map<String, Object> part = new HashMap<>();
-            part.put("text", promptText);
-
+            // Create the request body for Vertex AI
+            Map<String, Object> requestBody = new HashMap<>();
+            
+            // Create the content structure expected by Vertex AI
             Map<String, Object> content = new HashMap<>();
-            content.put("parts", Collections.singletonList(part));
+            content.put("role", "user");
+            content.put("parts", Collections.singletonList(Collections.singletonMap("text", promptBuilder.toString())));
+            
+            requestBody.put("contents", Collections.singletonList(content));
+            
+            // Add generation config
+            Map<String, Object> generationConfig = new HashMap<>();
+            generationConfig.put("temperature", 0.2);
+            generationConfig.put("topP", 0.8);
+            generationConfig.put("topK", 40);
+            generationConfig.put("maxOutputTokens", 2048);
+            
+            requestBody.put("generationConfig", generationConfig);
 
-            Map<String, Object> requestBodyMap = new HashMap<>();
-            requestBodyMap.put("contents", Collections.singletonList(content));
+            // Make the API request
+            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
+            org.springframework.http.ResponseEntity<String> response = restTemplate.postForEntity(apiUrl, requestEntity, String.class);
 
-            String requestBody = objectMapper.writeValueAsString(requestBodyMap);
+            logger.info("Gemini API 원본 응답: {}", response.getBody()); // 원본 응답 로깅
 
-            // 헤더 설정
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
-
-            // API 호출
-            String response = restTemplate.postForObject(apiUrl, entity, String.class);
-            logger.info("Gemini API 원본 응답: {}", response); // 원본 응답 로깅
-
-            return parseResponse(response);
+            return parseResponse(response.getBody());
 
         } catch (Exception e) {
             logger.error("Gemini API 호출 중 에러 발생: {}", e.getMessage(), e);

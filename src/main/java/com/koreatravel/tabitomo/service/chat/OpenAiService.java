@@ -23,12 +23,17 @@ public class OpenAiService {
 
     private final WebClient webClient;
 
-    @Value("${app.gemini.api.key}")
+    @Value("${spring.ai.vertex.ai.gemini.api-endpoint}")
+    private String geminiApiEndpoint;
+    
+    @Value("${spring.ai.vertex.ai.project-id}")
+    private String projectId;
+    
+    @Value("${spring.ai.vertex.ai.location}")
+    private String location;
+    
+    @Value("${app.google.cloud.translation.api-key}")
     private String apiKey;
-
-    // Gemini API URL (Google Generative Language API)
-    @Value("${app.gemini.api.url}")
-    private String GEMINI_URL;
 
 
     public ChatResponseDTO getChatResponse(ChatRequestDTO req) {
@@ -47,9 +52,13 @@ public class OpenAiService {
         );
 
         try {
+            // Construct the Gemini API URL
+            String geminiUrl = String.format("https://%s/v1/projects/%s/locations/%s/publishers/google/models/gemini-pro:generateContent",
+                geminiApiEndpoint, projectId, location);
+                
             // WebClient를 이용한 Gemini API 호출 및 지수 백오프 재시도 로직 적용
             Map response = webClient.post()
-                    .uri(GEMINI_URL + "?key=" + apiKey)
+                    .uri(geminiUrl + "?key=" + apiKey)
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(requestBody)
                     .retrieve()

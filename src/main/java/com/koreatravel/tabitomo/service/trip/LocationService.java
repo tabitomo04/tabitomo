@@ -76,7 +76,7 @@ public class LocationService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     
-    @Value("${kakao.api.key}")
+    @Value("${app.kakao.local.api.key}")
     private String kakaoApiKey;
 
     public Map<String, Double> getCoordinates(String address) {

@@ -7,25 +7,44 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
-        .question-card {
-            display: none;
-            animation: fadeIn 0.5s ease-in-out;
+        .question-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 0.5rem;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
-        .question-card.active {
-            display: block;
+        .question-section h5 {
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #f8f9fa;
         }
-        .progress {
-            height: 10px;
+        .question-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.25rem;
+            margin-bottom: 1rem;
         }
-        .progress-bar {
-            transition: width 0.3s ease-in-out;
+        .form-check {
+            padding: 0.75rem 1rem;
+            margin: 0.5rem 0;
+            border: 1px solid #e9ecef;
+            border-radius: 0.25rem;
+            transition: all 0.2s ease-in-out;
         }
-        .nav-btn {
-            min-width: 100px;
+        .form-check:hover {
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .form-check-input:checked + .form-check-label {
+            font-weight: 500;
+            color: #0d6efd;
+        }
+        .form-check-input:checked {
+            border-color: #0d6efd;
+            background-color: #0d6efd;
         }
     </style>
 </head>
@@ -41,47 +60,21 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <!-- Progress Bar -->
-                        <div class="mb-4">
-                            <div class="d-flex justify-content-between mb-2">
-                                <small>진행 상황</small>
-                                <small><span id="current-question">1</span>/<span id="total-questions">5</span></small>
-                            </div>
-                            <div class="progress">
-                                <div id="progress-bar" class="progress-bar bg-primary" role="progressbar" style="width: 20%" 
-                                     aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
+                        <div class="alert alert-info mb-4">
+                            <i class="bi bi-info-circle me-2"></i>
+                            모든 질문에 답변해주시면 더 나은 여행 추천을 받으실 수 있습니다.
                         </div>
 
-                        <form id="questionForm" th:action="@{/question/form}" method="post">
+                        <form id="questionForm" th:action="@{/question/form}" method="post" class="needs-validation" novalidate>
                             <!-- Question 1 -->
-                            <div class="question-card active" data-question="1">
-                                <div class="card mb-4 border-primary">
-                                    <div class="card-body">
-                                        <img src="/image/tomo.png" alt="여행 계획" class="question-image">
-                                        <h5 class="card-title">1. 여행을 계획할 때 가장 중요하게 생각하는 것은 무엇인가요?</h5>
-                                        <div class="form-check mb-3">
-                                            <input class="form-check-input" type="radio" name="q1" id="q1_1" value="1" required>
-                                            <label class="form-check-label" for="q1_1">
-                                                명소 방문과 관광지 체험
-                                            </label>
-                                        </div>
-                                        <div class="form-check mb-3">
-                                            <input class="form-check-input" type="radio" name="q1" id="q1_2" value="2">
-                                            <label class="form-check-label" for="q1_2">
-                                                현지 음식과 맛집 탐방
-                                            </label>
-                                        </div>
-                                        <div class="form-check mb-3">
-                                            <input class="form-check-input" type="radio" name="q1" id="q1_3" value="3">
-                                            <label class="form-check-label" for="q1_3">
-                                                쇼핑과 시장 구경
-                                            </label>
-                                        </div>
+                            <div class="question-section mb-4">
+                                <h5>1. 여행을 계획할 때 가장 중요하게 생각하는 것은 무엇인가요?</h5>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3" th:each="option : ${questions[1]}">
                                         <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="q1" id="q1_4" value="4">
-                                            <label class="form-check-label" for="q1_4">
-                                                휴양과 휴식
+                                            <input class="form-check-input" type="radio" th:name="hobbies" th:value="${option.id}" th:id="'hobby_' + ${option.id}" required>
+                                            <label class="form-check-label" th:for="'hobby_' + ${option.id}" th:text="${option.content}">
+                                                옵션 내용
                                             </label>
                                         </div>
                                     </div>
@@ -89,33 +82,14 @@
                             </div>
 
                             <!-- Question 2 -->
-                            <div class="question-card" data-question="2">
-                                <div class="card mb-4 border-primary">
-                                    <div class="card-body">
-                                        <img src="/image/tomo.png" alt="여행 활동" class="question-image">
-                                        <h5 class="card-title">2. 여행지에서 선호하는 활동은 무엇인가요?</h5>
-                                        <div class="form-check mb-3">
-                                            <input class="form-check-input" type="radio" name="q2" id="q2_1" value="1" required>
-                                            <label class="form-check-label" for="q2_1">
-                                                대중교통 (지하철, 버스 등)
-                                            </label>
-                                        </div>
-                                        <div class="form-check mb-3">
-                                            <input class="form-check-input" type="radio" name="q2" id="q2_2" value="2">
-                                            <label class="form-check-label" for="q2_2">
-                                                렌터카나 자가용
-                                            </label>
-                                        </div>
-                                        <div class="form-check mb-3">
-                                            <input class="form-check-input" type="radio" name="q2" id="q2_3" value="3">
-                                            <label class="form-check-label" for="q2_3">
-                                                도보 또는 자전거
-                                            </label>
-                                        </div>
+                            <div class="question-section mb-4">
+                                <h5>2. MBTI 성향을 선택해주세요</h5>
+                                <div class="row">
+                                    <div class="col-md-3 col-6 mb-3" th:each="option : ${questions[2]}">
                                         <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="q2" id="q2_4" value="4">
-                                            <label class="form-check-label" for="q2_4">
-                                                택시나 전세 서비스
+                                            <input class="form-check-input" type="radio" name="mbti" th:value="${option.content}" th:id="'mbti_' + ${option.id}" required>
+                                            <label class="form-check-label" th:for="'mbti_' + ${option.id}" th:text="${option.content}">
+                                                MBTI 유형
                                             </label>
                                         </div>
                                     </div>
@@ -123,33 +97,14 @@
                             </div>
 
                             <!-- Question 3 -->
-                            <div class="question-card" data-question="3">
-                                <div class="card mb-4 border-primary">
-                                    <div class="card-body">
-                                        <img src="/image/tomo.png" alt="여행 일정" class="question-image">
-                                        <h5 class="card-title">3. 여행 일정을 어떻게 계획하시나요?</h5>
-                                        <div class="form-check mb-3">
-                                            <input class="form-check-input" type="radio" name="q3" id="q3_1" value="1" required>
-                                            <label class="form-check-label" for="q3_1">
-                                                상세한 일정을 미리 계획합니다.
-                                            </label>
-                                        </div>
-                                        <div class="form-check mb-3">
-                                            <input class="form-check-input" type="radio" name="q3" id="q3_2" value="2">
-                                            <label class="form-check-label" for="q3_2">
-                                                대략적인 계획만 세우고 유연하게 움직입니다.
-                                            </label>
-                                        </div>
-                                        <div class="form-check mb-3">
-                                            <input class="form-check-input" type="radio" name="q3" id="q3_3" value="3">
-                                            <label class="form-check-label" for="q3_3">
-                                                현지에서 즉흥적으로 결정합니다.
-                                            </label>
-                                        </div>
+                            <div class="question-section mb-4">
+                                <h5>3. 선호하는 여행 스타일을 선택해주세요 (중복 선택 가능)</h5>
+                                <div class="row">
+                                    <div class="col-md-4 col-6 mb-3" th:each="option : ${questions[3]}">
                                         <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="q3" id="q3_4" value="4">
-                                            <label class="form-check-label" for="q3_4">
-                                                여행사의 패키지 상품을 이용합니다.
+                                            <input class="form-check-input" type="checkbox" th:name="travelStyles" th:value="${option.id}" th:id="'style_' + ${option.id}">
+                                            <label class="form-check-label" th:for="'style_' + ${option.id}" th:text="${option.content}">
+                                                여행 스타일
                                             </label>
                                         </div>
                                     </div>
@@ -157,33 +112,14 @@
                             </div>
 
                             <!-- Question 4 -->
-                            <div class="question-card" data-question="4">
-                                <div class="card mb-4 border-primary">
-                                    <div class="card-body">
-                                        <img src="/image/tomo.png" alt="여행 예산" class="question-image">
-                                        <h5 class="card-title">4. 여행 예산은 어떻게 관리하시나요?</h5>
-                                        <div class="form-check mb-3">
-                                            <input class="form-check-input" type="radio" name="q4" id="q4_1" value="1" required>
-                                            <label class="form-check-label" for="q4_1">
-                                                절약하면서 합리적인 소비를 합니다.
-                                            </label>
-                                        </div>
-                                        <div class="form-check mb-3">
-                                            <input class="form-check-input" type="radio" name="q4" id="q4_2" value="2">
-                                            <label class="form-check-label" for="q4_2">
-                                                계획된 예산 내에서 지출합니다.
-                                            </label>
-                                        </div>
-                                        <div class="form-check mb-3">
-                                            <input class="form-check-input" type="radio" name="q4" id="q4_3" value="3">
-                                            <label class="form-check-label" for="q4_3">
-                                                특별한 경험에는 돈을 아끼지 않습니다.
-                                            </label>
-                                        </div>
+                            <div class="question-section mb-4">
+                                <h5>4. 주로 누구와 여행을 하시나요? (중복 선택 가능)</h5>
+                                <div class="row">
+                                    <div class="col-md-4 col-6 mb-3" th:each="option : ${questions[4]}">
                                         <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="q4" id="q4_4" value="4">
-                                            <label class="form-check-label" for="q4_4">
-                                                여행 경비는 크게 신경 쓰지 않습니다.
+                                            <input class="form-check-input" type="checkbox" th:name="companions" th:value="${option.id}" th:id="'companion_' + ${option.id}">
+                                            <label class="form-check-label" th:for="'companion_' + ${option.id}" th:text="${option.content}">
+                                                동반자 유형
                                             </label>
                                         </div>
                                     </div>
@@ -191,54 +127,25 @@
                             </div>
 
                             <!-- Question 5 -->
-                            <div class="question-card" data-question="5">
-                                <div class="card mb-4 border-primary">
-                                    <div class="card-body">
-                                        <img src="/image/tomo.png" alt="여행 스타일" class="question-image">
-                                        <h5 class="card-title">5. 선호하는 여행 스타일은 무엇인가요?</h5>
-                                        <div class="form-check mb-3">
-                                            <input class="form-check-input" type="radio" name="q5" id="q5_1" value="1" required>
-                                            <label class="form-check-label" for="q5_1">
-                                                액티비티와 체험 중심의 여행
-                                            </label>
-                                        </div>
-                                        <div class="form-check mb-3">
-                                            <input class="form-check-input" type="radio" name="q5" id="q5_2" value="2">
-                                            <label class="form-check-label" for="q5_2">
-                                                문화와 역사 탐방 중심의 여행
-                                            </label>
-                                        </div>
-                                        <div class="form-check mb-3">
-                                            <input class="form-check-input" type="radio" name="q5" id="q5_3" value="3">
-                                            <label class="form-check-label" for="q5_3">
-                                                자연과 풍경 감상 위주의 여행
-                                            </label>
-                                        </div>
+                            <div class="question-section mb-4">
+                                <h5>5. 선호하는 음식 취향을 선택해주세요 (중복 선택 가능)</h5>
+                                <div class="row">
+                                    <div class="col-md-3 col-6 mb-3" th:each="option : ${questions[5]}">
                                         <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="q5" id="q5_4" value="4">
-                                            <label class="form-check-label" for="q5_4">
-                                                휴양과 힐링 중심의 여행
+                                            <input class="form-check-input" type="checkbox" th:name="foodPreferences" th:value="${option.id}" th:id="'food_' + ${option.id}">
+                                            <label class="form-check-label" th:for="'food_' + ${option.id}" th:text="${option.content}">
+                                                음식 취향
                                             </label>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Navigation Buttons -->
-                            <div class="d-flex justify-content-between mt-4">
-                                <div>
-                                    <button type="button" id="prevBtn" class="btn btn-outline-primary nav-btn" style="display: none;">
-                                        <i class="bi bi-arrow-left"></i> 이전
-                                    </button>
-                                </div>
-                                <div>
-                                    <button type="button" id="nextBtn" class="btn btn-primary nav-btn">
-                                        다음 <i class="bi bi-arrow-right"></i>
-                                    </button>
-                                    <button type="submit" id="submitBtn" class="btn btn-success nav-btn" style="display: none;">
-                                        제출하기 <i class="bi bi-check-lg"></i>
-                                    </button>
-                                </div>
+                            <!-- Submit Button -->
+                            <div class="d-grid gap-2 mt-5">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-check-circle me-2"></i>제출하기
+                                </button>
                             </div>
                         </form>
                     </div>
@@ -248,93 +155,138 @@
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        $(document).ready(function() {
-            const totalQuestions = $('.question-card').length;
-            let currentQuestion = 1;
+        // Form validation
+        (function () {
+            'use strict'
             
-            // Set total questions count
-            $('#total-questions').text(totalQuestions);
+            // Fetch all the forms we want to apply custom Bootstrap validation styles to
+            var forms = document.querySelectorAll('.needs-validation')
             
-            // Next button click handler
-            $('#nextBtn').click(function() {
-                // Validate current question
-                const currentCard = $(`.question-card[data-question="${currentQuestion}"]`);
-                const currentInput = currentCard.find('input[type="radio"]:checked');
+            // Add custom validation for required radio buttons and checkboxes
+            function validateForm() {
+                let isValid = true;
                 
-                if (currentInput.length === 0) {
-                    alert('답변을 선택해주세요.');
-                    return;
-                }
+                // Validate required radio buttons (hobbies and mbti)
+                const requiredRadios = document.querySelectorAll('input[type="radio"][required]');
+                const radioGroups = new Set(Array.from(requiredRadios).map(radio => radio.name));
                 
-                // Hide current question
-                currentCard.removeClass('active');
+                radioGroups.forEach(groupName => {
+                    const checked = document.querySelector(`input[name="${groupName}"]:checked`);
+                    if (!checked) {
+                        // Find the first radio in this group and mark as invalid
+                        const firstRadio = document.querySelector(`input[name="${groupName}"]`);
+                        firstRadio.setCustomValidity('이 항목은 필수입니다.');
+                        isValid = false;
+                    }
+                });
                 
-                // Show next question
-                currentQuestion++;
-                $(`.question-card[data-question="${currentQuestion}"]`).addClass('active');
+                // Add real-time validation for radio buttons
+                document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        const groupName = this.name;
+                        const group = document.getElementsByName(groupName);
+                        let isAnyChecked = false;
+                        
+                        group.forEach(btn => {
+                            if (btn.checked) isAnyChecked = true;
+                        });
+                        
+                        // Clear any previous validation messages
+                        group.forEach(btn => {
+                            btn.setCustomValidity('');
+                            const formCheck = btn.closest('.form-check');
+                            if (formCheck) {
+                                formCheck.classList.remove('is-invalid');
+                            }
+                        });
+                        
+                        if (!isAnyChecked && this.required) {
+                            this.setCustomValidity('이 항목은 필수입니다.');
+                            this.reportValidity();
+                        }
+                    });
+                });
                 
-                // Show previous button when not on first question
-                if (currentQuestion > 1) {
-                    $('#prevBtn').show();
-                }
-                
-                // Update progress
-                updateProgress();
-                
-                // Show submit button only on last question
-                if (currentQuestion === totalQuestions) {
-                    $('#nextBtn').hide();
-                    $('#submitBtn').show();
-                } else {
-                    $('#submitBtn').hide();
-                    $('#nextBtn').show();
-                }
-            });
-            
-            // Previous button click handler
-            $('#prevBtn').click(function() {
-                // Hide current question
-                $(`.question-card[data-question="${currentQuestion}"]`).removeClass('active');
-                
-                // Show previous question
-                currentQuestion--;
-                $(`.question-card[data-question="${currentQuestion}"]`).addClass('active');
-                
-                // Update progress
-                updateProgress();
-                
-                // Hide previous button on first question
-                if (currentQuestion === 1) {
-                    $('#prevBtn').hide();
-                } else {
-                    $('#prevBtn').show();
-                }
-                
-                // Always hide submit button when going back
-                $('#submitBtn').hide();
-                $('#nextBtn').show();
-            });
-            
-            // Update progress bar and question counter
-            function updateProgress() {
-                const progress = (currentQuestion / totalQuestions) * 100;
-                $('#progress-bar').css('width', progress + '%').attr('aria-valuenow', progress);
-                $('#current-question').text(currentQuestion);
+                return isValid;
             }
             
-            // Form submission handler
-            $('#questionForm').on('submit', function(e) {
-                // Validate last question
-                const lastCard = $(`.question-card[data-question="${totalQuestions}"]`);
-                const lastInput = lastCard.find('input[type="radio"]:checked');
-                
-                if (lastInput.length === 0) {
-                    e.preventDefault();
-                    alert('마지막 질문에 답변을 선택해주세요.');
-                }
+            // Add form submission handler
+            document.querySelectorAll('.needs-validation').forEach(form => {
+                form.addEventListener('submit', function(event) {
+                    // Reset custom validity
+                    this.querySelectorAll('input').forEach(input => {
+                        input.setCustomValidity('');
+                    });
+                    
+                    // Run custom validation
+                    if (!validateForm() || !form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        
+                        // Show validation messages for required fields
+                        const invalidFields = form.querySelectorAll(':invalid');
+                        invalidFields.forEach(field => {
+                            const formCheck = field.closest('.form-check');
+                            if (formCheck) {
+                                formCheck.classList.add('is-invalid');
+                            }
+                            
+                            // Scroll to the first invalid field
+                            if (field === invalidFields[0]) {
+                                field.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'center'
+                                });
+                            }
+                        });
+                    }
+                    
+                    form.classList.add('was-validated');
+                }, false);
             });
-        });
+            
+            // Add visual feedback for invalid fields
+            document.querySelectorAll('input').forEach(input => {
+                input.addEventListener('invalid', function() {
+                    this.classList.add('is-invalid');
+                    const formCheck = this.closest('.form-check');
+                    if (formCheck) {
+                        formCheck.classList.add('is-invalid');
+                    }
+                });
+                
+                // Clear validation on input
+                input.addEventListener('input', function() {
+                    if (this.checkValidity()) {
+                        this.classList.remove('is-invalid');
+                        const formCheck = this.closest('.form-check');
+                        if (formCheck) {
+                            formCheck.classList.remove('is-invalid');
+                        }
+                    }
+                });
+            });
+            
+            // Add styles for invalid feedback
+            const style = document.createElement('style');
+            style.textContent = `
+                .form-check-input.is-invalid ~ .form-check-label,
+                .is-invalid .form-check-label {
+                    color: #dc3545;
+                }
+                .form-check-input.is-invalid {
+                    border-color: #dc3545;
+                }
+                .form-check-input.is-invalid:checked {
+                    background-color: #dc3545;
+                    border-color: #dc3545;
+                }
+            `;
+            document.head.appendChild(style);
+            
+        })();
     </script>
 </body>
 </html>

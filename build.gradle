@@ -67,6 +67,7 @@ dependencies {
     // Thymeleaf
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+    implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect'
     
     // Explicitly set Thymeleaf version compatible with Spring Boot 3.2.0
     ext['thymeleaf.version'] = '3.1.2.RELEASE'
@@ -90,6 +91,9 @@ dependencies {
     
     // Google Cloud Services
     implementation "com.google.cloud:google-cloud-translate:${googleCloudTranslateVersion}"
+    
+    // Jakarta Servlet API
+    implementation 'jakarta.servlet:jakarta.servlet-api:6.0.0'
     
     // Jakarta Validation (provided by spring-boot-starter-validation)
     
@@ -141,6 +145,19 @@ tasks.withType(JavaCompile) {
         '-Amapstruct.verbose=false',
         '-parameters'  // For parameter name retention in Java 8+
     ]
+}
+
+// Configure resources
+processResources {
+    // Include all resources from src/main/resources
+    from('src/main/resources') {
+        include '**/*.*'
+    }
+    // Handle duplicate files by using the first one found
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    
+    // Set the output directory for resources
+    into 'build/resources/main'
 }
 
 // Configure JAR file name and manifest

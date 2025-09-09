@@ -3,8 +3,10 @@ package com.koreatravel.tabitomo.service.member;
 import com.koreatravel.tabitomo.domain.dto.member.*;
 import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
 import com.koreatravel.tabitomo.domain.entity.member.CountryEntity;
-import com.koreatravel.tabitomo.exception.TokenExpiredException;
-// MemberRole is an inner class of MemberEntity
+import com.koreatravel.tabitomo.domain.entity.member.AddInfoEntity;
+import com.koreatravel.tabitomo.repository.member.AddInfoRepository;
+import com.koreatravel.tabitomo.dto.member.QuestionAnswersDTO;
+import com.koreatravel.tabitomo.service.token.TokenService;
 import com.koreatravel.tabitomo.exception.DuplicateResourceException;
 import com.koreatravel.tabitomo.exception.ResourceNotFoundException;
 import com.koreatravel.tabitomo.exception.UnauthorizedException;
@@ -23,10 +25,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.koreatravel.tabitomo.config.security.MemberDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
  * 회원 관련 비즈니스 로직을 처리하는 서비스 클래스
@@ -38,66 +36,246 @@ import java.util.UUID;
 public class MemberService {
 
     private final MemberRepository memberRepository;
-    private final CountryRepository countryRepository;
     private final PasswordEncoder passwordEncoder;
-    private final AuthenticationManager authenticationManager;
     private final EmailService emailService;
+    private final AuthenticationManager authenticationManager;
+    private final TokenService tokenService;
+    private final CountryRepository countryRepository;
     
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
     
     @Value("${app.password-reset-token-expiry-hours:24}")
     private int passwordResetTokenExpiryHours;
+    
+    @Value("${app.verification-code-expiry-minutes:5}")
+    private int verificationCodeExpiryMinutes;
+    
+    private final AddInfoRepository addInfoRepository;
 
     /**
      * 회원가입 처리 및 이메일 인증 메일 발송
      */
+    /**
+     * 이메일 사용 가능 여부 확인
+     */
+    public boolean existsByEmail(String email) {
+        return memberRepository.existsByEmail(email);
+    }
+    
+    /**
+     * Save user's questionnaire answers
+     * @param email User's email
+     * @param answersDTO DTO containing user's answers
+     */
     @Transactional
-    public MemberEntity registerMember(String email, String password, String nickname, Integer gender, String countryCode) {
-        // 이메일 중복 확인
-        if (memberRepository.existsByEmail(email)) {
-            throw new DuplicateResourceException("이미 사용 중인 이메일 주소입니다.");
+    public void saveQuestionAnswers(String email, QuestionAnswersDTO answersDTO) {
+        MemberEntity member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+        
+        // Clear existing answers
+        member.getAdditionalInfos().clear();
+        
+        // Add hobbies (info_high_num = 1)
+        if (answersDTO.getHobbies() != null) {
+            answersDTO.getHobbies().forEach(hobbyId -> {
+                AddInfoEntity hobby = addInfoRepository.findByInfoHighNumAndInfoLowNum(1, hobbyId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Hobby not found with id: " + hobbyId));
+                member.addAdditionalInfo(hobby);
+            });
         }
         
-        // 닉네임 중복 확인
-        if (memberRepository.existsByNickname(nickname)) {
-            throw new DuplicateResourceException("이미 사용 중인 닉네임입니다.");
+        // Add MBTI (info_high_num = 2, single selection)
+        if (answersDTO.getMbti() != null && !answersDTO.getMbti().isEmpty()) {
+            AddInfoEntity mbti = addInfoRepository.findByInfoHighNumAndContent(2, answersDTO.getMbti())
+                    .orElseThrow(() -> new ResourceNotFoundException("Invalid MBTI type: " + answersDTO.getMbti()));
+            member.addAdditionalInfo(mbti);
         }
         
-        // 비밀번호 암호화
-        String encodedPassword = passwordEncoder.encode(password);
+        // Add travel styles (info_high_num = 3)
+        if (answersDTO.getTravelStyles() != null) {
+            answersDTO.getTravelStyles().forEach(styleId -> {
+                AddInfoEntity style = addInfoRepository.findByInfoHighNumAndInfoLowNum(3, styleId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Travel style not found with id: " + styleId));
+                member.addAdditionalInfo(style);
+            });
+        }
         
-        // 국가 엔티티 조회 (ISO 코드로 조회)
-        CountryEntity country = countryRepository.findByIsoCode(countryCode)
-            .orElseThrow(() -> new ResourceNotFoundException("유효하지 않은 국가 코드입니다: " + countryCode));
+        // Add companions (info_high_num = 4)
+        if (answersDTO.getCompanions() != null) {
+            answersDTO.getCompanions().forEach(companionId -> {
+                AddInfoEntity companion = addInfoRepository.findByInfoHighNumAndInfoLowNum(4, companionId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Companion type not found with id: " + companionId));
+                member.addAdditionalInfo(companion);
+            });
+        }
         
-        // 회원 엔티티 생성 (이메일 인증 토큰은 @PrePersist에서 자동 생성됨)
-        MemberEntity member = MemberEntity.builder()
-                .email(email)
-                .password(encodedPassword)
-                .nickname(nickname)
-                .gender(gender)
-                .country(country)
-                .isActive(false) // 이메일 인증 전까지 비활성화
-                .emailVerified(false)
-                .build();
+        // Add food preferences (info_high_num = 5)
+        if (answersDTO.getFoodPreferences() != null) {
+            answersDTO.getFoodPreferences().forEach(foodId -> {
+                AddInfoEntity food = addInfoRepository.findByInfoHighNumAndInfoLowNum(5, foodId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Food preference not found with id: " + foodId));
+                member.addAdditionalInfo(food);
+            });
+        }
+        
+        memberRepository.save(member);
+    }
+    
+    /**
+     * Mark questionnaire as completed for a user
+     * @param email User's email
+     */
+    @Transactional
+    public void markQuestionnaireCompleted(String email) {
+        MemberEntity member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+        
+        member.completeQuestionnaire();
+        memberRepository.save(member);
+    }
+    
+    /**
+     * Find member by email
+     * @param email User's email
+     * @return Member entity
+     * @throws ResourceNotFoundException if user not found
+     */
+    public MemberEntity findByEmail(String email) {
+        return memberRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+    }
+    
+    /**
+     * 이메일이 사용 가능한지 확인
+     * @param email 확인할 이메일 주소
+     * @return 사용 가능하면 true, 이미 사용 중이면 false
+     */
+    public boolean isEmailAvailable(String email) {
+        return !memberRepository.existsByEmail(email);
+    }
+    
+    /**
+     * 닉네임이 사용 가능한지 확인
+     * @param nickname 확인할 닉네임
+     * @return 사용 가능하면 true, 이미 사용 중이면 false
+     */
+    public boolean isNicknameAvailable(String nickname) {
+        return !memberRepository.existsByNickname(nickname);
+    }
+    
+    /**
+     * 이메일 인증 처리
+     * @param email 인증할 이메일 주소
+     * @param code 인증 코드
+     * @return 인증 성공 여부
+     */
+    public boolean verifyEmail(String email, String code) {
+        // 인증 코드 검증
+        boolean isValid = tokenService.validateToken(email, code);
+        if (isValid) {
+            // 이메일 인증 처리 (isActive를 true로 설정)
+            MemberEntity member = memberRepository.findById(email)
+                .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다: " + email));
+            member.setActive(true);
+            memberRepository.save(member);
+            
+            // 인증 코드 삭제
+            tokenService.invalidateToken(email);
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * 비밀번호 재설정 요청
+     * @param email 비밀번호를 재설정할 이메일 주소
+     */
+    public void requestPasswordReset(String email) {
+        // 이메일로 회원 조회
+        MemberEntity member = memberRepository.findById(email)
+            .orElseThrow(() -> new ResourceNotFoundException("가입되지 않은 이메일입니다."));
+            
+        // 토큰 생성 및 저장 (24시간 유효)
+        String token = tokenService.generateAndSaveToken(email);
+        
+        // 비밀번호 재설정 이메일 발송
+        sendPasswordResetEmail(member, token);
+    }
+    
+    /**
+     * 비밀번호 재설정 (이메일과 새 비밀번호로, 토큰 없이)
+     * @param email 사용자 이메일
+     * @param newPassword 새 비밀번호
+     */
+    public void resetPassword(String email, String newPassword) {
+        // 이메일로 회원 조회
+        MemberEntity member = memberRepository.findById(email)
+            .orElseThrow(() -> new ResourceNotFoundException("가입되지 않은 이메일입니다."));
+            
+        // 비밀번호 업데이트
+        member.setPassword(passwordEncoder.encode(newPassword));
+        
+        // 토큰 무효화 (1회용)
+        tokenService.invalidateToken(email);
+        
+        memberRepository.save(member);
+    }
+    
+    /**
+     * 비밀번호 재설정 (토큰 기반)
+     * @param resetPasswordDTO 비밀번호 재설정 DTO
+     */
+    public void resetPassword(ResetPasswordDTO resetPasswordDTO) {
+        // 비밀번호 확인 검증
+        if (!resetPasswordDTO.isPasswordMatching()) {
+            throw new ValidationException("새 비밀번호가 일치하지 않습니다.");
+        }
+        
+        // 토큰 검증 (이메일은 DTO에서 가져옴)
+        String email = resetPasswordDTO.getEmail();
+        if (!tokenService.validateToken(email, resetPasswordDTO.getToken())) {
+            throw new UnauthorizedException("유효하지 않거나 만료된 토큰입니다.");
+        }
+        
+        // 비밀번호 업데이트
+        resetPassword(email, resetPasswordDTO.getNewPassword());
+    }
+
+    /**
+     * 회원가입 처리
+     * @param registerDTO 회원가입 정보 DTO
+     * @return 저장된 회원 엔티티
+     * @throws DuplicateResourceException 이메일 또는 닉네임이 이미 사용 중인 경우
+     * @throws ResourceNotFoundException 국가를 찾을 수 없는 경우
+     * @throws ValidationException 비밀번호 확인이 일치하지 않는 경우
+     */
+    @Transactional
+    public MemberEntity register(RegisterDTO registerDTO) {
+        log.info("회원가입 시도: {}", registerDTO.getEmail());
+        
+        // 입력 유효성 검사
+        validateRegistration(registerDTO);
+        
+        // 국가 조회 (ISO 코드 또는 ID로 조회)
+        CountryEntity country = findCountry(registerDTO);
+        
+        // 회원 엔티티 생성
+        MemberEntity member = createMemberEntity(registerDTO, country);
         
         // 회원 정보 저장
         MemberEntity savedMember = memberRepository.save(member);
         
-        // 이메일 인증 메일 발송 (비동기 처리)
-        emailService.sendVerificationEmail(email, savedMember.getEmailVerifyToken());
+        // 이메일 인증 메일 발송
+        sendVerificationEmail(savedMember.getEmail());
         
         return savedMember;
     }
     
-    
     /**
-     * 회원가입 처리 (기존 메서드 유지)
+     * 회원가입 정보 유효성 검사
      */
-    public MemberEntity register(RegisterDTO registerDTO) {
-        log.info("회원가입 시도: {}", registerDTO.getEmail());
-        
+    private void validateRegistration(RegisterDTO registerDTO) {
         // 이메일 중복 체크
         if (memberRepository.existsByEmail(registerDTO.getEmail())) {
             log.warn("이미 가입된 이메일: {}", registerDTO.getEmail());
@@ -114,29 +292,61 @@ public class MemberService {
         if (!registerDTO.getPassword().equals(registerDTO.getConfirmPassword())) {
             throw new ValidationException("비밀번호가 일치하지 않습니다.");
         }
-        
-        // 국가 조회
-        CountryEntity country = countryRepository.findById(registerDTO.getCountryId())
+    }
+    
+    /**
+     * 국가 조회 (ID로 조회)
+     */
+    private CountryEntity findCountry(RegisterDTO registerDTO) {
+        if (registerDTO.getCountryId() == null) {
+            throw new ValidationException("국가 정보가 필요합니다.");
+        }
+        return countryRepository.findById(registerDTO.getCountryId())
             .orElseThrow(() -> new ResourceNotFoundException("해당 국가를 찾을 수 없습니다."));
-        
-        // 회원 엔티티 생성
-        MemberEntity member = MemberEntity.builder()
+    }
+    
+    /**
+     * 회원 엔티티 생성
+     */
+    private MemberEntity createMemberEntity(RegisterDTO registerDTO, CountryEntity country) {
+        return MemberEntity.builder()
             .email(registerDTO.getEmail())
             .password(passwordEncoder.encode(registerDTO.getPassword()))
             .nickname(registerDTO.getNickname())
             .gender(registerDTO.getGender())
             .country(country)
+            .isActive(false) // 이메일 인증 전까지 비활성화
             .role(MemberEntity.MemberRole.ROLE_USER)
-            .emailVerifyToken(generateToken())
             .build();
-            
-        // 회원 저장
-        MemberEntity savedMember = memberRepository.save(member);
-        
-        // 이메일 인증 메일 발송
-        sendVerificationEmail(savedMember);
-        
-        return savedMember;
+    }
+    
+    /**
+     * 이메일 인증 메일 발송
+     * @param email 인증 이메일 주소
+     */
+    /**
+     * 6자리 인증 코드 생성
+     */
+    private String generateVerificationCode() {
+        return String.format("%06d", (int) (Math.random() * 1000000));
+    }
+    
+    /**
+     * 이메일 인증 메일 발송
+     */
+    private void sendVerificationEmail(String email) {
+        String verificationCode = generateVerificationCode();
+        // 토큰 서비스를 사용하여 인증 코드 저장 (24시간 유효)
+        tokenService.generateAndSaveToken(email, verificationCode, 24 * 60); // 24시간을 분 단위로 변환
+        emailService.sendVerificationEmail(email, verificationCode);
+    }
+    
+    /**
+     * 비밀번호 재설정 이메일 발송
+     */
+    private void sendPasswordResetEmail(MemberEntity member, String token) {
+        String resetLink = String.format("%s/reset-password?token=%s", baseUrl, token);
+        emailService.sendPasswordResetEmail(member.getEmail(), resetLink);
     }
 
     /**
@@ -168,7 +378,6 @@ public class MemberService {
         if (authentication.getPrincipal() instanceof MemberDetails) {
             return ((MemberDetails) authentication.getPrincipal()).getMember();
         } else if (authentication.getPrincipal() instanceof String) {
-            // Handle case where principal is just a string (e.g., anonymous user)
             throw new UnauthorizedException("User not authenticated");
         } else {
             throw new UnauthorizedException("Unexpected principal type: " + authentication.getPrincipal().getClass().getName());
@@ -176,114 +385,52 @@ public class MemberService {
     }
     
     /**
-     * 이메일로 사용자 조회
+     * 비밀번호 재설정을 위한 인증코드 생성 및 저장
+     * @param email 이메일 주소
+     * @return 생성된 인증 코드
      */
-    public MemberEntity findByEmail(String email) {
-        return memberRepository.findByEmail(email)
-            .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다."));
-    }
-    
     /**
-     * 이메일 중복 확인
-     */
-    public boolean isEmailAvailable(String email) {
-        return !memberRepository.existsByEmail(email);
-    }
-    
-    /**
-     * 닉네임 중복 확인
-     */
-    public boolean isNicknameAvailable(String nickname) {
-        return !memberRepository.existsByNickname(nickname);
-    }
-    
-    /**
-     * 이메일 인증 처리
+     * 인증 코드 생성 및 저장
+     * @param email 이메일 주소
+     * @return 생성된 인증 코드
      */
     @Transactional
-    public boolean verifyEmail(String token) {
-        // 토큰으로 회원 조회
-        MemberEntity member = memberRepository.findByEmailVerifyToken(token)
-            .orElseThrow(() -> new ResourceNotFoundException("유효하지 않은 인증 토큰입니다."));
+    public String generateAndSaveVerificationCode(String email) {
+        // 이메일 존재 여부 확인
+        memberRepository.findById(email)
+            .orElseThrow(() -> new ResourceNotFoundException("가입되지 않은 이메일입니다."));
+            
+        // 6자리 랜덤 숫자 생성
+        String verificationCode = String.format("%06d", (int) (Math.random() * 1000000));
         
-        // 이미 인증된 계정인지 확인
-        if (member.isEmailVerified()) {
-            return true;
-        }
+        // 토큰 서비스를 사용하여 인증 코드 저장
+        tokenService.generateAndSaveToken(email, verificationCode, verificationCodeExpiryMinutes);
         
-        // 토큰 유효 기간 확인 (24시간 이내)
-        if (member.getCreatedAt().isBefore(LocalDateTime.now().minusHours(24))) {
-            // 토큰 만료 시 새 토큰 발급
-            member.setEmailVerifyToken(UUID.randomUUID().toString());
-            memberRepository.save(member);
-            // 새 인증 이메일 발송
-            emailService.sendVerificationEmail(member.getEmail(), member.getEmailVerifyToken());
-            throw new TokenExpiredException("인증 토큰이 만료되었습니다. 새 인증 메일을 발송했습니다.");
-        }
-        
-        // 계정 활성화
-        member.setEmailVerified(true);
-        member.setActive(true);
-        member.setEmailVerifyToken(null);
-        memberRepository.save(member);
-        
-        return true;
+        log.info("Verification code for {}: {}", email, verificationCode);
+        return verificationCode;
     }
     
     /**
-     * 비밀번호 재설정 요청
+     * 인증코드 검증
+     * @param email 이메일 주소
+     * @param code 인증 코드
+     * @return 인증 성공 여부
      */
-    public void requestPasswordReset(String email) {
-        MemberEntity member = memberRepository.findByEmail(email)
-            .orElseThrow(() -> new ResourceNotFoundException("가입되지 않은 이메일입니다."));
-            
-        String token = generateToken();
-        LocalDateTime expiryDate = LocalDateTime.now().plusHours(passwordResetTokenExpiryHours);
-        
-        memberRepository.setPasswordResetToken(email, token, expiryDate);
-        
-        // 비밀번호 재설정 이메일 발송
-        sendPasswordResetEmail(member, token);
+    /**
+     * 인증 코드 검증
+     * @param email 이메일 주소
+     * @param code 검증할 인증 코드
+     * @return 인증 성공 여부
+     */
+    @Transactional
+    public boolean verifyCode(String email, String code) {
+        return tokenService.validateToken(email, code);
     }
     
     /**
      * 비밀번호 재설정
      */
-    public void resetPassword(ResetPasswordDTO resetPasswordDTO) {
-        // 비밀번호 확인 검증
-        if (!resetPasswordDTO.isPasswordMatching()) {
-            throw new ValidationException("새 비밀번호가 일치하지 않습니다.");
-        }
-        
-        // 토큰 유효성 검사
-        MemberEntity member = memberRepository.findByPasswordResetToken(resetPasswordDTO.getToken(), LocalDateTime.now())
-            .orElseThrow(() -> new UnauthorizedException("유효하지 않거나 만료된 토큰입니다."));
-            
-        // 이메일 일치 확인
-        if (!member.getEmail().equals(resetPasswordDTO.getEmail())) {
-            throw new UnauthorizedException("이메일이 일치하지 않습니다.");
-        }
-        
-        // 새 비밀번호로 업데이트
-        int updated = memberRepository.updatePassword(member.getEmail(), passwordEncoder.encode(resetPasswordDTO.getNewPassword()));
-        if (updated == 0) {
-            log.error("Failed to update password for user: {}", member.getEmail());
-            throw new RuntimeException("비밀번호 업데이트에 실패했습니다.");
-        }
-    }
-    
     /**
-     * 프로필 수정
-     */
-    public MemberEntity updateProfile(String email, String nickname, String profileImageUrl) {
-        MemberEntity member = memberRepository.findByEmail(email)
-            .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다."));
-            
-        // 닉네임이 변경된 경우 중복 체크
-        if (StringUtils.hasText(nickname) && !member.getNickname().equals(nickname)) {
-            if (memberRepository.existsByNickname(nickname)) {
-                throw new DuplicateResourceException("이미 사용 중인 닉네임입니다.");
-            }
             member.setNickname(nickname);
         }
         
@@ -314,52 +461,5 @@ public class MemberService {
     
     // ===== PRIVATE HELPER METHODS =====
     
-    private String generateToken() {
-        return UUID.randomUUID().toString().replace("-", "");
-    }
-    
-    private void sendVerificationEmail(MemberEntity member) {
-        String verificationUrl = String.format(
-            "%s/api/auth/verify-email?token=%s", 
-            baseUrl,
-            member.getEmailVerifyToken()
-        );
-        
-        // TODO: 이메일 발송 로직 구현
-        String subject = "[Tabitomo] 이메일 인증을 완료해주세요";
-        String content = String.format(
-            "안녕하세요 %s님,\n\n" +
-            "아래 링크를 클릭하여 이메일 인증을 완료해주세요.\n" +
-            "%s\n\n" +
-            "감사합니다.\n" +
-            "Tabitomo 팀 드림",
-            member.getNickname(),
-            verificationUrl
-        );
-        
-        emailService.sendEmail(member.getEmail(), subject, content);
-    }
-    
-    private void sendPasswordResetEmail(MemberEntity member, String token) {
-        String resetUrl = String.format(
-            "%s/reset-password?token=%s", 
-            baseUrl,
-            token
-        );
-        
-        String subject = "[Tabitomo] 비밀번호 재설정 안내";
-        String content = String.format(
-            "안녕하세요 %s님,\n\n" +
-            "비밀번호 재설정을 위해 아래 링크를 클릭해주세요.\n" +
-            "%s\n\n" +
-            "이 링크는 24시간 동안 유효합니다.\n\n" +
-            "감사합니다.\n" +
-            "Tabitomo 팀 드림",
-            member.getNickname(),
-            resetUrl
-        );
-        
-        emailService.sendEmail(member.getEmail(), subject, content);
-    }
 }
 

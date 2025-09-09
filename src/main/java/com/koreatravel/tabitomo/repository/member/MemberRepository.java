@@ -15,8 +15,6 @@ public interface MemberRepository extends JpaRepository<MemberEntity, String> {
     @Override
     Optional<MemberEntity> findById(String email);
     
-    Optional<MemberEntity> findByEmail(String email);
-    
     boolean existsByEmail(String email);
     
     boolean existsByNickname(String nickname);
@@ -24,6 +22,9 @@ public interface MemberRepository extends JpaRepository<MemberEntity, String> {
     // Active user queries
     @Query("SELECT m FROM MemberEntity m WHERE m.email = :email AND m.isActive = true")
     Optional<MemberEntity> findActiveByEmail(@Param("email") String email);
+    
+    // Find by email (active or inactive)
+    Optional<MemberEntity> findByEmail(String email);
     
     @Query("SELECT m FROM MemberEntity m WHERE m.nickname = :nickname")
     Optional<MemberEntity> findByNickname(@Param("nickname") String nickname);
@@ -41,11 +42,30 @@ public interface MemberRepository extends JpaRepository<MemberEntity, String> {
     @Query("SELECT m FROM MemberEntity m WHERE m.emailVerifyToken = :token")
     Optional<MemberEntity> findByEmailVerifyToken(@Param("token") String token);
     
-    // Password reset
+    // Token management
     @Modifying
-    @Query("UPDATE MemberEntity m SET m.password = :password, m.passwordResetToken = null, m.passwordResetExpires = null WHERE m.email = :email")
+    @Query("UPDATE MemberEntity m SET m.password = :password, m.resetToken = null, m.resetTokenExpiry = null WHERE m.email = :email")
     int updatePassword(@Param("email") String email, @Param("password") String password);
     
+    @Modifying
+    @Query("UPDATE MemberEntity m SET m.resetToken = :token, m.resetTokenExpiry = :expiryDate WHERE m.email = :email")
+    void updateResetToken(@Param("email") String email, 
+                        @Param("token") String token, 
+                        @Param("expiryDate") LocalDateTime expiryDate);
+    
+    @Modifying
+    @Query("UPDATE MemberEntity m SET m.resetToken = NULL, m.resetTokenExpiry = NULL WHERE m.email = :email")
+    void clearResetToken(@Param("email") String email);
+    
+    @Query("SELECT m FROM MemberEntity m WHERE m.email = :email AND m.resetToken = :token")
+    Optional<MemberEntity> findByEmailAndResetToken(@Param("email") String email, 
+                                                  @Param("token") String token);
+    
+    @Query("SELECT m.email FROM MemberEntity m WHERE m.resetToken = :token")
+    Optional<String> findEmailByResetToken(@Param("token") String token);
+    
+    // Legacy password reset methods (to be removed after migration)
+    @Deprecated
     @Modifying
     @Query("UPDATE MemberEntity m SET m.passwordResetToken = :token, m.passwordResetExpires = :expiryDate WHERE m.email = :email")
     int setPasswordResetToken(

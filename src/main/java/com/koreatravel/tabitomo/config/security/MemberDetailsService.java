@@ -22,7 +22,7 @@ public class MemberDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         log.debug("Loading user by username: {}", email);
         
-        return memberRepository.findByEmail(email)
+        return memberRepository.findById(email)
                 .filter(MemberEntity::isActive)
                 .map(MemberDetails::new)
                 .orElseThrow(() -> {

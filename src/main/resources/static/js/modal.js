@@ -72,7 +72,7 @@
 
                 const yesBtn = document.getElementById('saveBtn');
                 const noBtn = document.getElementById('nosaveBtn');
-                const cancelBtn = document.getElementById('cancelBtn');
+                const closeBtn = document.getElementById('closeBtn');
                 // Yes → 변경사항 저장
                 yesBtn.onclick = () => {
                     modal.style.display = 'none';
@@ -87,11 +87,11 @@
                    callback('nosave');
                 };
 
-                // Cancel → 현재 페이지에 머무르기
-                cancelBtn.onclick = () => {
+                // Close → 현재 페이지에 머무르기
+                closeBtn.onclick = () => {
                    modal.style.display = 'none';
                    isEditing = false;
-                   callback('cancel');
+                   callback('close');
                 };
 
                }
@@ -121,7 +121,7 @@
                   }
                   else if(savetype === 'post') {
                   LeaveSaveModal(function(result){
-                         if (result === 'cancel') {
+                         if (result === 'close') {
                               // 페이지 이동 안함
                           } else if (result === 'save') {
                               // 임시저장 AJAX 호출 후 이동

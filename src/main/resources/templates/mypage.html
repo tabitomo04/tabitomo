@@ -78,13 +78,36 @@
 </div>
 
 <!-- 모달창 -->
-<div id="templistModal" class="templistModal">
-  <div class="modal-content">
-    <h2>모달창 제목</h2>
-    <p>모달창 내용 </p>
-    <button id="closeBtn">Modal닫기</button>
-    </div>
+<div id="templistModal" class="templistModal" style="display:none;">
+  <div class="templistModal-content">
+    <span id="closeBtn" class="close">&times;</span>
+    <h2>임시저장본 리스트</h2>
+
+    <form action="/edit" method="get" onsubmit="return checkRadio()">
+      <table>
+        <tr>
+          <th class="col-select">선택</th>
+          <th class="col-title">제목</th>
+          <th class="col-subtitle">부제목</th>
+          <th class="col-date">작성날짜</th>
+          <th class="col-del">삭제</th>
+        </tr>
+
+        <tr th:if="${templist}" th:each="templist : ${templist}">
+          <td class="col-select"><input type="radio" name="tempId" th:value="${templist.tempId}"></td>
+          <td class="col-title" th:text="${templist.title}"></td>
+          <td class="col-subtitle" th:text="${templist.subtitle}"></td>
+          <td class="col-date" th:text="${#temporals.format(templist.updateDate, 'yy.MM.dd')}"></td>
+          <td class="col-del del"><a th:href="@{'/tempdel?tempId=' + ${templist.tempId}}"
+                                     onclick="return confirm('정말 삭제할까요?')">&times;</a></td>
+        </tr>
+      </table>
+      <button type="submit" class="btn">불러오기</button>
+    </form>
+
+
   </div>
+</div>
 <script>
   const modal = document.querySelector('#templistModal');
   const closeBtn = document.querySelector('#closeBtn');
@@ -96,6 +119,22 @@
   closeBtn.addEventListener("click", ()=>{
       modal.style.display="none";
   });
+
+   function checkRadio() {
+    const radios = document.querySelectorAll('input[name="tempId"]');
+    let checked = false;
+    radios.forEach(radio => {
+      if (radio.checked) {
+        checked = true;
+      }
+    });
+
+    if (!checked) {
+      alert("임시저장본을 선택해주세요!");
+      return false; // 제출 막기
+    }
+    return true; // 통과하면 제출됨
+  }
 </script>
 
 </body>

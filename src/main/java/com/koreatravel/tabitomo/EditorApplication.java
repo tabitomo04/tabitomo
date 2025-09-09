@@ -1,4 +1,4 @@
-package com.example.editor;
+package com.koreatravel.tabitomo;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

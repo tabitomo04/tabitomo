@@ -167,8 +167,9 @@ public class AuthController {
         }
     }
     
-    @PostMapping(PathConstants.CHECK_EMAIL)
+    @PostMapping(value = "/check-email", consumes = "application/json")
     @ResponseBody
+    @CrossOrigin
     public ResponseEntity<?> checkEmailAvailability(@RequestBody Map<String, String> request) {
         try {
             String email = request.get("email");

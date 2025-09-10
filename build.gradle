@@ -97,6 +97,9 @@ dependencies {
     
     // Jakarta Validation (provided by spring-boot-starter-validation)
     
+    // Spring Session JDBC for session management
+    implementation 'org.springframework.session:spring-session-jdbc'
+    
     // Jackson (provided by spring-boot-starter-json)
     
     // Lombok
@@ -162,7 +165,13 @@ processResources {
 
 // Configure JAR file name and manifest
 bootJar {
-    archiveFileName = "${project.name}.${archiveExtension.get()}"
+    enabled = true
+    archiveFileName = "${project.name}.jar"
+    launchScript()
+    
+    // Specify the main class
+    mainClass = 'com.koreatravel.tabitomo.TabitomoApplication'
+    
     manifest {
         attributes 'Implementation-Title': project.name,
                    'Implementation-Version': project.version,
@@ -171,5 +180,11 @@ bootJar {
                    'Built-JDK': System.getProperty('java.version'),
                    'Build-Time': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
     }
+}
+
+// Configure bootRun to use the main class
+bootRun {
+    mainClass = 'com.koreatravel.tabitomo.TabitomoApplication'
+    classpath = sourceSets.main.runtimeClasspath
 }
 

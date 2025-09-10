@@ -1,58 +1,77 @@
 package com.koreatravel.tabitomo.config.security;
 
+import com.koreatravel.tabitomo.domain.dto.member.MemberProfileDTO;
 import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.Collections;
 
+/**
+ * Custom UserDetails implementation that wraps a MemberEntity and provides
+ * the necessary information for Spring Security authentication.
+ */
 @Getter
 public class MemberDetails implements UserDetails {
-
-    private final MemberEntity member;
+    private static final long serialVersionUID = 1L;
+    
+    private final String username;
+    private final String password;
+    private final boolean enabled;
+    private final boolean accountNonExpired;
+    private final boolean credentialsNonExpired;
+    private final boolean accountNonLocked;
     private final Collection<? extends GrantedAuthority> authorities;
+    
+    // Reference to the actual member entity
+    private final MemberEntity member;
+    
+    // Cached profile DTO for quick access
+    private transient MemberProfileDTO profile;
 
-    public MemberDetails(MemberEntity member) {
+    /**
+     * Constructor for MemberDetails
+     */
+    public MemberDetails(
+            String username,
+            String password,
+            boolean enabled,
+            boolean accountNonExpired,
+            boolean credentialsNonExpired,
+            boolean accountNonLocked,
+            Collection<? extends GrantedAuthority> authorities,
+            MemberEntity member) {
+        
+        this.username = username;
+        this.password = password;
+        this.enabled = enabled;
+        this.accountNonExpired = accountNonExpired;
+        this.credentialsNonExpired = credentialsNonExpired;
+        this.accountNonLocked = accountNonLocked;
+        this.authorities = authorities;
         this.member = member;
-        // 기본 권한 설정 (필요에 따라 수정)
-        this.authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
     }
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return authorities;
-    }
-
-    @Override
-    public String getPassword() {
-        return member.getPassword();
-    }
-
-    @Override
-    public String getUsername() {
-        return member.getEmail();
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return member.isActive();
+    
+    /**
+     * Get the user's profile information as a DTO
+     */
+    public MemberProfileDTO getProfile() {
+        if (profile == null && member != null) {
+            profile = MemberProfileDTO.builder()
+                .id(member.getId())
+                .email(member.getEmail())
+                .nickname(member.getNickname())
+                .gender(member.getGenderAsString())
+                .profileImageUrl(member.getProfileImageUrl())
+                .createdAt(member.getCreatedAt())
+                .updatedAt(member.getUpdatedAt())
+                .status(member.getStatus())
+                .role(member.getRole().name())
+                .countryId(member.getCountryId())
+                .preferredLanguageId(member.getPreferredLanguageId())
+                .build();
+        }
+        return profile;
     }
 }

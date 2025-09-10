@@ -1,48 +1,80 @@
 package com.koreatravel.tabitomo.domain.entity.member;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-
 
 @Entity
 @Table(name = "country")
-@Getter @Setter
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class CountryEntity {
+    
     @Id
-    @Column(name = "country_id", nullable = false, columnDefinition = "INT")
-    private Integer countryId;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "lang_id")
-    private LanguageEntity language;
-
-    @Column(name = "country_name", nullable = false, length = 50)
-    private String countryName;
-
-    @Column(name = "region", nullable = false, length = 50)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "country_id")
+    private Long countryId;
+    
+    @Column(name = "country_code", length = 2, unique = true, nullable = false)
+    private String countryCode;  // ISO 3166-1 alpha-2 (e.g., KR, US, JP)
+    
+    @Column(name = "country_name", nullable = false, length = 100)
+    private String countryName;  // 국가명
+    
+    @Column(name = "region", length = 50)
     private String region;
-
-    @Column(name = "iso_code", nullable = false, length = 3)
-    private String isoCode;
-
-    @OneToMany(mappedBy = "country", cascade = CascadeType.ALL, orphanRemoval = true)
+    
+    @Column(name = "iso_code", length = 3)
+    private String isoCode;  // ISO 3166-1 alpha-3 (e.g., KOR, USA, JPN)
+    
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+    
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+    
+    @OneToMany(mappedBy = "country", fetch = FetchType.LAZY)
     @Builder.Default
     private List<MemberEntity> members = new ArrayList<>();
+    
+    // For DTO conversion
+    public Long getCountryId() {
+        return countryId;
+    }
+    
+    public String getCountryName() {
+        return countryName;
+    }
+    
+    public String getCountryCode() {
+        return countryCode;
+    }
+    
+    public String getIsoCode() {
+        return isoCode;
+    }
+    
+    public String getRegion() {
+        return region;
+    }
+    
+    // 생성 메서드
+    public static CountryEntity createCountry(String countryCode, String countryName, String region, String isoCode) {
+        CountryEntity country = new CountryEntity();
+        country.setCountryCode(countryCode);
+        country.setCountryName(countryName);
+        country.setRegion(region);
+        country.setIsoCode(isoCode);
+        return country;
+    }
 }

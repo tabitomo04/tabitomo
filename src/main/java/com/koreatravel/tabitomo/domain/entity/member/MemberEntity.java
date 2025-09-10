@@ -53,6 +53,9 @@ public class MemberEntity {
     @Column(name = "email_verify_token_expiry")
     private LocalDateTime emailVerifyTokenExpiry;
     
+    @Column(name = "email_verification_token", length = 64)
+    private String emailVerificationToken;
+    
     @NotBlank(message = "닉네임은 필수 입력 항목입니다.")
     @Size(min = 2, max = 45, message = "닉네임은 2자 이상 45자 이하로 입력해주세요.")
     @Pattern(regexp = "^[가-힣a-zA-Z0-9]*$", message = "닉네임은 한글, 영문, 숫자만 사용 가능합니다.")
@@ -62,12 +65,16 @@ public class MemberEntity {
     @Column(name = "age", columnDefinition = "INT")
     private Integer age;
 
-    @Column(name = "gender", columnDefinition = "INT")
-    private Integer gender;
+    @Column(name = "gender", columnDefinition = "INT", nullable = false)
+    private Integer gender;  // 1: Male, 2: Female, 3: Other, 4: Prefer not to say
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "country_id")
+    @JoinColumn(name = "country_id", nullable = false)
     private CountryEntity country;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "preferred_language_id", nullable = false)
+    private LanguageEntity preferredLanguage;
     
     @Column(name = "profile_image_url", length = 255, columnDefinition = "VARCHAR(255)")
     private String profileImageUrl;
@@ -143,6 +150,9 @@ public class MemberEntity {
     
     @Column(name = "password_reset_expires", columnDefinition = "DATETIME(6)")
     private LocalDateTime passwordResetExpires;
+    
+    @Column(name = "last_login_time", columnDefinition = "DATETIME(6)")
+    private LocalDateTime lastLoginTime;
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
@@ -157,6 +167,44 @@ public class MemberEntity {
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<UserSelectedInfoEntity> userSelectedInfos = new ArrayList<>();
+    
+    @Builder
+    public MemberEntity(String email, String password, String confirmPassword, boolean emailVerified, 
+                       String emailVerifyToken, LocalDateTime emailVerifyTokenExpiry, String nickname, 
+                       Integer age, Integer gender, CountryEntity country, LanguageEntity preferredLanguage, 
+                       String profileImageUrl, Boolean isActive, Boolean questionnaireCompleted, 
+                       Set<AddInfoEntity> additionalInfos, String resetToken, LocalDateTime resetTokenExpiry, 
+                       LocalDateTime createdAt, LocalDateTime updatedAt, MemberRole role, 
+                       String passwordResetToken, LocalDateTime passwordResetExpires, 
+                       List<TripEntity> trips, List<StorybookEntity> storyBooks, 
+                       List<UserSelectedInfoEntity> userSelectedInfos, String emailVerificationToken) {
+        this.email = email;
+        this.password = password;
+        this.confirmPassword = confirmPassword;
+        this.emailVerified = emailVerified;
+        this.emailVerifyToken = emailVerifyToken;
+        this.emailVerifyTokenExpiry = emailVerifyTokenExpiry;
+        this.nickname = nickname;
+        this.age = age;
+        this.gender = gender;
+        this.country = country;
+        this.preferredLanguage = preferredLanguage;
+        this.profileImageUrl = profileImageUrl;
+        this.isActive = isActive != null ? isActive : true;
+        this.questionnaireCompleted = questionnaireCompleted != null ? questionnaireCompleted : false;
+        this.additionalInfos = additionalInfos != null ? additionalInfos : new HashSet<>();
+        this.resetToken = resetToken;
+        this.resetTokenExpiry = resetTokenExpiry;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt != null ? updatedAt : LocalDateTime.now();
+        this.role = role != null ? role : MemberRole.ROLE_USER;
+        this.passwordResetToken = passwordResetToken;
+        this.passwordResetExpires = passwordResetExpires;
+        this.trips = trips != null ? trips : new ArrayList<>();
+        this.storyBooks = storyBooks != null ? storyBooks : new ArrayList<>();
+        this.userSelectedInfos = userSelectedInfos != null ? userSelectedInfos : new ArrayList<>();
+        this.emailVerificationToken = emailVerificationToken;
+    }
     
     public enum MemberRole {
         ROLE_USER, ROLE_ADMIN
@@ -175,5 +223,109 @@ public class MemberEntity {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+    
+    // Additional methods needed for security
+    public Long getId() {
+        // Since email is the ID, we can return a hash of it as a long
+        return (long) this.email.hashCode();
+    }
+    
+    public String getStatus() {
+        return this.isActive ? "ACTIVE" : "INACTIVE";
+    }
+    
+    public Long getCountryId() {
+        return this.country != null ? this.country.getCountryId() : null;
+    }
+    
+    public Long getPreferredLanguageId() {
+        return this.preferredLanguage != null ? this.preferredLanguage.getLanguageId() : null;
+    }
+    
+    public boolean isLocked() {
+        return !this.isActive();
+    }
+    
+    public boolean isEmailVerified() {
+        return this.emailVerified;
+    }
+    
+    // Convert gender from Integer to String representation
+    public String getGenderAsString() {
+        if (this.gender == null) {
+            return null;
+        }
+        return switch (this.gender) {
+            case 1 -> "MALE";
+            case 2 -> "FEMALE";
+            case 3 -> "OTHER";
+            case 4 -> "PREFER_NOT_TO_SAY";
+            default -> null;
+        };
+    }
+    
+    public LocalDateTime getLastLoginTime() {
+        return lastLoginTime;
+    }
+    
+    public void setLastLoginTime(LocalDateTime lastLoginTime) {
+        this.lastLoginTime = lastLoginTime;
+    }
+    
+    public void setPasswordResetExpiry(LocalDateTime expiry) {
+        this.passwordResetExpires = expiry;
+    }
+    
+    public void clearEmailVerificationToken() {
+        this.emailVerificationToken = null;
+        this.emailVerifyTokenExpiry = null;
+    }
+    
+    public void clearPasswordResetToken() {
+        this.passwordResetToken = null;
+        this.passwordResetExpires = null;
+    }
+    
+    public LocalDateTime getEmailVerifyTokenExpiry() {
+        return emailVerifyTokenExpiry;
+    }
+    
+    public void setEmailVerifyTokenExpiry(LocalDateTime expiry) {
+        this.emailVerifyTokenExpiry = expiry;
+    }
+    
+    public void verifyEmail() {
+        this.emailVerified = true;
+        this.emailVerificationToken = null;
+        this.emailVerifyTokenExpiry = null;
+    }
+    
+    public void setEmailVerificationToken(String token) {
+        this.emailVerificationToken = token;
+        this.emailVerifyTokenExpiry = LocalDateTime.now().plusDays(1); // 24 hours expiry
+    }
+    
+    public String getEmailVerificationToken() {
+        return emailVerificationToken;
+    }
+    
+    public void setPasswordResetToken(String token) {
+        this.passwordResetToken = token;
+        this.passwordResetExpires = LocalDateTime.now().plusHours(24); // 24 hours expiry
+    }
+    
+    public String getPasswordResetToken() {
+        return passwordResetToken;
+    }
+    
+    public LocalDateTime getPasswordResetExpiry() {
+        return passwordResetExpires;
+    }
+    
+    public void updatePassword(String newPassword) {
+        this.password = newPassword;
+        this.passwordResetToken = null;
+        this.passwordResetExpires = null;
     }
 }

@@ -7,56 +7,63 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalTime;
-
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 @Table(name = "schedule")
 @Builder
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ScheduleEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "schedule_id", columnDefinition = "BIGINT NOT NULL AUTO_INCREMENT")
+    @Column(name = "schedule_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "trip_id", nullable = false)
     private TripEntity trip;
 
+    @Column(name = "place_id", nullable = false, length = 50)
+    private String placeId;
+    
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "place_id")
+    @JoinColumn(name = "place_id", insertable = false, updatable = false)
     private PlaceEntity place;
 
-    @Column(name = "day_no", columnDefinition = "INT")
-    private Integer dayNo;
+    @Column(nullable = false)
+    private int day; // 1일차, 2일차...
 
-    @Column(name = "start_time", columnDefinition = "TIME(6)")
-    private LocalTime startTime;
+    @Column(name = "start_time")
+    private String startTime;
 
-    @Column(name = "end_time", columnDefinition = "TIME(6)")
-    private LocalTime endTime;
+    @Column(name = "end_time")
+    private String endTime;
 
-    @Column(name = "memo", columnDefinition = "VARCHAR(255)")
+    @Lob
     private String memo;
 
     @Builder
-    private ScheduleEntity(TripEntity trip, PlaceEntity place, Integer dayNo, LocalTime startTime, LocalTime endTime, String memo) {
+    public ScheduleEntity(TripEntity trip, PlaceEntity place, String placeId, int day, String startTime, String endTime, String memo) {
         this.trip = trip;
         this.place = place;
-        this.dayNo = dayNo;
+        this.placeId = place != null ? place.getId() : placeId;
+        this.day = day;
         this.startTime = startTime;
         this.endTime = endTime;
-        this.memo = memo != null ? memo : "";
+        this.memo = memo;
     }
     
     public void updateMemo(String memo) {
         this.memo = memo != null ? memo : "";
     }
-
+    
     public void setTrip(TripEntity trip) {
         this.trip = trip;
+    }
+    
+    public void setPlace(PlaceEntity place) {
+        this.place = place;
+        this.placeId = place != null ? place.getId() : null;
     }
 }

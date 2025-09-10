@@ -1,15 +1,14 @@
 package com.koreatravel.tabitomo.service.trip;
 
-import java.util.ArrayList;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import com.opencsv.CSVReader;
+import com.opencsv.exceptions.CsvException;
+import com.fasterxml.jackson.databind.type.CollectionType;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -18,22 +17,17 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.context.annotation.Profile;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.CollectionType;
 import com.koreatravel.tabitomo.client.KakaoLocalApiClient;
-import com.koreatravel.tabitomo.domain.JSON.ItineraryItem;
 import com.koreatravel.tabitomo.domain.dto.trip.TourRecommendationDTO;
-import com.opencsv.CSVReader;
-import com.opencsv.exceptions.CsvException;
- // TourRecommendation import 추가
+import com.koreatravel.tabitomo.domain.dto.trip.TourRecommendationDTO.ItineraryItem;
+import com.koreatravel.tabitomo.domain.entity.trip.PlaceEntity;
 
 @Service
-@Profile("prod")
 public class GeminiAIService {
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(GeminiAIService.class);
@@ -110,7 +104,11 @@ public class GeminiAIService {
         }
     }
 
-    public TourRecommendationDTO getRecommendation(String destination, String duration, String theme, String priceRange) {
+    public TourRecommendationDTO getRecommendation(String destination, String duration, String theme, String budget, Integer accommodationBudget, List<String> facilities) {
+        return getRecommendationDTO(destination, duration, theme, budget);
+    }
+
+    private TourRecommendationDTO getRecommendationDTO(String destination, String duration, String theme, String budget) {
         // Construct the Vertex AI Gemini API endpoint
         String apiUrl = String.format("https://%s/v1/projects/%s/locations/%s/publishers/google/models/gemini-pro:generateContent",
             geminiApiEndpoint, projectId, location);
@@ -118,6 +116,8 @@ public class GeminiAIService {
         // Create headers with authentication
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        
+        // Set authentication
         headers.setBearerAuth(translationApiKey);  // Using the same API key for authentication
 
         StringBuilder promptBuilder = new StringBuilder();
@@ -145,8 +145,8 @@ public class GeminiAIService {
         promptBuilder.append(String.format("여행 기간이 %s이므로, 일정의 day 값을 1부터 %s까지 나눠서 반환해줘.\n", durationText, durationText.replaceAll("[^0-9]", "").isEmpty() ? "여행일수" : String.valueOf(durationText.replaceAll("[^0-9]", ""))));
 
         // 가격대 정보 추가
-        if (priceRange != null && !priceRange.isEmpty()) {
-            promptBuilder.append(String.format("숙소 가격대는 %s입니다. 이 가격대에 맞는 숙소를 추천해줘.\n", priceRange));
+        if (budget != null && !budget.isEmpty()) {
+            promptBuilder.append(String.format("숙소 가격대는 %s입니다. 이 가격대에 맞는 숙소를 추천해줘.\n", budget));
         }
 
         // 관광명소 데이터 필터링 및 프롬프트에 추가
@@ -172,11 +172,11 @@ public class GeminiAIService {
             List<Map<String, Object>> filteredAccommodations = accommodationData.stream()
                 .filter(acc -> acc.getOrDefault("소재지도로명주소", "").toString().contains(destination))
                 .filter(acc -> {
-                    if (priceRange == null || priceRange.isEmpty()) return true;
+                    if (budget == null || budget.isEmpty()) return true;
                     try {
                         String priceStr = acc.getOrDefault("객실평균가격", "0").toString().replaceAll("[^\\d.]", "");
                         double avgPrice = Double.parseDouble(priceStr);
-                        String[] range = priceRange.split("-");
+                        String[] range = budget.split("-");
                         double minPrice = Double.parseDouble(range[0]);
                         double maxPrice = Double.parseDouble(range[1]);
                         return avgPrice >= minPrice && avgPrice <= maxPrice;
@@ -288,20 +288,29 @@ public class GeminiAIService {
                 updateItemWithApiData(item);
             }
 
-            // 숙소 정보 처리 (여러 숙소 추천을 처리하도록 변경)
-            JsonNode accommodationsNode = recommendationNode.path("accommodations");
-            List<ItineraryItem> accommodations = new ArrayList<>();
-            if (accommodationsNode.isArray()) {
-                CollectionType accommodationListType = objectMapper.getTypeFactory().constructCollectionType(ArrayList.class, ItineraryItem.class);
-                accommodations = objectMapper.convertValue(accommodationsNode, accommodationListType);
-                // AI가 반환한 day 값을 그대로 사용하고, 각 숙소 정보를 API로 보강
-                for (ItineraryItem acc : accommodations) {
-                    updateItemWithApiData(acc);
+            // Create a new TourRecommendationDTO with the title and itinerary
+            TourRecommendationDTO dto = new TourRecommendationDTO();
+            dto.setTitle(title);
+            dto.setItinerary(itinerary);
+            
+            // If there are accommodations, use the first one as the main accommodation
+            if (recommendationNode.has("accommodation")) {
+                try {
+                    JsonNode accNode = recommendationNode.get("accommodation");
+                    PlaceEntity place = PlaceEntity.builder()
+                        .name(accNode.path("place").asText())
+                        .description(accNode.path("description").asText(""))
+                        .categoryCode("ACCOMMODATION")
+                        .latitude(accNode.path("latitude").asDouble(0.0))
+                        .longitude(accNode.path("longitude").asDouble(0.0))
+                        .build();
+                    dto.setAccommodation(place);
+                } catch (Exception e) {
+                    logger.error("Error setting accommodation: {}", e.getMessage(), e);
                 }
             }
-
-            return new TourRecommendationDTO(title, itinerary, accommodations);
-
+            
+            return dto;
         } catch (JsonProcessingException e) {
             logger.error("JSON 파싱 에러: {}", e.getMessage(), e);
             return new TourRecommendationDTO("응답 파싱 오류", Collections.emptyList());
@@ -311,9 +320,10 @@ public class GeminiAIService {
         }
     }
 
-    private void updateItemWithApiData(ItineraryItem item) {
-        if (item.getPlaceName() == null) {
-            logger.warn("ItineraryItem의 placeName이 null입니다. API 데이터를 업데이트할 수 없습니다.");
+    private void updateItemWithApiData(TourRecommendationDTO.ItineraryItem item) {
+        // Try to find additional data from our datasets
+        String placeName = item.getPlace();
+        if (placeName == null || placeName.trim().isEmpty()) {
             return;
         }
         String cleanedPlaceName = item.getPlaceName().replace("(가상)", "").trim();

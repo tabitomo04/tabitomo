@@ -1,6 +1,5 @@
 package com.koreatravel.tabitomo.domain.dto.trip;
 
-
 import lombok.Data;
 import java.time.LocalDate;
 import java.util.List;
@@ -8,6 +7,7 @@ import java.util.Map;
 
 @Data
 public class TripPlanDTO {
+    private String planName; // 여행 계획 이름
     private String destination;
     private LocalDate startDate;
     private LocalDate endDate;
@@ -16,7 +16,7 @@ public class TripPlanDTO {
     private TourRecommendationDTO tourRecommendation; // 추천 결과
     private Map<String, Object> additionalInfo;
     private List<DailySchedule> dailySchedules;
-    private List<Accommodation> accommodations; // 숙소 정보
+    private Accommodation accommodation; // 숙소 정보
     private int duration;
     private Integer accommodationBudget;
     private String budget;
@@ -31,21 +31,23 @@ public class TripPlanDTO {
 
     @Data
     public static class ScheduleItem {
-        private String time;
+        private String startTime;
+        private String endTime;
         private String place;
         private String description;
-        private double latitude;
-        private double longitude;
+        private Double latitude;
+        private Double longitude;
+        private String address; // 주소 필드 추가
     }
 
     @Data
     public static class Accommodation {
-        private int day;
         private String placeName;
         private String description;
         private String priceRange;
         private String imageUrl;
         private Double latitude;
         private Double longitude;
+        private String address; // 주소 필드 추가
     }
 }

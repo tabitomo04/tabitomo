@@ -227,25 +227,41 @@
                                 </div>
                             </div>
                             
-                            <!-- Name -->
+                            <!-- Country Selection -->
                             <div class="mb-3">
-                                <label for="name" class="form-label">이름</label>
-                                <input type="text" class="form-control" id="name" 
-                                       placeholder="이름을 입력해주세요" required>
+                                <label for="countryId" class="form-label">국적</label>
+                                <select class="form-select" id="countryId" name="countryId" required>
+                                    <option value="" disabled selected>국적을 선택해주세요</option>
+                                    <!-- Countries will be loaded dynamically -->
+                                </select>
+                                <input type="hidden" name="countryId" id="countryIdValue" th:field="*{countryId}">
                             </div>
                             
-                            <!-- Phone Number -->
+                            <!-- Preferred Language Selection -->
+                            <div class="mb-3">
+                                <label for="preferredLanguageId" class="form-label">선호 언어</label>
+                                <select class="form-select" id="preferredLanguageId" name="preferredLanguageId" required>
+                                    <option value="" disabled selected>선호하는 언어를 선택해주세요</option>
+                                    <!-- Languages will be loaded dynamically -->
+                                </select>
+                                <input type="hidden" name="preferredLanguageId" id="preferredLanguageIdValue" th:field="*{preferredLanguageId}">
+                            </div>
+                            
+                            <!-- Gender Selection -->
                             <div class="mb-4">
-                                <label for="phone" class="form-label">휴대폰 번호</label>
-                                <div class="input-group">
-                                    <select class="form-select" id="countryCode" style="max-width: 100px;">
-                                        <option value="+82">+82 (대한민국)</option>
-                                        <option value="+81">+81 (일본)</option>
-                                        <option value="+86">+86 (중국)</option>
-                                        <option value="+1">+1 (미국/캐나다)</option>
-                                    </select>
-                                    <input type="tel" class="form-control" id="phone" 
-                                           placeholder="휴대폰 번호를 입력해주세요 (예: 01012345678)" required>
+                                <label class="form-label d-block">성별</label>
+                                <div class="btn-group w-100" role="group" aria-label="성별 선택">
+                                    <input type="radio" class="btn-check" name="gender" id="gender-male" value="1" autocomplete="off" required>
+                                    <label class="btn btn-outline-primary" for="gender-male">남성</label>
+                                    
+                                    <input type="radio" class="btn-check" name="gender" id="gender-female" value="2" autocomplete="off">
+                                    <label class="btn btn-outline-primary" for="gender-female">여성</label>
+                                    
+                                    <input type="radio" class="btn-check" name="gender" id="gender-other" value="3" autocomplete="off">
+                                    <label class="btn btn-outline-primary" for="gender-other">기타</label>
+                                    
+                                    <input type="radio" class="btn-check" name="gender" id="gender-na" value="4" autocomplete="off">
+                                    <label class="btn btn-outline-primary" for="gender-na">선택 안함</label>
                                 </div>
                             </div>
                             
@@ -561,86 +577,58 @@
                 });
                 
                 // Form submission
-                signupForm.addEventListener('submit', async function(event) {
-                    event.preventDefault();
-                    
+                signupForm.addEventListener('submit', function(e) {
                     if (!isEmailVerified) {
+                        e.preventDefault();
                         showError('verificationResult', '이메일 인증을 완료해주세요.');
-                        return;
+                        return false;
                     }
                     
-                    if (password.value !== confirmPassword.value) {
-                        showError('passwordMatch', '비밀번호가 일치하지 않습니다.');
-                        return;
+                    if (!validatePassword()) {
+                        e.preventDefault();
+                        return false;
                     }
                     
-                    // Prepare form data
-                    const formData = new FormData();
-                    formData.append('email', getFullEmail());
-                    formData.append('password', password.value);
-                    formData.append('nickname', nickname.value);
-                    formData.append('name', name.value);
-                    formData.append('phone', `${countryCode.value}${phone.value}`);
+                    // Set hidden field values
+                    document.getElementById('countryIdValue').value = document.getElementById('countryId').value;
+                    document.getElementById('preferredLanguageIdValue').value = document.getElementById('preferredLanguageId').value;
                     
-                    try {
-                        const response = await fetch('/auth/signup', {
-                            method: 'POST',
-                            headers: {
-                                'X-Requested-With': 'XMLHttpRequest',
-                                'X-CSRF-TOKEN': document.querySelector('input[name="_csrf"]').value
-                            },
-                            body: formData
-                        });
-                        
-                        const data = await response.json();
-                        
-                        if (response.ok) {
-                            // Redirect to login page on success
-                            window.location.href = '/auth/login?signup=success';
-                        } else {
-                            showError('formError', data.message || '회원가입 중 오류가 발생했습니다.');
-                        }
-                    } catch (error) {
-                        console.error('Error during signup:', error);
-                        showError('formError', '회원가입 중 오류가 발생했습니다.');
-                    }
+                    // If all validations pass, the form will submit
                 });
                 
-                // Load countries
-                function loadCountries() {
-                    // In a real app, you would fetch this from your API
-                    const countries = [
-                        { code: '+82', name: '대한민국' },
-                        { code: '+81', name: '일본' },
-                        { code: '+86', name: '중국' },
-                        { code: '+1', name: '미국/캐나다' },
-                        { code: '+44', name: '영국' },
-                        { code: '+33', name: '프랑스' },
-                        { code: '+49', name: '독일' },
-                        { code: '+7', name: '러시아' },
-                        { code: '+61', name: '호주' },
-                        { code: '+65', name: '싱가포르' }
-                    ];
-                    
-                    const countrySelect = document.getElementById('countryCode');
-                    if (countrySelect) {
-                        // Clear existing options except the first one
-                        while (countrySelect.options.length > 1) {
-                            countrySelect.remove(1);
-                        }
+                // Load countries and languages
+                async function loadCountriesAndLanguages() {
+                    try {
+                        // Load countries
+                        const countriesResponse = await fetch('/api/countries');
+                        const countries = await countriesResponse.json();
+                        const countrySelect = document.getElementById('countryId');
                         
-                        // Add country options
                         countries.forEach(country => {
                             const option = document.createElement('option');
-                            option.value = country.code;
-                            option.textContent = `${country.code} (${country.name})`;
+                            option.value = country.countryId;
+                            option.textContent = country.countryName;
                             countrySelect.appendChild(option);
                         });
+                        
+                        // Load languages
+                        const languagesResponse = await fetch('/api/languages');
+                        const languages = await languagesResponse.json();
+                        const languageSelect = document.getElementById('preferredLanguageId');
+                        
+                        languages.forEach(language => {
+                            const option = document.createElement('option');
+                            option.value = language.languageId;
+                            option.textContent = language.nameNative + (language.nameNative !== language.nameEn ? ` (${language.nameEn})` : '');
+                            languageSelect.appendChild(option);
+                        });
+                    } catch (error) {
+                        console.error('Error loading data:', error);
                     }
                 }
                 
                 // Initialize the page
-                loadCountries();
+                loadCountriesAndLanguages();
             });
         </script>
     </body>

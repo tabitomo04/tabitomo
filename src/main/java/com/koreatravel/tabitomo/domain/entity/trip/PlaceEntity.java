@@ -13,42 +13,52 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor
 @Builder
 @Table(name = "place")
 public class PlaceEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "place_id", columnDefinition = "BIGINT NOT NULL AUTO_INCREMENT")
-    private Long id;
+    @Column(name = "place_id", nullable = false, length = 50)
+    private String id;
 
-    @Column(name = "name", nullable = false, length = 200)
+    @Column(nullable = false, length = 200)
     private String name;
 
-    @Column(name = "category_code", length = 20)
-    private String categoryCode;
+    @Column(name = "category_code", length = 50)
+    private String categoryCode; // 예: ATTRACTION, RESTAURANT, ACCOMMODATION
 
-    @Column(name = "address", length = 200)
+    @Column(length = 200)
     private String address;
 
-    @Column(name = "city", length = 80)
-    private String city;
+    private Double latitude;
+    private Double longitude;
 
-    @Column(name = "region", length = 80)
-    private String region;
+    @Column(name = "image_url", length = 255)
+    private String imageUrl;
 
-    @OneToMany(mappedBy = "place")
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @OneToMany(mappedBy = "place", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<ScheduleEntity> schedules = new ArrayList<>();
+
+    // Helper method to add a schedule
+    public void addSchedule(ScheduleEntity schedule) {
+        this.schedules.add(schedule);
+        schedule.setPlace(this);
+    }
+
+    // Helper method to remove a schedule
+    public void removeSchedule(ScheduleEntity schedule) {
+        this.schedules.remove(schedule);
+        schedule.setPlace(null);
+    }
     
-    @Builder
-    private PlaceEntity(String name, String categoryCode, String address, String city, String region) {
-        this.name = name;
-        this.categoryCode = categoryCode;
-        this.address = address;
-        this.city = city;
-        this.region = region;
-        this.schedules = new ArrayList<>();
+    // Get the place ID (for convenience)
+    public String getPlaceId() {
+        return this.id;
     }
 }

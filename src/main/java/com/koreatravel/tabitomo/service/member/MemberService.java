@@ -3,8 +3,10 @@ package com.koreatravel.tabitomo.service.member;
 import com.koreatravel.tabitomo.domain.dto.member.*;
 import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
 import com.koreatravel.tabitomo.domain.entity.member.CountryEntity;
+import com.koreatravel.tabitomo.domain.entity.member.LanguageEntity;
 import com.koreatravel.tabitomo.domain.entity.member.AddInfoEntity;
 import com.koreatravel.tabitomo.repository.member.AddInfoRepository;
+import com.koreatravel.tabitomo.repository.member.LanguageRepository;
 import com.koreatravel.tabitomo.dto.member.QuestionAnswersDTO;
 import com.koreatravel.tabitomo.service.token.TokenService;
 import com.koreatravel.tabitomo.exception.DuplicateResourceException;
@@ -41,6 +43,7 @@ public class MemberService {
     private final AuthenticationManager authenticationManager;
     private final TokenService tokenService;
     private final CountryRepository countryRepository;
+    private final LanguageRepository languageRepository;
     
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
@@ -52,6 +55,102 @@ public class MemberService {
     private int verificationCodeExpiryMinutes;
     
     private final AddInfoRepository addInfoRepository;
+    
+    /**
+     * 회원 프로필 조회
+     */
+    public MemberProfileDTO getMemberProfile(String email) {
+        MemberEntity member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+        
+        // Convert gender code to string representation
+        String genderStr = switch(member.getGender()) {
+            case 1 -> "MALE";
+            case 2 -> "FEMALE";
+            case 3 -> "OTHER";
+            case 4 -> "PREFER_NOT_TO_SAY";
+            default -> "";
+        };
+        
+        return MemberProfileDTO.builder()
+                .email(member.getEmail())
+                .nickname(member.getNickname())
+                .gender(genderStr)
+                .profileImageUrl(member.getProfileImageUrl())
+                .countryId(member.getCountry() != null ? member.getCountry().getCountryId() : null)
+                .countryName(member.getCountry() != null ? member.getCountry().getCountryName() : null)
+                .preferredLanguageId(member.getPreferredLanguage() != null ? member.getPreferredLanguage().getLanguageId() : null)
+                .preferredLanguageName(member.getPreferredLanguage() != null ? member.getPreferredLanguage().getNameEn() : null)
+                .build();
+    }
+    
+    /**
+     * 회원 정보 수정
+     */
+    @Transactional
+    public void updateMemberProfile(String email, MemberUpdateDTO updateDTO) {
+        MemberEntity member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+        
+        // 비밀번호 변경 요청이 있는 경우 현재 비밀번호 확인
+        if (updateDTO.isPasswordChangeRequested()) {
+            if (!passwordEncoder.matches(updateDTO.getCurrentPassword(), member.getPassword())) {
+                throw new ValidationException("현재 비밀번호가 일치하지 않습니다.");
+            }
+            if (!updateDTO.getNewPassword().equals(updateDTO.getNewPasswordConfirm())) {
+                throw new ValidationException("새 비밀번호와 확인 비밀번호가 일치하지 않습니다.");
+            }
+            member.setPassword(passwordEncoder.encode(updateDTO.getNewPassword()));
+        }
+        
+        // Update nickname
+        member.setNickname(updateDTO.getNickname());
+        
+        // Convert gender string to integer code and update
+        if (updateDTO.getGender() != null) {
+            int genderCode = switch(updateDTO.getGender().toUpperCase()) {
+                case "MALE" -> 1;
+                case "FEMALE" -> 2;
+                case "OTHER" -> 3;
+                case "PREFER_NOT_TO_SAY" -> 4;
+                default -> 4; // Default to "Prefer not to say"
+            };
+            member.setGender(genderCode);
+        }
+        
+        if (updateDTO.getProfileImageUrl() != null && !updateDTO.getProfileImageUrl().trim().isEmpty()) {
+            member.setProfileImageUrl(updateDTO.getProfileImageUrl());
+        }
+        
+        // 국가 정보 업데이트
+        if (updateDTO.getCountryId() != null) {
+            CountryEntity country = countryRepository.findById(updateDTO.getCountryId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Country not found with id: " + updateDTO.getCountryId()));
+            member.setCountry(country);
+        }
+        
+        // 선호 언어 업데이트
+        if (updateDTO.getPreferredLanguageId() != null) {
+            LanguageEntity language = languageRepository.findById(updateDTO.getPreferredLanguageId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Language not found with id: " + updateDTO.getPreferredLanguageId()));
+            member.setPreferredLanguage(language);
+        }
+        
+        memberRepository.save(member);
+    }
+    
+    /**
+     * 회원 탈퇴 (비활성화)
+     */
+    @Transactional
+    public void deactivateMember(String email) {
+        MemberEntity member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+        
+        // 회원을 비활성화 (soft delete)
+        member.setActive(false);
+        memberRepository.save(member);
+    }
 
     /**
      * 회원가입 처리 및 이메일 인증 메일 발송
@@ -309,12 +408,17 @@ public class MemberService {
      * 회원 엔티티 생성
      */
     private MemberEntity createMemberEntity(RegisterDTO registerDTO, CountryEntity country) {
+        // 선호 언어 조회
+        LanguageEntity preferredLanguage = languageRepository.findById(registerDTO.getPreferredLanguageId())
+            .orElseThrow(() -> new ResourceNotFoundException("선택한 언어를 찾을 수 없습니다."));
+            
         return MemberEntity.builder()
             .email(registerDTO.getEmail())
             .password(passwordEncoder.encode(registerDTO.getPassword()))
             .nickname(registerDTO.getNickname())
             .gender(registerDTO.getGender())
             .country(country)
+            .preferredLanguage(preferredLanguage)
             .isActive(false) // 이메일 인증 전까지 비활성화
             .role(MemberEntity.MemberRole.ROLE_USER)
             .build();

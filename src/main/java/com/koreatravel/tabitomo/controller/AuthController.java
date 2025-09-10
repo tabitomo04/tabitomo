@@ -14,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -25,6 +27,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.koreatravel.tabitomo.PathConstants;
+import com.koreatravel.tabitomo.domain.dto.member.MemberFormDTO;
+import com.koreatravel.tabitomo.domain.dto.member.RegisterDTO;
 import static com.koreatravel.tabitomo.PathConstants.*;
 
 @Slf4j
@@ -41,15 +45,79 @@ public class AuthController {
     @GetMapping(LOGIN)
     public String loginPage(@RequestParam(value = "error", required = false) String error,
                           @RequestParam(value = "logout", required = false) String logout,
+                          @RequestParam(value = "exception", required = false) String exception,
                           Model model) {
         log.info("Accessing login page");
         if (error != null) {
-            model.addAttribute("error", "Invalid username or password");
+            model.addAttribute("errorMessage", "이메일 또는 비밀번호가 올바르지 않습니다.");
         }
         if (logout != null) {
             model.addAttribute("message", "You have been logged out successfully.");
         }
         return "auth/login";
+    }
+    
+    /**
+     * 회원가입 페이지
+     */
+    @GetMapping("/signup")
+    public String signupForm(Model model) {
+        model.addAttribute("memberForm", new MemberFormDTO());
+        return "auth/signup";
+    }
+    
+    /**
+     * 회원가입 처리
+     */
+    @PostMapping("/signup")
+    public String signup(
+            @Validated @ModelAttribute("memberForm") MemberFormDTO formDTO,
+            BindingResult bindingResult,
+            RedirectAttributes redirectAttributes) {
+        
+        // Validate form data
+        if (bindingResult.hasErrors()) {
+            log.warn("Validation errors in signup form: {}", bindingResult.getAllErrors());
+            return "auth/signup";
+        }
+
+        try {
+            // Convert form DTO to register DTO
+            RegisterDTO registerDTO = RegisterDTO.builder()
+                    .email(formDTO.getEmail())
+                    .password(formDTO.getPassword())
+                    .confirmPassword(formDTO.getPasswordConfirm())
+                    .nickname(formDTO.getNickname())
+                    .gender(formDTO.getGender())
+                    .countryId(formDTO.getCountryId())
+                    .preferredLanguageId(formDTO.getPreferredLanguageId())
+                    .build();
+            
+            try {
+                // Call the service to register the user
+                memberService.register(registerDTO);
+                
+                redirectAttributes.addFlashAttribute("successMessage", "회원가입이 완료되었습니다. 이메일을 확인해주세요.");
+                return "redirect:/auth/login";
+            } catch (ResourceNotFoundException e) {
+                log.error("Resource not found during registration: {}", e.getMessage());
+                bindingResult.reject("registrationError", "요청하신 리소스를 찾을 수 없습니다. 다시 시도해주세요.");
+                return "auth/signup";
+            } catch (Exception e) {
+                log.error("Error during registration: {}", e.getMessage(), e);
+                bindingResult.reject("registrationError", "회원가입 중 오류가 발생했습니다. 다시 시도해주세요.");
+                return "auth/signup";
+            }
+            
+        } catch (DataIntegrityViolationException e) {
+            log.error("Data integrity violation during signup: {}", e.getMessage());
+            bindingResult.reject("email.duplicate", "이미 사용 중인 이메일입니다.");
+            return "auth/signup";
+        } catch (Exception e) {
+            log.error("Error during signup: {}", e.getMessage(), e);
+            bindingResult.reject("signup.failed", "회원가입 중 오류가 발생했습니다. 다시 시도해주세요.");
+            return "auth/signup";
+        }
     }
     
     /**

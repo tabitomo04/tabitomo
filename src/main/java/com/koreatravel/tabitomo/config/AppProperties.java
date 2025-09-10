@@ -61,7 +61,12 @@ public class AppProperties {
      * List of supported languages in the application.
      * Example: ko, en, ja
      */
-    private List<String> supportedLanguages;
+    private List<String> supportedLanguages = List.of("ko", "en", "ja");
+    
+    /**
+     * Default language
+     */
+    private String defaultLanguage = "ko";
 
     @PostConstruct
     public void validate() {

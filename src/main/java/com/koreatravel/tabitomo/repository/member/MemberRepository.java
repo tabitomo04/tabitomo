@@ -42,6 +42,9 @@ public interface MemberRepository extends JpaRepository<MemberEntity, String> {
     @Query("SELECT m FROM MemberEntity m WHERE m.emailVerifyToken = :token")
     Optional<MemberEntity> findByEmailVerifyToken(@Param("token") String token);
     
+    @Query("SELECT m FROM MemberEntity m WHERE m.emailVerificationToken = :token")
+    Optional<MemberEntity> findByEmailVerificationToken(@Param("token") String token);
+    
     // Token management
     @Modifying
     @Query("UPDATE MemberEntity m SET m.password = :password, m.resetToken = null, m.resetTokenExpiry = null WHERE m.email = :email")
@@ -74,11 +77,16 @@ public interface MemberRepository extends JpaRepository<MemberEntity, String> {
         @Param("expiryDate") LocalDateTime expiryDate
     );
     
-    @Query("SELECT m FROM MemberEntity m WHERE m.passwordResetToken = :token AND m.passwordResetExpires > :now")
+    @Query("SELECT m FROM MemberEntity m WHERE m.passwordResetToken = :token AND (m.passwordResetExpires IS NULL OR m.passwordResetExpires > :now)")
     Optional<MemberEntity> findByPasswordResetToken(
         @Param("token") String token,
         @Param("now") LocalDateTime now
     );
+    
+    // Find by username (alias for findByEmail to match 박세훈/tabitomo)
+    default Optional<MemberEntity> findByUsername(String username) {
+        return findByEmail(username);
+    }
     
     // Profile updates
     @Modifying

@@ -28,10 +28,15 @@ public class RegisterDTO {
     private String nickname;
 
     @NotNull(message = "성별을 선택해주세요.")
-    private Integer gender;
+    @Min(value = 1, message = "유효하지 않은 성별 값입니다.")
+    @Max(value = 4, message = "유효하지 않은 성별 값입니다.")
+    private Integer gender;  // 1: Male, 2: Female, 3: Other, 4: Prefer not to say
 
-    @NotNull(message = "국가를 선택해주세요.")
-    private Integer countryId;
+    @NotNull(message = "국적을 선택해주세요.")
+    private Long countryId;
+    
+    @NotNull(message = "선호 언어를 선택해주세요.")
+    private Long preferredLanguageId;
 
     public boolean isPasswordMatching() {
         return password != null && password.equals(confirmPassword);

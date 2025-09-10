@@ -159,14 +159,14 @@ public class EditorController {
     }
 
     /**
-     * 마이페이지 불러오기
-     * @return 마이페이지
+     * 에디터 마이페이지 불러오기
+     * @return 에디터 마이페이지
      */
-    @GetMapping("/mypage")
-    public String mypage(Model model){
+    @GetMapping("/editor/mypage")
+    public String editorMypage(Model model){
         List<StorybookListDTO> storybookList = editorService.getStorybookList();
         model.addAttribute("storylist", storybookList.stream().limit(3).toList());
-        return "mypage";
+        return "editor-mypage";
     }
 
 

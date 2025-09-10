@@ -41,9 +41,8 @@ public class TripPlanParser {
                 Matcher placeMatcher = PLACE_PATTERN.matcher(dayContent);
                 while (placeMatcher.find()) {
                     String time = placeMatcher.group(1);
-                    String placeName = placeMatcher.group(2).trim();
-                    String address = placeMatcher.group(3).trim();
-                    String description = placeMatcher.group(4) != null ? placeMatcher.group(4).trim() : "";
+                    String placeName = placeMatcher.group(2);
+                    String description = placeMatcher.group(3);
                     
                     // Extract coordinates if available
                     Matcher coordMatcher = COORDINATE_PATTERN.matcher(description);
@@ -60,7 +59,14 @@ public class TripPlanParser {
                     }
                     
                     TripPlanDTO.ScheduleItem item = new TripPlanDTO.ScheduleItem();
-                    item.setTime(time);
+                    // Parse start and end times from the time string (e.g., "10:00 - 12:00")
+                    String[] times = time.split(" - ");
+                    if (times.length >= 1) {
+                        item.setStartTime(times[0].trim());
+                    }
+                    if (times.length >= 2) {
+                        item.setEndTime(times[1].trim());
+                    }
                     item.setPlace(placeName);
                     item.setDescription(description);
                     item.setLatitude(latitude);

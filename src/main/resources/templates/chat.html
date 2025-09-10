@@ -2,34 +2,40 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>AI 여행 챗봇</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TabiTomo Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
+
         body {
-            font-family: "Arial", sans-serif;
-            background-color: #f2f2f2;
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #e5e7eb;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
         }
 
         .chat-container {
-            width: 400px;
-            height: 600px;
-            border: 1px solid #ccc;
-            border-radius: 10px;
+            width: 100%;
+            max-width: 640px;
+            height: 90vh;
+            border-radius: 1rem;
             display: flex;
             flex-direction: column;
-            background: #fff;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             overflow: hidden;
             position: relative;
+            font-size: 1rem;
         }
 
         .chat-header {
-            background: #2979FF;
-            color: #fff;
-            padding: 15px;
+            background: #2563eb;
+            color: white;
+            padding: 1rem;
             font-weight: bold;
             display: flex;
             justify-content: space-between;
@@ -37,85 +43,338 @@
         }
 
         .chat-header .header-title {
-            flex-grow: 1;
-            text-align: center;
+            flex-grow: 0;
+            text-align: left;
+            font-size: 1.25rem;
+            margin-right: auto;
         }
 
-        .chat-header .header-buttons {
+        .feedback-area.top-header {
+            position: relative;
+            bottom: initial;
+            border-top: none;
+            padding: 10px;
+            background-color: #f1f5f9;
             display: flex;
-            gap: 10px;
+            justify-content: flex-end;
+            align-items: center;
+            font-size: 0.9em;
+            border-bottom: 1px solid #ddd;
+            width: 100%;
+            box-sizing: border-box;
         }
 
-        .chat-header button {
-            background: #ff9800;
-            border: none;
-            color: white;
-            font-weight: bold;
-            padding: 6px 12px;
-            border-radius: 20px;
+        .feedback-area.top-header p {
+            margin: 0;
+            margin-right: 10px;
+            white-space: nowrap;
+        }
+
+        .feedback-area.top-header .feedback-buttons button {
+            background-color: transparent;
+            color: #4b5563;
+            border: 1px solid #d1d5db;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 0.8em;
+            transition: all 0.2s;
             cursor: pointer;
-            transition: background 0.3s;
         }
 
-        .chat-header button:hover {
-            background: #e68900;
-        }
-
-        .chat-header button[disabled] {
-            background-color: #cccccc;
-            cursor: not-allowed;
+        .feedback-area.top-header .feedback-buttons button:hover {
+            background-color: #f3f4f6;
+            border-color: #9ca3af;
         }
 
         .chat-messages {
             flex: 1;
-            padding: 15px;
+            padding: 1rem;
+            padding-left: 0.3rem;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-        }
-
-        #chat-box {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            gap: 1rem;
+            font-size: 0.95rem;
         }
 
         .message {
-            max-width: 70%;
-            padding: 10px;
-            border-radius: 10px;
-            font-size: 14px;
+            margin: 0;
+        }
+
+        .bot-message-wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: 5px;
+            margin: 0;
+        }
+
+        .bot-message-content {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin: 0;
+        }
+
+        .profile-img {
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .profile-name {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #6b7280;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
         }
 
         .message.bot {
             background: #f1f1f1;
             align-self: flex-start;
+            border-top-left-radius: 0;
         }
 
         .message.user {
-            background: #0078ff;
-            color: #fff;
+            background: #2563eb;
+            color: white;
             align-self: flex-end;
+            border-top-right-radius: 0;
         }
 
-        #categories, #questions {
+        .chat-input {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            background: #f1f1f1;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 9999px;
+            outline: none;
+            margin-right: 0.5rem;
+        }
+
+        .chat-input button.send-btn {
+            background-color: #2563eb;
+            border-radius: 9999px;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border: none;
+        }
+
+        .chat-input button.send-btn:hover {
+            background-color: #1d4ed8;
+        }
+
+        #toggle-categories {
+            background: #9ca3af;
+            border-radius: 9999px;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.3s ease;
+            border: none;
+            margin-right: 0.5rem;
+        }
+
+        #toggle-categories.rotated {
+            transform: rotate(45deg);
+        }
+
+        #toggle-categories:hover {
+            background-color: #6b7280;
+        }
+
+        .feedback-area.hidden {
             display: none;
+        }
+
+        /* Modal Overlay Style */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
+        /* Modal Box Modern Style */
+        #feedback-modal {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+            transform: translateY(-20px) scale(0.95);
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+            opacity: 0;
+        }
+
+        .modal-overlay.visible {
+            display: flex;
+        }
+
+        .modal-overlay.visible #feedback-modal {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+
+        #feedback-modal h3 {
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            font-size: 1.25rem;
+            color: #333;
+        }
+
+        #feedback-modal .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1.2rem;
+            font-size: 2rem;
+            color: #9ca3af;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        #feedback-modal .close-btn:hover {
+            color: #6b7280;
+        }
+
+        .rating-stars {
+            font-size: 2.2em;
+            color: #ccc;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* 별점 스타일 */
+        .rating-stars .star {
+            cursor: pointer;
+            transition: color 0.2s ease-in-out;
+        }
+        .rating-stars .star-empty {
+            color: #d1d5db;
+        }
+        .rating-stars .star-filled {
+            color: #fcd34d;
+        }
+
+        .feedback-form textarea {
+            width: 100%;
+            height: 100px;
+            border-radius: 0.75rem;
+            border: 1px solid #d1d5db;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            resize: none;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .feedback-form textarea:focus {
+            border-color: #2563eb;
+        }
+
+        .feedback-form button {
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 9999px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: background 0.2s;
+        }
+
+        .feedback-form button:hover {
+            background: #1e40af;
+        }
+
+        /* 카테고리/질문 컨테이너 스타일 */
+        .category-container {
+            display: none;
+            flex-direction: column;
             padding: 10px;
-            background-color: #ff9800;
+            background-color: #60a5fa;
             text-align: center;
         }
 
-        #categories.visible, #questions.visible {
-            display: block;
+        .category-container.visible {
+            display: flex;
         }
 
-        #categories button {
+        /* 뒤로가기 버튼 영역 스타일 */
+        .category-navigation {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 10px;
+            width: 100%;
+            gap: 10px;
+        }
+
+        .category-navigation button {
+            background-color: transparent;
+            color: white;
+            padding: 5px 8px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            transition: background 0.3s;
+            border: 1px solid white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .category-navigation button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .category-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .category-buttons button {
             margin: 5px;
             padding: 8px 15px;
             border: none;
-            background: #ff5722;
+            background: #1e40af;
             color: white;
             font-weight: bold;
             cursor: pointer;
@@ -123,155 +382,54 @@
             transition: background 0.3s;
         }
 
-        #categories button:hover {
-            background: #e64a19;
+        .category-buttons button:hover {
+            background: #1e3a8a;
         }
 
-        #questions div {
-            padding: 5px;
-            border-bottom: 1px solid #ddd;
+        .question-list {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            width: 100%;
+        }
+
+        .question-list div {
+            padding: 10px 15px;
             cursor: pointer;
-            background: #fff3e0;
+            background: #dbeafe;
             border-radius: 8px;
-            margin: 3px 0;
+            width: 100%;
+            text-align: left;
+            transition: background 0.2s;
         }
 
-        .chat-input {
-            display: flex;
-            border-top: 1px solid #ddd;
-            padding: 5px;
-            align-items: center;
-        }
-
-        .chat-input input {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 20px;
-            outline: none;
-            margin-right: 5px;
-        }
-
-        .chat-input button {
-            width: 40px;
-            height: 40px;
-            padding: 0;
-            color: #fff;
-            background: #2979FF;
-            border: none;
-            cursor: pointer;
-            border-radius: 50%;
-            font-size: 18px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: background 0.3s;
-            position: relative;
-        }
-
-        /* Styles for the send button (Telegram-like paper airplane) */
-        .chat-input button.send-btn {
-            background-color: #0078ff;
-        }
-        .chat-input button.send-btn:hover {
-            background-color: #0056b3;
-        }
-
-        /* SVG 아이콘 스타일 */
-        .chat-input button.send-btn svg {
-            width: 24px; /* SVG 크기 조절 */
-            height: 24px;
-            fill: white; /* 아이콘 색상 */
-            margin-left: 4px;
-        }
-
-
-        #feedback-modal {
-            display: none;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-            width: 80%;
-            max-width: 300px;
-            text-align: center;
-        }
-
-        #feedback-modal h3 {
-            margin-top: 0;
-            margin-bottom: 15px;
-            position: relative;
-        }
-
-        #feedback-modal .close-btn {
-            position: absolute;
-            top: 0;
-            right: 0;
-            font-size: 1.5em;
-            cursor: pointer;
-            padding: 5px 10px;
-            line-height: 1;
-        }
-
-        .rating-stars {
-            font-size: 2em;
-            color: #ccc;
-            margin-bottom: 15px;
-        }
-
-        .rating-stars .star {
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-
-        .rating-stars .star.active {
-            color: #ffc107;
-        }
-
-        .rating-stars .star:hover {
-            color: #ffc107;
-        }
-
-        .feedback-form textarea {
-            width: 90%;
-            height: 80px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin-bottom: 10px;
-            resize: none;
-        }
-
-        .feedback-form button {
-            background: #2979FF;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
+        .question-list div:hover {
+            background: #a5c3ed;
         }
     </style>
 </head>
 <body>
 <div class="chat-container">
     <div class="chat-header">
-        <span class="header-title">토모한테 뭐든지 물어봐요!</span>
+        <span class="header-title">TabiTomo</span>
         <div class="header-buttons">
-            <button id="new-chat">새 채팅</button>
-            <button id="feedback-btn">피드백</button>
+            <button id="new-chat" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-1 px-3 rounded-full text-sm transition-colors">새 채팅</button>
+        </div>
+    </div>
+
+    <!-- 피드백 영역 -->
+    <div id="feedback-area" class="feedback-area top-header hidden">
+        <p>챗봇 상담이 도움이 됐나요?</p>
+        <div class="feedback-buttons">
+            <button id="feedback-yes-btn">예</button>
+            <button id="feedback-no-btn">아니오</button>
         </div>
     </div>
 
     <div class="chat-messages" id="chat-box">
     </div>
 
-    <div id="categories"></div>
-    <div id="questions"></div>
+    <div id="category-section" class="category-container"></div>
 
     <div class="chat-input">
         <button id="toggle-categories">+</button>
@@ -283,25 +441,29 @@
         </button>
     </div>
 
-    <div id="feedback-modal">
-        <span class="close-btn">&times;</span>
-        <h3>답변이 마음에 드셨나요?</h3>
-        <div class="feedback-form">
-            <div class="rating-stars">
-                <span class="star" data-rating="1">★</span>
-                <span class="star" data-rating="2">★</span>
-                <span class="star" data-rating="3">★</span>
-                <span class="star" data-rating="4">★</span>
-                <span class="star" data-rating="5">★</span>
+    <!-- Modal Overlay -->
+    <div class="modal-overlay" id="feedback-overlay">
+        <div id="feedback-modal">
+            <span class="close-btn">&times;</span>
+            <h3>답변이 마음에 드셨나요?</h3>
+            <div class="feedback-form">
+                <div id="star-rating" class="rating-stars">
+                    <span class="star" data-rating="1">★</span>
+                    <span class="star" data-rating="2">★</span>
+                    <span class="star" data-rating="3">★</span>
+                    <span class="star" data-rating="4">★</span>
+                    <span class="star" data-rating="5">★</span>
+                </div>
+                <textarea id="feedback-text" placeholder="자유로운 의견을 남겨주세요." class="w-full h-20 rounded-md border p-2 mb-2 resize-none"></textarea>
+                <button id="submit-feedback-btn">피드백 제출</button>
             </div>
-            <textarea id="feedback-text" placeholder="자유로운 의견을 남겨주세요." style="width: 100%; height: 50px;"></textarea>
-            <button id="submit-feedback-btn">피드백 제출</button>
         </div>
     </div>
 </div>
 
 <script>
     let currentRating = 0;
+    let backHistory = [];
 
     document.addEventListener("DOMContentLoaded", () => {
         loadChatHistory();
@@ -315,11 +477,32 @@
         if (!chatHistory || chatHistory.length === 0) {
             const initialMessage = { sender: "bot", message: "안녕하세요 토모에요! 무엇을 도와드릴까요?" };
             saveToSessionStorage(initialMessage.sender, initialMessage.message);
-            chatBox.innerHTML = `<div class='message ${initialMessage.sender}'>${initialMessage.message}</div>`;
+            chatBox.innerHTML = `
+                <div class='bot-message-wrapper'>
+                    <img src='/img/tomo.png' alt='토모 프로필' class='profile-img'>
+                    <div class='bot-message-content'>
+                        <span class='profile-name'>토모</span>
+                        <div class='message ${initialMessage.sender}'>${initialMessage.message}</div>
+                    </div>
+                </div>
+            `;
         } else {
-            chatBox.innerHTML = ''; // Clear box before loading
+            chatBox.innerHTML = '';
             chatHistory.forEach(chat => {
-                chatBox.innerHTML += `<div class='message ${chat.sender}'>${chat.message}</div>`;
+                const formattedMessage = chat.message.replace(/\n/g, '<br>');
+                if (chat.sender === 'bot') {
+                    chatBox.innerHTML += `
+                        <div class='bot-message-wrapper'>
+                            <img src='/img/tomo.png' alt='토모 프로필' class='profile-img'>
+                            <div class='bot-message-content'>
+                                <span class='profile-name'>토모</span>
+                                <div class='message ${chat.sender}'>${formattedMessage}</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    chatBox.innerHTML += `<div class='message user'>${formattedMessage}</div>`;
+                }
             });
         }
         chatBox.scrollTop = chatBox.scrollHeight;
@@ -346,66 +529,72 @@
         }
     }
 
-    // 수정된 sendMessage() 함수
-async function sendMessage() {
-    const messageInput = document.getElementById("message");
-    const userMessage = messageInput.value.trim();
-
-    if (!userMessage) return;
-
-    const isForbidden = await containsForbiddenWord(userMessage);
-    if (isForbidden) {
-        alert("욕설이나 부적절한 단어는 입력할 수 없습니다.");
-        return;
-    }
-
-    const chatBox = document.getElementById("chat-box");
-    chatBox.innerHTML += `<div class='message user'>${userMessage}</div>`;
-    saveToSessionStorage("user", userMessage);
-    messageInput.value = "";
-    chatBox.scrollTop = chatBox.scrollHeight;
-
-    try {
-        // Get the entire chat history from sessionStorage to provide context
-        const chatHistory = JSON.parse(sessionStorage.getItem("chatHistory")) || [];
-
-        const aiResponse = await fetch("/chat/send", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            // Sending both the new message and the full chat history
-            body: JSON.stringify({ message: userMessage, chatHistory: chatHistory })
-        });
-
-        const aiData = await aiResponse.json();
-
-        if (aiData && aiData.reply) {
-            const botAnswer = aiData.reply;
-            chatBox.innerHTML += `<div class='message bot'>${botAnswer}</div>`;
-            saveToSessionStorage("bot", botAnswer);
-        } else {
-            const errorMessage = "답변을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.";
-            chatBox.innerHTML += `<div class='message bot'>${errorMessage}</div>`;
-            saveToSessionStorage("bot", errorMessage);
-        }
+    function displayBotMessage(message) {
+        const chatBox = document.getElementById("chat-box");
+        const formattedMessage = message.replace(/\n/g, '<br>');
+        chatBox.innerHTML += `
+            <div class='bot-message-wrapper'>
+                <img src='/img/tomo.png' alt='토모 프로필' class='profile-img'>
+                <div class='bot-message-content'>
+                    <span class='profile-name'>토모</span>
+                    <div class='message bot'>${formattedMessage}</div>
+                </div>
+            </div>
+        `;
+        saveToSessionStorage("bot", message);
         chatBox.scrollTop = chatBox.scrollHeight;
-
-    } catch (error) {
-        const errorMessage = `통신 에러: ${error.message}`;
-        chatBox.innerHTML += `<div class='message bot'>${errorMessage}</div>`;
-        saveToSessionStorage("bot", errorMessage);
-        console.error("Fetch error:", error);
+        document.getElementById("feedback-area").classList.remove('hidden');
     }
-}
+
+    async function sendMessage() {
+        const messageInput = document.getElementById("message");
+        const userMessage = messageInput.value.trim();
+
+        if (!userMessage) return;
+
+        const isForbidden = await containsForbiddenWord(userMessage);
+        if (isForbidden) {
+            alert("욕설이나 부적절한 단어는 입력할 수 없습니다.");
+            return;
+        }
+
+        const chatBox = document.getElementById("chat-box");
+        chatBox.innerHTML += `<div class='message user'>${userMessage}</div>`;
+        saveToSessionStorage("user", userMessage);
+        messageInput.value = "";
+        chatBox.scrollTop = chatBox.scrollHeight;
+        document.getElementById("feedback-area").classList.add('hidden');
+
+        try {
+            const chatHistory = JSON.parse(sessionStorage.getItem("chatHistory")) || [];
+
+            const aiResponse = await fetch("/api/send", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: userMessage, chatHistory: chatHistory })
+            });
+
+            const aiData = await aiResponse.json();
+
+            if (aiData && aiData.reply) {
+                displayBotMessage(aiData.reply);
+            } else {
+                const errorMessage = "답변을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.";
+                displayBotMessage(errorMessage);
+            }
+
+        } catch (error) {
+            const errorMessage = `통신 에러: ${error.message}`;
+            displayBotMessage(errorMessage);
+            console.error("Fetch error:", error);
+        }
+    }
 
     function checkFeedbackSubmitted() {
         const isSubmitted = sessionStorage.getItem("feedbackSubmitted");
-        const feedbackBtn = document.getElementById("feedback-btn");
+        const feedbackArea = document.getElementById("feedback-area");
         if (isSubmitted === "true") {
-            feedbackBtn.disabled = true;
-            feedbackBtn.textContent = "피드백 제출 완료";
-        } else {
-            feedbackBtn.disabled = false;
-            feedbackBtn.textContent = "피드백";
+            feedbackArea.classList.add("hidden");
         }
     }
 
@@ -419,11 +608,13 @@ async function sendMessage() {
     document.getElementById("new-chat").addEventListener("click", () => {
         sessionStorage.removeItem("chatHistory");
         sessionStorage.removeItem("feedbackSubmitted");
+        document.getElementById("feedback-area").classList.add('hidden');
+        backHistory = [];
         loadChatHistory();
         checkFeedbackSubmitted();
     });
 
-    document.getElementById("feedback-btn").addEventListener("click", () => {
+    function openFeedbackModal() {
         const chatHistory = JSON.parse(sessionStorage.getItem("chatHistory"));
         if (!chatHistory || chatHistory.length <= 1) {
             alert("피드백을 남길 채팅 기록이 없습니다. 대화를 시작해주세요.");
@@ -433,31 +624,66 @@ async function sendMessage() {
             alert("이미 피드백을 제출했습니다. 새 채팅을 시작해주세요.");
             return;
         }
+        const overlay = document.getElementById("feedback-overlay");
+        overlay.style.display = "flex";
+        const stars = document.querySelectorAll('#star-rating .star');
+        stars.forEach(star => star.classList.remove('star-filled'));
+        currentRating = 0;
+        setTimeout(() => {
+            overlay.classList.add("visible");
+        }, 10);
+    }
 
-        document.getElementById("feedback-modal").style.display = "block";
+    document.getElementById("feedback-yes-btn").addEventListener("click", openFeedbackModal);
+    document.getElementById("feedback-no-btn").addEventListener("click", openFeedbackModal);
+
+    document.querySelector("#feedback-modal .close-btn").addEventListener("click", () => {
+        const overlay = document.getElementById("feedback-overlay");
+        overlay.classList.remove("visible");
+        setTimeout(() => {
+            overlay.style.display = "none";
+        }, 300);
     });
 
-    document.querySelector(".close-btn").addEventListener("click", () => {
-        document.getElementById("feedback-modal").style.display = "none";
+    const starContainer = document.getElementById('star-rating');
+    starContainer.addEventListener('mouseover', (e) => {
+        const star = e.target.closest('.star');
+        if (star) {
+            const rating = parseInt(star.dataset.rating, 10);
+            fillStars(rating);
+        }
     });
 
-    document.querySelectorAll(".rating-stars .star").forEach(star => {
-        star.addEventListener("click", () => {
-            const rating = star.getAttribute("data-rating");
-            currentRating = parseInt(rating);
-            document.querySelectorAll(".rating-stars .star").forEach(s => s.classList.remove("active"));
-            for (let i = 0; i < rating; i++) {
-                document.querySelectorAll(".rating-stars .star")[i].classList.add("active");
+    starContainer.addEventListener('mouseout', () => {
+        fillStars(currentRating);
+    });
+
+    starContainer.addEventListener('click', (e) => {
+        const star = e.target.closest('.star');
+        if (star) {
+            currentRating = parseInt(star.dataset.rating, 10);
+            fillStars(currentRating);
+        }
+    });
+
+    function fillStars(count) {
+        const stars = document.querySelectorAll('#star-rating .star');
+        stars.forEach((star, index) => {
+            if (index < count) {
+                star.classList.remove('star-empty');
+                star.classList.add('star-filled');
+            } else {
+                star.classList.remove('star-filled');
+                star.classList.add('star-empty');
             }
         });
-    });
+    }
 
     document.getElementById("submit-feedback-btn").addEventListener("click", async () => {
         const rating = currentRating;
         const feedbackText = document.getElementById("feedback-text").value;
-        const feedbackModal = document.getElementById("feedback-modal");
-
         const chatHistory = JSON.parse(sessionStorage.getItem("chatHistory"));
+
         if (!chatHistory || chatHistory.length < 2) {
             alert("피드백을 남길 채팅 기록이 없습니다.");
             return;
@@ -476,7 +702,7 @@ async function sendMessage() {
         }
 
         try {
-            const response = await fetch("/chat/feedback", {
+            const response = await fetch("/api/feedback", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(feedbackData)
@@ -494,106 +720,185 @@ async function sendMessage() {
             alert("피드백 제출에 실패했습니다. 이미 제출했거나 서버 오류일 수 있습니다.");
             console.error("Feedback submission error:", error);
         } finally {
-            feedbackModal.style.display = "none";
+            const overlay = document.getElementById("feedback-overlay");
+            overlay.classList.remove("visible");
+            setTimeout(() => {
+                overlay.style.display = "none";
+            }, 300);
             document.getElementById("feedback-text").value = "";
-            document.querySelectorAll(".rating-stars .star").forEach(s => s.classList.remove("active"));
             currentRating = 0;
         }
     });
 
+    function updateCategoryButtons(container, data, type) {
+        container.innerHTML = `
+            <div class="category-navigation">
+                <button id="go-home">처음</button>
+                <button id="back-one-step" class="hidden">뒤로</button>
+            </div>
+            <div class="${type === 'question' ? 'question-list' : 'category-buttons'}"></div>
+        `;
+        const buttonList = container.querySelector('.category-buttons') || container.querySelector('.question-list');
+        const backBtn = container.querySelector('#back-one-step');
+        const homeBtn = container.querySelector('#go-home');
+
+        if (backHistory.length > 0) {
+            backBtn.classList.remove('hidden');
+        } else {
+            backBtn.classList.add('hidden');
+        }
+
+        homeBtn.onclick = loadMainCategories;
+        backBtn.onclick = goBackOneStep;
+
+        if (data && data.length > 0) {
+            if (type === 'question') {
+                 data.forEach(item => {
+                    const div = document.createElement("div");
+                    div.textContent = item.question;
+                    div.dataset.id = item.qaId;
+                    buttonList.appendChild(div);
+                });
+            } else {
+                data.forEach(item => {
+                    const button = document.createElement("button");
+                    button.textContent = item.name;
+                    button.dataset.id = item.id;
+                    button.dataset.type = type; // ✅ 타입 속성 추가
+                    buttonList.appendChild(button);
+                });
+            }
+        } else {
+            buttonList.innerHTML = `<div style="text-align: center; color: #fff;">데이터를 불러오는 중 오류가 발생했습니다.</div>`;
+        }
+    }
+
+    async function loadMainCategories() {
+        const section = document.getElementById("category-section");
+        section.classList.add('visible');
+        document.getElementById("toggle-categories").classList.remove('rotated');
+        backHistory = [];
+
+        try {
+            const response = await fetch("/api/main-categories");
+            if (!response.ok) throw new Error('Network response was not ok.');
+            const categories = await response.json();
+            updateCategoryButtons(section, categories, 'main'); // ✅ 타입 지정
+        } catch (error) {
+            console.error("메인 카테고리 로드 실패:", error);
+            section.innerHTML = `<div class="category-container visible"><div style="text-align: center; color: #fff; padding: 10px;">데이터를 불러오는 중 오류가 발생했습니다.</div></div>`;
+        }
+    }
+
+    async function loadSubCategories(mainCategoryId) {
+        backHistory.push({ type: 'main', id: mainCategoryId });
+        const section = document.getElementById("category-section");
+
+        try {
+            const response = await fetch(`/api/sub-categories/${mainCategoryId}`);
+            if (!response.ok) throw new Error('Network response was not ok.');
+            const subCategories = await response.json();
+            updateCategoryButtons(section, subCategories, 'sub'); // ✅ 타입 지정
+        } catch (error) {
+            console.error("서브 카테고리 로드 실패:", error);
+            section.innerHTML = `<div class="category-container visible"><div style="text-align: center; color: #fff; padding: 10px;">데이터를 불러오는 중 오류가 발생했습니다.</div></div>`;
+        }
+    }
+
+    async function loadQuestions(subCategoryId) {
+        backHistory.push({ type: 'sub', id: subCategoryId });
+        const section = document.getElementById("category-section");
+
+        try {
+            const response = await fetch(`/api/sub-categories/${subCategoryId}/qas`); // ✅ 경로 수정
+            if (!response.ok) throw new Error('Network response was not ok.');
+            const questions = await response.json();
+            updateCategoryButtons(section, questions, 'question');
+        } catch (error) {
+            console.error("질문 로드 실패:", error);
+            section.innerHTML = `<div class="category-container visible"><div style="text-align: center; color: #fff; padding: 10px;">데이터를 불러오는 중 오류가 발생했습니다.</div></div>`;
+        }
+    }
+
+    async function goBackOneStep() {
+        if (backHistory.length > 0) {
+            const previousStep = backHistory.pop();
+            if (previousStep.type === 'main') {
+                await loadMainCategories();
+            } else if (previousStep.type === 'sub') {
+                const mainCategory = backHistory[backHistory.length-1].id;
+                await loadSubCategories(mainCategory);
+            }
+        }
+    }
+
     document.getElementById("toggle-categories").addEventListener("click", async () => {
-        const categoriesDiv = document.getElementById("categories");
-        const questionsDiv = document.getElementById("questions");
+        const section = document.getElementById("category-section");
         const toggleBtn = document.getElementById("toggle-categories");
 
-        if (categoriesDiv.classList.contains('visible') || questionsDiv.classList.contains('visible')) {
-            categoriesDiv.classList.remove('visible');
-            questionsDiv.classList.remove('visible');
-            toggleBtn.textContent = "+";
+        toggleBtn.classList.toggle('rotated');
+
+        if (section.classList.contains('visible')) {
+            section.classList.remove('visible');
+            backHistory = [];
         } else {
-            try {
-                const response = await fetch("/chat/categories");
-                const categories = await response.json();
-
-                categoriesDiv.innerHTML = "";
-                if (categories.length === 0) {
-                    categoriesDiv.innerHTML = "카테고리가 없습니다.";
-                } else {
-                    categories.forEach(cat => {
-                        const button = document.createElement("button");
-                        button.textContent = cat.name;
-                        button.dataset.id = cat.categoryId;
-                        categoriesDiv.appendChild(button);
-                    });
-                }
-                categoriesDiv.classList.add('visible');
-            } catch (error) {
-                console.error("카테고리 로드 실패:", error);
-                categoriesDiv.innerHTML = "카테고리 로드 실패. 서버 오류일 수 있습니다.";
-            }
-            toggleBtn.textContent = "x";
+            await loadMainCategories();
         }
     });
 
-    document.getElementById("categories").addEventListener("click", async (event) => {
-        if (event.target.tagName === 'BUTTON') {
-            const categoryId = event.target.dataset.id;
-            const categoriesDiv = document.getElementById("categories");
-            const questionsDiv = document.getElementById("questions");
+    document.getElementById("category-section").addEventListener("click", async (event) => {
+        const section = document.getElementById("category-section");
+        const target = event.target.closest('button, div');
 
-            categoriesDiv.classList.remove('visible');
-            questionsDiv.innerHTML = "";
-
-            try {
-                const response = await fetch(`/chat/qa/${categoryId}`);
-                const questions = await response.json();
-
-                if (questions.length === 0) {
-                    questionsDiv.innerHTML = "<div>질문이 없습니다.</div>";
-                } else {
-                    questions.forEach(qa => {
-                        const div = document.createElement("div");
-                        div.textContent = qa.question;
-                        div.dataset.id = qa.qaId;
-                        questionsDiv.appendChild(div);
-                    });
-                }
-                questionsDiv.classList.add('visible');
-            } catch (error) {
-                console.error("질문 로드 실패:", error);
+        if (target && target.tagName === 'BUTTON') {
+            const buttonType = target.dataset.type;
+            const id = target.dataset.id;
+            if (buttonType === 'main') {
+                await loadSubCategories(id);
+            } else if (buttonType === 'sub') {
+                await loadQuestions(id);
             }
-        }
-    });
+        } else if (target && target.tagName === 'DIV' && target.closest('.question-list')) {
+            const qaId = target.dataset.id;
+            const questionText = target.textContent;
 
-    document.getElementById("questions").addEventListener("click", async (event) => {
-        if (event.target.tagName === 'DIV' && event.target.dataset.id) {
-            const qaId = event.target.dataset.id;
-            const questionText = event.target.textContent;
+            addMessageToChat(questionText, 'user');
 
-            const chatBox = document.getElementById("chat-box");
-            chatBox.innerHTML += `<div class='message user'>${questionText}</div>`;
-            saveToSessionStorage("user", questionText);
-            chatBox.scrollTop = chatBox.scrollHeight;
-
-            const questionsDiv = document.getElementById("questions");
-            const toggleBtn = document.getElementById("toggle-categories");
-            questionsDiv.classList.remove('visible');
-            toggleBtn.textContent = "+";
+            section.classList.remove('visible');
+            document.getElementById("toggle-categories").classList.remove('rotated');
+            document.getElementById("feedback-area").classList.add('hidden');
 
             try {
-                const response = await fetch(`/chat/answer/${qaId}`);
+                const response = await fetch(`/api/answer/${qaId}`);
+                if (!response.ok) throw new Error('Network response was not ok.');
                 const answer = await response.text();
-
-                chatBox.innerHTML += `<div class='message bot'>${answer}</div>`;
-                saveToSessionStorage("bot", answer);
-                chatBox.scrollTop = chatBox.scrollHeight;
+                displayBotMessage(answer);
             } catch (error) {
                 console.error("답변 로드 실패:", error);
-                chatBox.innerHTML += `<div class='message bot'>답변을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</div>`;
-                saveToSessionStorage("bot", "답변을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
+                displayBotMessage("답변을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
             }
         }
     });
+
+    function addMessageToChat(message, sender) {
+        const chatBox = document.getElementById("chat-box");
+        const formattedMessage = message.replace(/\n/g, '<br>');
+        if (sender === 'bot') {
+            chatBox.innerHTML += `
+                <div class='bot-message-wrapper'>
+                    <img src='/img/tomo.png' alt='토모 프로필' class='profile-img'>
+                    <div class='bot-message-content'>
+                        <span class='profile-name'>토모</span>
+                        <div class='message bot'>${formattedMessage}</div>
+                    </div>
+                </div>
+            `;
+        } else {
+            chatBox.innerHTML += `<div class='message user'>${formattedMessage}</div>`;
+        }
+        saveToSessionStorage(sender, message);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
 </script>
 </body>
 </html>

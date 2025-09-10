@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "ChatKeyword")
+@Table(name = "chat_keyword")
 @Getter // 이 어노테이션이 getQaId()와 getWeight()를 자동으로 생성합니다.
 @Setter
 public class ChatKeyword {

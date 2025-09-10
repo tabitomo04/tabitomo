@@ -5,19 +5,23 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "Synonym")
+@Table(name = "synonym")
 @Getter
 @Setter
 public class Synonym {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "synonym_id")
     private Integer synonymId;
 
-    @Column(name = "main_keyword", nullable = false, length = 100)
-    private String mainKeyword;
+    @ManyToOne
+    @JoinColumn(name = "keyword_id", nullable = false)
+    private ChatKeyword chatKeyword;
 
-    @Column(name = "synonym_keyword", nullable = false, length = 100)
+    @Column(name = "synonym_keyword", nullable = false)
     private String synonymKeyword;
+
+    public ChatKeyword getChatKeyword() {
+        return this.chatKeyword;
+    }
 }

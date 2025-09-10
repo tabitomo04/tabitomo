@@ -3,7 +3,7 @@ package com.koreatravel.tabitomo.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "ForbiddenWord")
+@Table(name = "forbidden_word")
 public class ForbiddenWord {
 
     @Id

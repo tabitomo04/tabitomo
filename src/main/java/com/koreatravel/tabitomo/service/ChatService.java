@@ -2,10 +2,11 @@ package com.koreatravel.tabitomo.service;
 
 import com.koreatravel.tabitomo.dto.ChatRequest;
 import com.koreatravel.tabitomo.dto.ChatResponse;
-import com.koreatravel.tabitomo.entity.ChatCategory;
 import com.koreatravel.tabitomo.entity.ChatKeyword;
 import com.koreatravel.tabitomo.entity.ChatQA;
 import com.koreatravel.tabitomo.entity.ForbiddenWord;
+import com.koreatravel.tabitomo.entity.MainCategory;
+import com.koreatravel.tabitomo.entity.SubCategory;
 import com.koreatravel.tabitomo.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,18 +29,25 @@ public class ChatService {
     @Autowired
     private OpenAiService openAiService;
     @Autowired
-    private ChatCategoryRepository categoryRepo;
+    private MainCategoryRepository mainCategoryRepo;
+    @Autowired
+    private SubCategoryRepository subCategoryRepo;
     @Autowired
     private ForbiddenWordRepository forbiddenWordRepo;
 
-    // 카테고리 목록을 가져옵니다.
-    public List<ChatCategory> getCategories() {
-        return categoryRepo.findAll();
+    // 메인 카테고리 목록을 가져옵니다.
+    public List<MainCategory> getCategories() {
+        return mainCategoryRepo.findAll();
     }
 
-    // 특정 카테고리의 Q&A 목록을 가져옵니다.
-    public List<ChatQA> getQAsByCategory(Integer categoryId) {
-        return qaRepo.findByCategoryId(categoryId);
+    // 특정 메인 카테고리의 서브 카테고리 목록을 가져옵니다.
+    public List<SubCategory> getSubCategoriesByMainCategory(Integer mainCategoryId) {
+        return subCategoryRepo.findByMainCategoryId(mainCategoryId);
+    }
+
+    // 특정 서브 카테고리의 Q&A 목록을 가져옵니다.
+    public List<ChatQA> getQAsByCategory(Integer subCategoryId) {
+        return qaRepo.findBySubCategoryId(subCategoryId);
     }
 
     // 기존 getAnswerByKeyword 메서드 확장 (점수 기반)
@@ -194,7 +202,7 @@ public class ChatService {
         Optional<String> processedKeyword = synonymRepo.findAll().stream()
                 .filter(synonym -> input.equals(synonym.getSynonymKeyword()) || input.contains(synonym.getSynonymKeyword()))
                 .findFirst()
-                .map(synonym -> synonym.getMainKeyword());
+                .map(synonym -> synonym.getChatKeyword().getKeyword());
 
         return processedKeyword.orElse(input);
     }

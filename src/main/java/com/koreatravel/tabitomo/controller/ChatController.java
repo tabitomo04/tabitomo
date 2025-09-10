@@ -2,12 +2,14 @@ package com.koreatravel.tabitomo.controller;
 
 import com.koreatravel.tabitomo.dto.ChatRequest;
 import com.koreatravel.tabitomo.dto.ChatResponse;
-import com.koreatravel.tabitomo.entity.ChatCategory;
 import com.koreatravel.tabitomo.entity.ChatQA;
 import com.koreatravel.tabitomo.entity.ForbiddenWord;
-import com.koreatravel.tabitomo.repository.ChatCategoryRepository;
+import com.koreatravel.tabitomo.entity.MainCategory;
+import com.koreatravel.tabitomo.entity.SubCategory;
 import com.koreatravel.tabitomo.repository.ChatQARepository;
 import com.koreatravel.tabitomo.repository.ForbiddenWordRepository;
+import com.koreatravel.tabitomo.repository.MainCategoryRepository;
+import com.koreatravel.tabitomo.repository.SubCategoryRepository;
 import com.koreatravel.tabitomo.service.AnswerService;
 import com.koreatravel.tabitomo.service.ChatService;
 import lombok.RequiredArgsConstructor;
@@ -21,13 +23,14 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/chat")
+@RequestMapping("/api") // 기본 경로를 /api로 변경
 @RequiredArgsConstructor
 public class ChatController {
 
     private final ChatQARepository chatQARepository;
     private final ForbiddenWordRepository forbiddenWordRepository;
-    private final ChatCategoryRepository chatCategoryRepository; // ChatCategoryRepository 추가
+    private final MainCategoryRepository mainCategoryRepository;
+    private final SubCategoryRepository subCategoryRepository;
     private final AnswerService answerService;
     private final ChatService chatService;
 
@@ -37,15 +40,40 @@ public class ChatController {
     @Value("${gemini.api.key}")
     private String geminiApiKey;
 
-    @GetMapping("/categories")
-    public List<ChatCategory> getCategories() {
-        return chatCategoryRepository.findAll(); // ChatCategory 목록을 직접 반환하도록 수정
+    /**
+     * 모든 메인 카테고리 목록을 조회합니다.
+     * @return 모든 MainCategory 리스트
+     */
+    @GetMapping("/main-categories")
+    public List<MainCategory> getMainCategories() {
+        return mainCategoryRepository.findAll();
     }
 
-    @GetMapping("/qa/{categoryId}")
-    public ResponseEntity<List<ChatQA>> getQuestionsByCategory(@PathVariable Integer categoryId) {
+    /**
+     * 특정 메인 카테고리에 속한 모든 서브 카테고리 목록을 조회합니다.
+     * @param mainCategoryId 메인 카테고리 ID
+     * @return 해당 메인 카테고리의 SubCategory 리스트
+     */
+    @GetMapping("/sub-categories/{mainCategoryId}")
+    public ResponseEntity<List<SubCategory>> getSubCategoriesByMainCategory(@PathVariable Integer mainCategoryId) {
         try {
-            List<ChatQA> questions = chatQARepository.findByCategoryId(categoryId);
+            List<SubCategory> subCategories = subCategoryRepository.findByMainCategoryId(mainCategoryId);
+            return ResponseEntity.ok(subCategories);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * 특정 서브 카테고리에 속한 모든 질문(ChatQA) 목록을 조회합니다.
+     * @param subCategoryId 서브 카테고리 ID
+     * @return 해당 서브 카테고리의 ChatQA 리스트
+     */
+    @GetMapping("/sub-categories/{subCategoryId}/qas") // ✅ 경로 재수정
+    public ResponseEntity<List<ChatQA>> getQuestionsBySubCategory(@PathVariable Integer subCategoryId) {
+        try {
+            List<ChatQA> questions = chatQARepository.findBySubCategoryId(subCategoryId);
             return ResponseEntity.ok(questions);
         } catch (Exception e) {
             e.printStackTrace();
@@ -53,6 +81,11 @@ public class ChatController {
         }
     }
 
+    /**
+     * 특정 질문(ChatQA)의 답변을 조회합니다.
+     * @param qaId ChatQA ID
+     * @return 답변 텍스트
+     */
     @GetMapping("/answer/{qaId}")
     public ResponseEntity<String> getAnswerByQaId(@PathVariable Integer qaId) {
         try {
@@ -66,7 +99,7 @@ public class ChatController {
         }
     }
 
-    @PostMapping("/check-word")
+    @PostMapping("/forbidden-words")
     public Map<String, Boolean> checkForbiddenWord(@RequestBody Map<String, String> request) {
         String inputWord = request.get("word");
         Map<String, Boolean> response = new HashMap<>();

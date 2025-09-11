@@ -1,6 +1,7 @@
 package com.koreatravel.tabitomo.controller;
 
 
+import com.koreatravel.tabitomo.PathConstants;
 import com.koreatravel.tabitomo.domain.dto.SaveRequestDTO;
 import com.koreatravel.tabitomo.domain.dto.StorybookDTO;
 import com.koreatravel.tabitomo.domain.dto.StorybookListDTO;
@@ -8,6 +9,7 @@ import com.koreatravel.tabitomo.domain.dto.TempsaveDTO;
 import com.koreatravel.tabitomo.service.EditorService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -26,7 +28,7 @@ public class EditorController {
     private EditorService editorService;
 
     // 에디터 페이지 열기
-    @GetMapping("/editor")
+    @GetMapping(PathConstants.STORYBOOK_WRITE)
     public String editor() {
         return "editor";
     }
@@ -37,7 +39,7 @@ public class EditorController {
      * @param saveRequestDTO 저장하고자 하는 내용
      * @return
      */
-    @PostMapping("/save")
+    @PostMapping(PathConstants.STORYBOOK_SAVE)
     @ResponseBody
     public ResponseEntity<Map<String,Object>> save(@RequestBody SaveRequestDTO saveRequestDTO) {
         Map<String,Object> response = new HashMap<>();
@@ -73,15 +75,19 @@ public class EditorController {
      * @param model 해당 스토리북 제목+내용
      * @return 스토리북 출력 페이지
      */
-    @GetMapping("/view")
+    @GetMapping(PathConstants.STORYBOOK_DETAIL)
     public String view(@RequestParam("booknum") Integer booknum, Model model) {
         StorybookDTO dto = editorService.getstory(booknum);
         model.addAttribute("post",dto);
         return "storyview";
     }
 
-
-    @PostMapping("/tempsave")
+    /**
+     * 임시저장본 저장
+     * @param saveRequestDTO 임시저장하고자 하는 내용
+     * @return
+     */
+    @PostMapping(PathConstants.STORYBOOK_TEMPSAVE)
     @ResponseBody
     public ResponseEntity<Map<String,Object>> tempsave(@RequestBody SaveRequestDTO saveRequestDTO) {
         Map<String, Object> response = new HashMap<>();
@@ -107,11 +113,32 @@ public class EditorController {
      * @param model
      * @return
      */
-    @GetMapping("/storylist")
-    public String storylist(Model model){
+    @GetMapping(PathConstants.STORYBOOK_LIST)
+    public String storylist(Model model,
+                            @RequestParam(defaultValue = "random") String sort,
+                            @RequestParam(name = "page", defaultValue = "0") int page,
+                            @RequestParam(name = "size", defaultValue = "6") int size){
 
-        List<StorybookListDTO> storybookList = editorService.getStorybookList();
-        model.addAttribute("storylist", storybookList);
+        if(sort == null) sort = "random";
+
+        if("random".equals(sort)) {
+            List<StorybookListDTO> storybookList = editorService.getStorybookList(sort);
+            model.addAttribute("storylist", storybookList);
+            model.addAttribute("pagelist", null);
+        }
+        else {
+            Page<StorybookListDTO> hotORnewList = editorService.gethotORnewList(sort, page, size);
+            model.addAttribute("pagelist", hotORnewList.getContent());
+            model.addAttribute("sort", sort);
+            //페이징
+            model.addAttribute("currentPage", page);
+            model.addAttribute("size", size);
+            model.addAttribute("totalPages", hotORnewList.getTotalPages());
+            model.addAttribute("totalElement", hotORnewList.getTotalElements());
+            model.addAttribute("hasNext", hotORnewList.hasNext());
+            model.addAttribute("hasPrevious", hotORnewList.hasPrevious());
+
+        }
         return "storylist";
 
     }
@@ -122,7 +149,7 @@ public class EditorController {
      * @param model 해당 스토리북 제목+내용
      * @return 수정 페이지
      */
-    @GetMapping("/edit")
+    @GetMapping(PathConstants.STORYBOOK_UPDATE)
     public String edit(@RequestParam(value = "booknum", required = false) Integer booknum,
                        @RequestParam(value = "tempId", required = false) Integer tempId,
                        Model model) {
@@ -145,16 +172,16 @@ public class EditorController {
      * @param booknum 삭제하고자 하는 스토리북 넘버
      * @return 스토리북 리스트
      */
-    @GetMapping("/delete")
+    @GetMapping(PathConstants.STORYBOOK_DELETE)
     public String delete(@RequestParam("booknum") Integer booknum){
         editorService.delete(booknum);
-        return "redirect:/storylist";
+        return "redirect:/list";
     }
 
-    @GetMapping("/tempdel")
+    @GetMapping(PathConstants.STORYBOOK_TEMPDELETE)
     public String tempdel(@RequestParam("tempId") Integer tempId){
         editorService.tempdel(tempId);
-        return "redirect:/editor";
+        return "redirect:/mypage";
     }
 
     /**
@@ -162,10 +189,66 @@ public class EditorController {
      * @return 마이페이지
      */
     @GetMapping("/mypage")
-    public String mypage(Model model){
-        List<StorybookListDTO> storybookList = editorService.getStorybookList();
-        model.addAttribute("storylist", storybookList.stream().limit(3).toList());
+    public String mypage(Model model,@RequestParam(defaultValue = "false") boolean all){
+        // 스토리북 리스트
+        // 스토리북 리스트
+        List<StorybookListDTO> storybookList = editorService.getMyStorybookList();
+        if (!all) {
+            storybookList = storybookList.stream().limit(3).toList();
+        }
+        model.addAttribute("storylist", storybookList);
+        model.addAttribute("all", all);
+
+        // 임시저장 리스트
+        List<TempsaveDTO> tempsaveList = editorService.getTempsaveList();
+        model.addAttribute("templist",tempsaveList);
         return "mypage";
+    }
+
+
+    /**
+     *  좋아요 토글 on
+     * @param booknum
+     * @param email
+     * @return
+     */
+    @PostMapping("/like")
+    public ResponseEntity<Map<String, Object>> like(
+            @RequestParam Integer booknum,
+            @RequestParam String email) {
+
+        int likes = editorService.likeBook(booknum, email);
+        return ResponseEntity.ok(Map.of("likes", likes, "liked", true));
+    }
+
+    /**
+     * 좋아요 토글 off
+     * @param booknum
+     * @param email
+     * @return
+     */
+    @PostMapping("/unlike")
+    public ResponseEntity<Map<String, Object>> unlike(
+            @RequestParam Integer booknum,
+            @RequestParam String email) {
+
+        int likes = editorService.unlikeBook(booknum, email);
+        return ResponseEntity.ok(Map.of("likes", likes, "liked", false));
+    }
+
+    /**
+     * 이메일과 booknum이 좋아요테이블에 있는지 확인(좋아요 한 적이 있으면 좋아요 상태 유지를 위해)
+     * @param booknum
+     * @param email
+     * @return
+     */
+    @GetMapping("/isLiked")
+    public ResponseEntity<Map<String, Object>> isLiked(
+            @RequestParam Integer booknum,
+            @RequestParam String email) {
+
+        boolean liked = editorService.isLiked(booknum, email);
+        return ResponseEntity.ok(Map.of("liked", liked));
     }
 
 

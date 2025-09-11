@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>여행하는 작가 프로필</title>
-  <link rel="stylesheet" href="css/mypage.css">
-  <link rel="stylesheet" href="css/modal.css">
+  <link rel="stylesheet" th:href="@{/css/mypage.css}">
+  <link rel="stylesheet" th:href="@{/css/modal.css}">
   <script>
 
 
@@ -37,13 +37,13 @@
       <h2>내 스토리북</h2>
       <div class="story-buttons">
         <a class="btn" id="templistBtn">임시저장본</a>
-        <a class="btn primary" onclick="checkTemp()" th:href="@{'/editor'}">새 스토리 작성</a>
+        <a class="btn primary" onclick="checkTemp()" th:href="@{'/storybook/write'}">새 스토리 작성</a>
       </div>
     </div>
     <div class="grid">
 
       <div th:if="${storylist}" th:each="storylist, status: ${storylist}">
-        <a class="link" th:href="@{'/view?booknum=' + ${storylist.booknum}}">
+        <a class="link" th:href="@{'/storybook/detail?booknum=' + ${storylist.booknum}}">
           <div class="card">
             <div class="likes">❤ <span th:text="${storylist.likes}"></span></div>
             <div class="thumbnail">
@@ -61,7 +61,13 @@
 
     </div>
 
-    <button class="btn more">더 보기 +</button>
+    <div th:if="${!all}">
+      <button class="btn more" th:onclick="|location.href='@{/mypage(all=true)}'|">더 보기 +</button>
+    </div>
+    <div th:if="${all}">
+      <button class="btn more" th:onclick="|location.href='@{/mypage(all=false)}'|">닫기</button>
+    </div>
+
   </section>
 
   <!-- 저장한 여행지 -->
@@ -83,7 +89,7 @@
     <span id="closeBtn" class="close">&times;</span>
     <h2>임시저장본 리스트</h2>
 
-    <form action="/edit" method="get" onsubmit="return checkRadio()">
+    <form action="/storybook/update" method="get" onsubmit="return checkRadio()">
       <table>
         <tr>
           <th class="col-select">선택</th>
@@ -98,7 +104,7 @@
           <td class="col-title" th:text="${templist.title}"></td>
           <td class="col-subtitle" th:text="${templist.subtitle}"></td>
           <td class="col-date" th:text="${#temporals.format(templist.updateDate, 'yy.MM.dd')}"></td>
-          <td class="col-del del"><a th:href="@{'/tempdel?tempId=' + ${templist.tempId}}"
+          <td class="col-del del"><a th:href="@{'/storybook/tempdelete?tempId=' + ${templist.tempId}}"
                                      onclick="return confirm('정말 삭제할까요?')">&times;</a></td>
         </tr>
       </table>

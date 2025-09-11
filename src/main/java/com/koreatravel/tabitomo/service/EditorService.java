@@ -16,11 +16,16 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -34,6 +39,8 @@ public class EditorService {
     private TempsaveRepository tempsaveRepository;
     @Autowired
     private MediaRepository mediaRepository;
+    @Autowired
+    private LikedbookRepository likedbookRepository;
 
 
     /**
@@ -151,11 +158,11 @@ public class EditorService {
     }
 
     /**
-     * 스토리북 리스트 가져오기
+     * 마이페이지의 스토리북 리스트 가져오기
      * @return 쿼리에 해당하는 리스트 가져옴
      */
-    public List<StorybookListDTO> getStorybookList() {
-        return storybookRepository.StorybookList();
+    public List<StorybookListDTO> getMyStorybookList() {
+        return storybookRepository.StorybookList(Sort.by(Sort.Direction.DESC, "createDate"));
     }
 
     /**
@@ -338,7 +345,7 @@ public class EditorService {
         }
     }
 
-
+    @Transactional
     public void tempdel(Integer tempId) {
         // 미디어 조회
         List<MediaEntity> mediaList = mediaRepository.findByNumAndStatus(tempId, "temp");
@@ -366,5 +373,102 @@ public class EditorService {
             tempsaveRepository.delete(entity);
         }
     }
+
+    /**
+     * 임시저장 리스트 가져오기
+     * @return
+     */
+    public List<TempsaveDTO> getTempsaveList() {
+        List<TempsaveEntity> listEntity = tempsaveRepository.findAll();
+        List<TempsaveDTO> listDTO = new ArrayList<>();
+
+        for(TempsaveEntity entity : listEntity) {
+            TempsaveDTO dto = TempsaveDTO.builder()
+                    .tempId(entity.getTempId())
+                    .title(entity.getTitle())
+                    .subtitle(entity.getSubtitle())
+                    .updateDate(entity.getUpdateDate())
+                    .build();
+            listDTO.add(dto);
+        }
+        return listDTO;
+    }
+
+    /**
+     * 좋아요 토글
+     * @param booknum 해당 글 번호
+     * @param email 유저 이메일
+     * @return
+     */
+    @Transactional
+    public int likeBook(Integer booknum, String email) {
+        StorybookEntity bookentity = storybookRepository.findById(booknum)
+                .orElseThrow(() -> new RuntimeException("해당 booknum 존재하지 않음"));
+
+        bookentity.setLikes(bookentity.getLikes() + 1);
+        storybookRepository.save(bookentity);
+
+        if (!likedbookRepository.existsByBooknumAndEmail(booknum, email)) {
+            LikedbookEntity liked = LikedbookEntity.builder()
+                    .booknum(booknum)
+                    .email(email)
+                    .createDate(LocalDateTime.now())
+                    .build();
+            likedbookRepository.save(liked);
+        }
+
+        return bookentity.getLikes();
+    }
+
+    /**
+     * 좋아요 취소
+     * @param booknum 해당 글 번호
+     * @param email 유저 이메일
+     * @return
+     */
+    @Transactional
+    public int unlikeBook(Integer booknum, String email) {
+        StorybookEntity bookentity = storybookRepository.findById(booknum)
+                .orElseThrow(() -> new RuntimeException("해당 booknum 존재하지 않음"));
+
+        bookentity.setLikes(Math.max(bookentity.getLikes() - 1, 0));
+        storybookRepository.save(bookentity);
+        if (likedbookRepository.existsByBooknumAndEmail(booknum, email)) {
+            likedbookRepository.deleteByBooknumAndEmail(booknum, email);
+        }
+        return bookentity.getLikes();
+    }
+
+    /**
+     * 좋아요 유무 확인
+     * @param booknum 해당 글번호
+     * @param email 유저 이메일
+     * @return
+     */
+    @Transactional
+    public boolean isLiked(Integer booknum, String email) {
+        return likedbookRepository.existsByBooknumAndEmail(booknum, email);
+    }
+
+    /**
+     * 스토리 리스트 페이지 (랜덤)
+     * @return
+     */
+    public List<StorybookListDTO> getStorybookList(String sort) {
+        return storybookRepository.findListRandom();
+    }
+
+    /**
+     * hot or new를 눌렀을 때 리스트 불러오기 (페이징)
+     * @param sort random, new, hot 종류
+     * @param page
+     * @param size
+     * @return
+     */
+    public Page<StorybookListDTO> gethotORnewList(String sort, int page, int size) {
+        Pageable pageable = PageRequest.of(page,size);
+        return storybookRepository.hotORnewPage(sort,pageable);
+    }
+
 }
 

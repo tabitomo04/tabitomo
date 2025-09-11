@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>스토리북 개별 페이지</title>
-  <link rel="stylesheet" href="css/storyview.css">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet"th:href="@{/css/storyview.css}">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
 
 
-  <script src="js/jquery-3.7.1.min.js"></script>
-  <script src="js/main.js"></script>
+  <script th:src="@{/js/jquery-3.7.1.min.js}"></script>
+  <script th:src="@{/js/main.js}"></script>
 
 
   <script>
@@ -67,8 +67,8 @@ document.addEventListener('click', function(e) {
     <div class="dropdown">
       <a class="more-btn" onclick="toggleDropdown(this)">⋮</a>
       <div class="dropdown-content">
-        <a th:href="@{'/edit?booknum=' + ${post.booknum}}">수정</a>
-        <a th:href="@{'/delete?booknum=' + ${post.booknum}}"
+        <a th:href="@{'/storybook/update?booknum=' + ${post.booknum}}">수정</a>
+        <a th:href="@{'/storybook/delete?booknum=' + ${post.booknum}}"
            onclick="return confirm('정말 삭제하시겠습니까?');">삭제</a>
       </div>
     </div>
@@ -82,7 +82,7 @@ document.addEventListener('click', function(e) {
     </div>
     <div class="actions">
       <button onclick="clip()">URL 공유</button>
-      <span>❤</span><span th:text="${post.likes}"></span>
+      <button id="likeBtn" onclick="toggleLike()"><span>❤   </span><span id="like-count" th:text="${post.likes}"></span></button>
     </div>
   </div>
   <hr class="line">
@@ -92,5 +92,56 @@ document.addEventListener('click', function(e) {
     </div>
   </div>
 </div>
+<script>
+  let liked = false;
+
+// 좋아요 버튼 클릭 시
+function toggleLike() {
+    const booknum = $("#booknum").val();
+    const email = $("#email").val();
+    const btn = $("#likeBtn");
+
+    $.ajax({
+        url: liked ? "/unlike" : "/like",
+        method: "POST",
+        data: { booknum, email },
+        success: function(res) {
+            // 서버가 반환한 좋아요 수로 화면 업데이트
+            $("#like-count").text(res.likes);
+
+            // 서버가 알려준 현재 좋아요 상태를 반영
+            liked = res.liked;
+
+            // 버튼 색을 liked 상태에 따라 변경
+            btn.css("color", liked ? "red" : "black");
+        },
+        error: function(err) {
+            console.error("좋아요 요청 실패:", err);
+        }
+    });
+}
+
+// 페이지 로드 시 현재 사용자가 이미 좋아요 눌렀는지 확인
+$(document).ready(function() {
+    const booknum = $("#booknum").val();
+    const email = $("#email").val();
+
+    $.ajax({
+        url: "/isLiked", // 서버에서 좋아요 상태 확인
+        method: "GET",
+        data: { booknum, email },
+        success: function(res) {
+            // 서버가 알려준 liked 상태 반영
+            liked = res.liked;
+
+            // 버튼 색 초기화
+            $("#likeBtn").css("color", liked ? "red" : "black");
+        },
+        error: function(err) {
+            console.error("좋아요 상태 확인 실패:", err);
+        }
+    });
+});
+</script>
 </body>
 </html>

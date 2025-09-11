@@ -2,15 +2,15 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="utf-8">
-  <title>CKEditor 5 Sample</title>
+  <title>스토리북 작성</title>
 
   <!--ckeditor css-->
-  <link rel="stylesheet" href="css/editor.css">
+  <link rel="stylesheet" th:href="@{/css/editor.css}">
   <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/46.0.1/ckeditor5.css" crossorigin>
 
 
-  <script src="js/jquery-3.7.1.min.js"></script>
-  <link rel="stylesheet" href="css/modal.css">
+  <script th:src="@{/js/jquery-3.7.1.min.js}"></script>
+  <link rel="stylesheet" th:href="@{/css/modal.css}">
 
 
 
@@ -77,10 +77,10 @@
 <script src="https://cdn.ckeditor.com/ckeditor5/46.0.1/ckeditor5.umd.js" crossorigin></script>
 <script src="https://cdn.ckeditor.com/ckeditor5/46.0.1/translations/ko.umd.js" crossorigin></script>
 <script src="https://cdn.ckbox.io/ckbox/2.6.1/ckbox.js" crossorigin></script>
-<script src="js/main.js"></script>
+<script th:src="@{/js/main.js}"></script>
 
 <!--modal js-->
-<script src="js/modal.js"></script>
+<script th:src="@{/js/modal.js}"></script>
 
 </body>
 </html>

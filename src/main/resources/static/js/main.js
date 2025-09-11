@@ -260,14 +260,15 @@ let editorInstance;
 
         // 모든 유효성 검사 통과 후 AJAX 호출
         $.ajax({
-            url: '/save',
+            url: '/storybook/save',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(saveRequestDTO),
             success: function(response) {
                 if (response.status === "success" && response.booknum) {
                     alert('저장되었습니다.');
-                    window.location.href = '/view?booknum=' + response.booknum;
+                    isEditing = false;
+                    window.location.href = '/storybook/detail?booknum=' + response.booknum;
                 } else {
                     alert('저장 완료. 그러나 게시물번호를 받을 수 없습니다.');
                 }
@@ -310,13 +311,14 @@ let editorInstance;
 
 
       $.ajax ( {
-          url: '/tempsave',       // 서버 API 주소
+          url: '/storybook/tempsave',       // 서버 API 주소
           type: 'POST',
           contentType: 'application/json',
           data: JSON.stringify(saveRequestDTO),
              success: function(response) {
                 if (response.status === "success" && response.tempId) {
                     alert('임시저장되었습니다.');
+                    isEditing = false;
                     window.location.href = '/mypage';
                 } else {
                     alert('저장 완료. 그러나 게시물번호를 받을 수 없습니다.');

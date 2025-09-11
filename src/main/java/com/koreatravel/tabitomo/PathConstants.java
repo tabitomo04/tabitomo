@@ -28,4 +28,7 @@ public interface PathConstants {
     public static final String STORYBOOK_WRITE = STORYBOOK + "/write";
     public static final String STORYBOOK_UPDATE = STORYBOOK + "/update";
     public static final String STORYBOOK_DELETE = STORYBOOK + "/delete";
+    public static final String STORYBOOK_TEMPDELETE = STORYBOOK + "/tempdelete";
+    public static final String STORYBOOK_SAVE = STORYBOOK + "/save";
+    public static final String STORYBOOK_TEMPSAVE = STORYBOOK + "/tempsave";
 }

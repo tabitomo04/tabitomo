@@ -35,6 +35,21 @@ public class ChatService {
     @Autowired
     private ForbiddenWordRepository forbiddenWordRepo;
 
+    // 언어 코드를 변환하는 헬퍼 메서드
+    private String processLanguageCode(String lang) {
+        if (lang != null) {
+            switch (lang.toLowerCase()) {
+                case "en":
+                    return "en-US";
+                case "ja":
+                    return "ja-JP";
+                default:
+                    return lang;
+            }
+        }
+        return "ko-KR";
+    }
+
     // 메인 카테고리 목록을 가져옵니다.
     public List<MainCategory> getCategories() {
         return mainCategoryRepo.findAll();
@@ -112,24 +127,16 @@ public class ChatService {
     }
 
     // AI를 사용하여 DB 답변을 보정/확장하는 새로운 메서드
-    public String refineAnswerWithAI(String question, String dbAnswer) {
+    public String refineAnswerWithAI(String question, String dbAnswer, String language) {
         try {
             String prompt = "다음 답변을 친근하고 유머러스한 AI 친구 '토모'의 말투로 자연스럽게 다듬고 확장해줘. "
                     + "너무 길지 않게 간결하게 해줘.\n\n"
                     + "질문: " + question + "\n"
                     + "답변: " + dbAnswer;
 
-            // ChatRequest req = new ChatRequest();
-            // req.setMessage(prompt);
-            // 기존 getChatResponseFromAI를 직접 호출하지 않고 OpenAiService를 직접 호출하여 리팩토링합니다.
-            // 이 방식이 더 깔끔하고 유연합니다.
-            // OpenAiService에 적절한 메서드가 있다고 가정합니다.
-
-            // OpenAiService에 맥락없는 질문을 던지는 메서드가 필요합니다.
-            // 예를 들어 `getSingleResponse(String prompt)` 같은 메서드가 있으면 더 좋습니다.
-            // 임시로 기존 getChatResponseFromAI를 사용하도록 변경합니다.
             ChatRequest singleReq = new ChatRequest();
             singleReq.setMessage(prompt);
+            singleReq.setLanguage(processLanguageCode(language)); // 언어 코드 변환
             return openAiService.getChatResponse(singleReq).getReply();
         } catch (Exception e) {
             System.err.println("AI 답변 보정 중 오류 발생: " + e.getMessage());
@@ -144,7 +151,7 @@ public class ChatService {
 
         if (dbAnswer.isPresent()) {
             // 2. DB에서 답변을 찾았다면, AI를 사용해 답변을 다듬고 반환합니다.
-            String refinedAnswer = refineAnswerWithAI(dbAnswer.get().getQuestion(), dbAnswer.get().getAnswer());
+            String refinedAnswer = refineAnswerWithAI(dbAnswer.get().getQuestion(), dbAnswer.get().getAnswer(), request.getLanguage()); // 언어 정보 전달
             ChatResponse response = new ChatResponse();
             response.setReply(refinedAnswer);
             response.setAnswerSource("DB");
@@ -169,10 +176,9 @@ public class ChatService {
                 // AI 모델에 최종 프롬프트를 전송합니다.
                 ChatRequest aiRequest = new ChatRequest();
                 aiRequest.setMessage(fullPrompt);
+                aiRequest.setLanguage(processLanguageCode(request.getLanguage())); // 언어 코드 변환
 
-                // OpenAiService의 getChatResponseFromAI 메서드가 ChatRequest를 받도록 되어있으므로,
-                // 이를 사용하여 대화 맥락을 전달합니다.
-                return getChatResponseFromAI(aiRequest);
+                return openAiService.getChatResponse(aiRequest);
 
             } catch (Exception e) {
                 System.err.println("AI 답변 생성 중 오류 발생: " + e.getMessage());
@@ -187,6 +193,8 @@ public class ChatService {
     // AI에 일반 답변을 요청하는 메서드 (Controller에서 호출)
     public ChatResponse getChatResponseFromAI(ChatRequest req) {
         try {
+            // 여기에도 언어 코드 변환 로직 추가
+            req.setLanguage(processLanguageCode(req.getLanguage()));
             return openAiService.getChatResponse(req);
         } catch (Exception e) {
             System.err.println("AI 답변 생성 중 오류 발생: " + e.getMessage());

@@ -1,12 +1,18 @@
 package com.koreatravel.tabitomo.dto;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.List;
 import java.util.Map;
 
+@Getter
+@Setter
 // ChatRequest.java
 public class ChatRequest {
     private String message;
     private List<Map<String, String>> chatHistory;
+    private String language;
 
     // Getters and Setters
     public String getMessage() {

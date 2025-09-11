@@ -1,4 +1,4 @@
-package com.koreatravel.tabitomo.dto.member;
+package com.koreatravel.tabitomo.domain.dto.member.member;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,4 +1,4 @@
-package com.koreatravel.tabitomo.dto.trip;
+package com.koreatravel.tabitomo.domain.dto.trip;
 
 import com.koreatravel.tabitomo.domain.entity.trip.FavoritePlaceEntity;
 import lombok.AllArgsConstructor;

@@ -1,6 +1,5 @@
 package com.koreatravel.tabitomo.controller.api;
 
-import com.koreatravel.tabitomo.dto.trip.FavoritePlaceDetailDTO;
 import com.koreatravel.tabitomo.service.trip.FavoritePlaceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -8,8 +7,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import com.koreatravel.tabitomo.config.security.MemberDetails;
+import com.koreatravel.tabitomo.dto.trip.FavoritePlaceDetailDTO;
+
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,7 +28,9 @@ public class FavoritePlaceController {
     public ResponseEntity<Page<FavoritePlaceDetailDTO>> getFavorites(
             @AuthenticationPrincipal MemberDetails memberDetails,
             @PageableDefault(size = 10) Pageable pageable) {
-        return ResponseEntity.ok(favoritePlaceService.getFavorites(memberDetails.getMember().getId(), pageable));
+        // Convert Long member ID to UUID
+        UUID memberUuid = UUID.nameUUIDFromBytes(memberDetails.getMember().getId().toString().getBytes());
+        return ResponseEntity.ok(favoritePlaceService.getFavorites(memberUuid, pageable));
     }
 
     /**
@@ -35,7 +40,9 @@ public class FavoritePlaceController {
     public ResponseEntity<FavoritePlaceDetailDTO> addFavorite(
             @AuthenticationPrincipal MemberDetails memberDetails,
             @PathVariable String placeId) {
-        return ResponseEntity.ok(favoritePlaceService.addFavorite(memberDetails.getMember().getId(), placeId));
+        // Convert Long member ID to UUID
+        UUID memberUuid = UUID.nameUUIDFromBytes(memberDetails.getMember().getId().toString().getBytes());
+        return ResponseEntity.ok(favoritePlaceService.addFavorite(memberUuid, placeId));
     }
 
     /**
@@ -45,7 +52,9 @@ public class FavoritePlaceController {
     public ResponseEntity<Void> removeFavorite(
             @AuthenticationPrincipal MemberDetails memberDetails,
             @PathVariable String placeId) {
-        favoritePlaceService.removeFavorite(memberDetails.getMember().getId(), placeId);
+        // Convert Long member ID to UUID
+        UUID memberUuid = UUID.nameUUIDFromBytes(memberDetails.getMember().getId().toString().getBytes());
+        favoritePlaceService.removeFavorite(memberUuid, placeId);
         return ResponseEntity.noContent().build();
     }
 
@@ -56,6 +65,8 @@ public class FavoritePlaceController {
     public ResponseEntity<Boolean> isFavorite(
             @AuthenticationPrincipal MemberDetails memberDetails,
             @PathVariable String placeId) {
-        return ResponseEntity.ok(favoritePlaceService.isFavorite(memberDetails.getMember().getId(), placeId));
+        // Convert Long member ID to UUID
+        UUID memberUuid = UUID.nameUUIDFromBytes(memberDetails.getMember().getId().toString().getBytes());
+        return ResponseEntity.ok(favoritePlaceService.isFavorite(memberUuid, placeId));
     }
 }

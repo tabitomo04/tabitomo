@@ -1,10 +1,10 @@
 package com.koreatravel.tabitomo.controller;
 
 import com.koreatravel.tabitomo.PathConstants;
+import com.koreatravel.tabitomo.domain.dto.member.member.QuestionnaireRequest;
 import com.koreatravel.tabitomo.domain.entity.member.AddInfoEntity;
 import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
 import com.koreatravel.tabitomo.domain.entity.member.UserSelectedInfoEntity;
-import com.koreatravel.tabitomo.dto.member.QuestionnaireRequest;
 import com.koreatravel.tabitomo.exception.ResourceNotFoundException;
 import com.koreatravel.tabitomo.repository.member.AddInfoRepository;
 import com.koreatravel.tabitomo.repository.member.UserSelectedInfoRepository;

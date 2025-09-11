@@ -1,4 +1,4 @@
-package com.koreatravel.tabitomo.dto.trip;
+package com.koreatravel.tabitomo.domain.dto.trip;
 
 import com.koreatravel.tabitomo.domain.entity.trip.FavoritePlaceEntity;
 import com.koreatravel.tabitomo.domain.entity.trip.PlaceEntity;
@@ -18,6 +18,7 @@ public class FavoritePlaceDetailDTO {
     private String placeId;
     private String name;
     private String address;
+    private String categoryCode;
     private String imageUrl;
     private LocalDateTime createdAt;
 
@@ -25,9 +26,10 @@ public class FavoritePlaceDetailDTO {
         return FavoritePlaceDetailDTO.builder()
                 .id(favorite.getId())
                 .placeId(favorite.getPlaceId())
-                .name(place.getName())
-                .address(place.getAddress())
-                .imageUrl(place.getImageUrl())
+                .name(place != null ? place.getName() : null)
+                .address(place != null ? place.getAddress() : null)
+                .categoryCode(place != null ? place.getCategoryCode() : null)
+                .imageUrl(place != null ? place.getImageUrl() : null)
                 .createdAt(favorite.getCreatedAt())
                 .build();
     }

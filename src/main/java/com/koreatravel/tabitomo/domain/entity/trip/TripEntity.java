@@ -42,12 +42,30 @@ public class TripEntity {
 
     @Column(nullable = false, length = 255)
     private String title;
+    
+    public void setTitle(String title) {
+        if (title != null && !title.trim().isEmpty()) {
+            this.title = title.trim();
+        }
+    }
 
     @Column(name = "start_date")
     private LocalDate startDate;
+    
+    public void setStartDate(LocalDate startDate) {
+        if (startDate != null) {
+            this.startDate = startDate;
+        }
+    }
 
     @Column(name = "end_date")
     private LocalDate endDate;
+    
+    public void setEndDate(LocalDate endDate) {
+        if (endDate != null) {
+            this.endDate = endDate;
+        }
+    }
 
     @Column(length = 20)
     private String visibility; // e.g., "PUBLIC", "PRIVATE"
@@ -71,9 +89,13 @@ public class TripEntity {
         schedule.setTrip(null);
     }
 
-    public void updateAccommodation(PlaceEntity accommodation) {
+    public void setAccommodation(PlaceEntity accommodation) {
         this.accommodation = accommodation;
         this.accommodationId = accommodation != null ? accommodation.getId() : null;
+    }
+    
+    public void updateAccommodation(PlaceEntity accommodation) {
+        setAccommodation(accommodation);
     }
     
     // Update accommodation by ID

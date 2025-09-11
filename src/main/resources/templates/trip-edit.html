@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="ko">
+<head th:replace="~{fragments/header :: head}">
+    <title>여행 계획 수정 - Tabitomo</title>
+    <link rel="stylesheet" href="/css/tripselect.css">
+    <link rel="stylesheet" href="/css/trip.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        .nav-tabs .nav-link {
+            color: #495057;
+            font-weight: 500;
+        }
+        .nav-tabs .nav-link.active {
+            font-weight: 600;
+            color: #0d6efd;
+            border-color: #dee2e6 #dee2e6 #fff;
+        }
+        .schedule-item {
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background-color: #f8f9fa;
+        }
+        .place-search {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        .place-search-results {
+            position: absolute;
+            width: 100%;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 0.25rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            display: none;
+        }
+        .place-item {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+        .place-item:hover {
+            background-color: #f8f9fa;
+        }
+        .place-item:last-child {
+            border-bottom: none;
+        }
+        .time-input {
+            max-width: 120px;
+        }
+        .day-schedule {
+            background-color: #f8f9fa;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .day-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+<!-- Header -->
+<div th:replace="~{fragments/header :: header}"></div>
+
+<!-- Navigation Menu -->
+<div th:replace="~{fragments/menu :: menu}"></div>
+
+<!-- Main Content -->
+<main class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>여행 계획 수정</h1>
+        <div>
+            <a th:href="@{/trip/} + ${trip.id}" class="btn btn-outline-secondary me-2">
+                <i class="fas fa-times me-1"></i> 취소
+            </a>
+            <button type="submit" form="tripForm" class="btn btn-primary">
+                <i class="fas fa-save me-1"></i> 저장하기
+            </button>
+        </div>
+    </div>
+
+    <form id="tripForm" th:action="@{/trip/} + ${trip.id} + '/update'" th:object="${tripPlanDTO}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i> 기본 정보</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="planName" class="form-label">여행 제목</label>
+                        <input type="text" class="form-control" id="planName" th:field="*{planName}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="destination" class="form-label">여행지</label>
+                        <input type="text" class="form-control" id="destination" th:field="*{destination}" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label for="startDate" class="form-label">출발일</label>
+                        <input type="text" class="form-control datepicker" id="startDate" th:field="*{startDate}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="endDate" class="form-label">종료일</label>
+                        <input type="text" class="form-control datepicker" id="endDate" th:field="*{endDate}" required>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-hotel me-2"></i> 숙소 정보</h5>
+            </div>
+            <div class="card-body">
+                <div th:if="${tripPlanDTO.accommodation != null}" class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6>현재 숙소</h6>
+                        <button type="button" class="btn btn-sm btn-outline-danger" id="removeAccommodation">
+                            <i class="fas fa-trash-alt me-1"></i> 삭제
+                        </button>
+                    </div>
+                    <div class="d-flex align-items-center mt-2">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="default-accommodation" style="width: 80px; height: 80px;">
+                                <i class="fas fa-hotel"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1" th:text="${tripPlanDTO.accommodation.placeName}">숙소 이름</h6>
+                            <p class="text-muted mb-1" th:if="${tripPlanDTO.accommodation.address}" th:text="${tripPlanDTO.accommodation.address}">
+                                주소
+                            </p>
+                        </div>
+                    </div>
+                    <input type="hidden" th:field="*{accommodation.placeName}" />
+                    <input type="hidden" th:field="*{accommodation.address}" />
+                    <input type="hidden" th:field="*{accommodation.description}" />
+                    <input type="hidden" th:field="*{accommodation.imageUrl}" />
+                    <input type="hidden" th:field="*{accommodation.latitude}" />
+                    <input type="hidden" th:field="*{accommodation.longitude}" />
+                </div>
+                
+                <div class="place-search">
+                    <label for="accommodationSearch" class="form-label">숙소 검색</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="accommodationSearch" 
+                               placeholder="숙소 이름 또는 주소를 입력하세요">
+                        <button class="btn btn-outline-secondary" type="button" id="searchAccommodation">
+                            <i class="fas fa-search"></i> 검색
+                        </button>
+                    </div>
+                    <div class="place-search-results" id="accommodationResults"></div>
+                </div>
+                
+                <div id="accommodationDetails" class="mt-3" style="display: none;">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="accommodationName" class="form-label">숙소 이름</label>
+                                <input type="text" class="form-control" id="accommodationName" name="accommodation.placeName" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="accommodationAddress" class="form-label">주소</label>
+                                <input type="text" class="form-control" id="accommodationAddress" name="accommodation.address" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="accommodationDescription" class="form-label">설명 (선택사항)</label>
+                                <textarea class="form-control" id="accommodationDescription" name="accommodation.description" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="accommodationLatitude" name="accommodation.latitude">
+                    <input type="hidden" id="accommodationLongitude" name="accommodation.longitude">
+                    <input type="hidden" id="accommodationImageUrl" name="accommodation.imageUrl">
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i> 일정 관리</h5>
+                <button type="button" class="btn btn-sm btn-primary" id="addDay">
+                    <i class="fas fa-plus me-1"></i> 일정 추가
+                </button>
+            </div>
+            <div class="card-body" id="dailySchedules">
+                <!-- Daily schedules will be added here dynamically -->
+                <div th:each="day, dayStat : ${tripPlanDTO.dailySchedules}" class="day-schedule" th:data-day="${dayStat.index + 1}">
+                    <div class="day-header">
+                        <h5 class="mb-0"><span th:text="${dayStat.index + 1} + '일차'">1일차</span></h5>
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-day" th:data-day="${dayStat.index + 1}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                    <div class="place-search mb-3">
+                        <div class="input-group">
+                            <input type="text" class="form-control" th:attr="data-day=${dayStat.index + 1}" 
+                                   placeholder="장소를 검색하세요">
+                            <button class="btn btn-outline-secondary search-place" type="button" th:attr="data-day=${dayStat.index + 1}">
+                                <i class="fas fa-search"></i> 검색
+                            </button>
+                        </div>
+                        <div class="place-search-results" th:attr="data-day=${dayStat.index + 1}"></div>
+                    </div>
+                    
+                    <div class="schedule-items" th:attr="data-day=${dayStat.index + 1}">
+                        <div th:each="item, itemStat : ${day.schedules}" class="schedule-item" th:data-index="${itemStat.index}">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="mb-0" th:text="${item.place}">장소 이름</h6>
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-schedule" 
+                                        th:attr="data-day=${dayStat.index + 1}, data-index=${itemStat.index}">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <label class="form-label">시작 시간</label>
+                                    <input type="time" class="form-control time-input" th:field="*{dailySchedules[__${dayStat.index}__].schedules[__${itemStat.index}__].startTime}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">종료 시간</label>
+                                    <input type="time" class="form-control time-input" th:field="*{dailySchedules[__${dayStat.index}__].schedules[__${itemStat.index}__].endTime}">
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <label class="form-label">메모</label>
+                                <input type="text" class="form-control" th:field="*{dailySchedules[__${dayStat.index}__].schedules[__${itemStat.index}__].description}" 
+                                       placeholder="메모를 입력하세요 (선택사항)">
+                            </div>
+                            <!-- Hidden fields for place data -->
+                            <input type="hidden" th:field="*{dailySchedules[__${dayStat.index}__].schedules[__${itemStat.index}__].place}" />
+                            <input type="hidden" th:field="*{dailySchedules[__${dayStat.index}__].schedules[__${itemStat.index}__].address}" />
+                            <input type="hidden" th:field="*{dailySchedules[__${dayStat.index}__].schedules[__${itemStat.index}__].latitude}" />
+                            <input type="hidden" th:field="*{dailySchedules[__${dayStat.index}__].schedules[__${itemStat.index}__].longitude}" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</main>
+
+<!-- Footer -->
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ko.js"></script>
+
+<script>
+    // Initialize date picker
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize date picker with Korean locale
+        flatpickr(".datepicker", {
+            locale: "ko",
+            dateFormat: "Y-m-d",
+            minDate: "today"
+        });
+
+        // Handle accommodation search
+        document.getElementById('searchAccommodation').addEventListener('click', function() {
+            const query = document.getElementById('accommodationSearch').value.trim();
+            if (query) {
+                searchPlaces(query, 'accommodation');
+            }
+        });
+
+        // Handle place search for each day
+        document.addEventListener('click', '.search-place', function() {
+            const day = this.getAttribute('data-day');
+            const input = document.querySelector(`input[data-day="${day}"]`);
+            const query = input.value.trim();
+            if (query) {
+                searchPlaces(query, day);
+            }
+        });
+
+        // Add day button click handler
+        document.getElementById('addDay').addEventListener('click', addNewDay);
+
+        // Remove accommodation button
+        const removeAccommodationBtn = document.getElementById('removeAccommodation');
+        if (removeAccommodationBtn) {
+            removeAccommodationBtn.addEventListener('click', function() {
+                if (confirm('정말로 숙소 정보를 삭제하시겠습니까?')) {
+                    document.getElementById('accommodationDetails').style.display = 'none';
+                    // Clear all accommodation related fields
+                    document.querySelectorAll('input[name^="accommodation."]').forEach(input => {
+                        input.value = '';
+                    });
+                }
+            });
+        }
+
+        // Delegate event for remove day buttons
+        document.addEventListener('click', '.remove-day', function() {
+            const day = this.getAttribute('data-day');
+            if (confirm(`정말로 ${day}일차 일정을 삭제하시겠습니까?`)) {
+                document.querySelector(`.day-schedule[data-day="${day}"]`).remove();
+            }
+        });
+
+        // Delegate event for remove schedule buttons
+        document.addEventListener('click', '.remove-schedule', function() {
+            const day = this.getAttribute('data-day');
+            const index = this.getAttribute('data-index');
+            const container = document.querySelector(`.schedule-items[data-day="${day}"]`);
+            const item = container.querySelector(`.schedule-item[data-index="${index}"]`);
+            if (confirm('정말로 이 일정을 삭제하시겠습니까?')) {
+                item.remove();
+            }
+        });
+    });
+
+    // Function to search for places using an external API (e.g., Kakao, Naver, Google Maps)
+    function searchPlaces(query, type) {
+        // This is a placeholder. In a real implementation, you would call an external API
+        // For example, using Kakao Local API or Naver Maps API
+        console.log(`Searching for ${query} (type: ${type})`);
+        
+        // Simulate API response (replace with actual API call)
+        setTimeout(() => {
+            const mockResults = [
+                {
+                    name: query + " 호텔",
+                    address: "서울시 강남구 테헤란로",
+                    latitude: 37.498085,
+                    longitude: 127.027610,
+                    imageUrl: ""
+                },
+                {
+                    name: query + " 모텔",
+                    address: "서울시 강남구 역삼동",
+                    latitude: 37.500000,
+                    longitude: 127.030000,
+                    imageUrl: ""
+                }
+            ];
+            
+            displaySearchResults(mockResults, type);
+        }, 500);
+    }
+
+    // Function to display search results
+    function displaySearchResults(results, type) {
+        const resultsContainer = type === 'accommodation' ? 
+            document.getElementById('accommodationResults') :
+            document.querySelector(`.place-search-results[data-day="${type}"]`);
+        
+        resultsContainer.innerHTML = '';
+        
+        if (results.length === 0) {
+            resultsContainer.innerHTML = '<div class="p-3 text-muted">검색 결과가 없습니다.</div>';
+            resultsContainer.style.display = 'block';
+            return;
+        }
+        
+        results.forEach(place => {
+            const item = document.createElement('div');
+            item.className = 'place-item';
+            item.innerHTML = `
+                <div class="fw-bold">${place.name}</div>
+                <small class="text-muted">${place.address}</small>
+            `;
+            item.addEventListener('click', function() {
+                if (type === 'accommodation') {
+                    selectAccommodation(place);
+                } else {
+                    selectPlace(place, type);
+                }
+                resultsContainer.style.display = 'none';
+            });
+            resultsContainer.appendChild(item);
+        });
+        
+        resultsContainer.style.display = 'block';
+    }
+
+    // Function to handle accommodation selection
+    function selectAccommodation(place) {
+        document.getElementById('accommodationName').value = place.name;
+        document.getElementById('accommodationAddress').value = place.address;
+        document.getElementById('accommodationLatitude').value = place.latitude;
+        document.getElementById('accommodationLongitude').value = place.longitude;
+        document.getElementById('accommodationImageUrl').value = place.imageUrl || '';
+        document.getElementById('accommodationSearch').value = place.name;
+        document.getElementById('accommodationDetails').style.display = 'block';
+    }
+
+    // Function to handle place selection for a schedule
+    function selectPlace(place, day) {
+        // Create a new schedule item
+        const container = document.querySelector(`.schedule-items[data-day="${day}"]`);
+        const index = container.children.length;
+        
+        const item = document.createElement('div');
+        item.className = 'schedule-item';
+        item.setAttribute('data-index', index);
+        
+        item.innerHTML = `
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <h6 class="mb-0">${place.name}</h6>
+                <button type="button" class="btn btn-sm btn-outline-danger remove-schedule" 
+                        data-day="${day}" data-index="${index}">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="row g-2">
+                <div class="col-md-4">
+                    <label class="form-label">시작 시간</label>
+                    <input type="time" class="form-control time-input" 
+                           name="dailySchedules[${day-1}].schedules[${index}].startTime">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">종료 시간</label>
+                    <input type="time" class="form-control time-input" 
+                           name="dailySchedules[${day-1}].schedules[${index}].endTime">
+                </div>
+            </div>
+            <div class="mt-2">
+                <label class="form-label">메모</label>
+                <input type="text" class="form-control" 
+                       name="dailySchedules[${day-1}].schedules[${index}].description" 
+                       placeholder="메모를 입력하세요 (선택사항)">
+            </div>
+            <!-- Hidden fields for place data -->
+            <input type="hidden" name="dailySchedules[${day-1}].schedules[${index}].place" value="${place.name}">
+            <input type="hidden" name="dailySchedules[${day-1}].schedules[${index}].address" value="${place.address}">
+            <input type="hidden" name="dailySchedules[${day-1}].schedules[${index}].latitude" value="${place.latitude}">
+            <input type="hidden" name="dailySchedules[${day-1}].schedules[${index}].longitude" value="${place.longitude}">
+        `;
+        
+        container.appendChild(item);
+    }
+
+    // Function to add a new day
+    function addNewDay() {
+        const daysContainer = document.getElementById('dailySchedules');
+        const dayCount = daysContainer.querySelectorAll('.day-schedule').length + 1;
+        
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'day-schedule';
+        dayDiv.setAttribute('data-day', dayCount);
+        
+        dayDiv.innerHTML = `
+            <div class="day-header">
+                <h5 class="mb-0">${dayCount}일차</h5>
+                <button type="button" class="btn btn-sm btn-outline-danger remove-day" data-day="${dayCount}">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+            <div class="place-search mb-3">
+                <div class="input-group">
+                    <input type="text" class="form-control" data-day="${dayCount}" 
+                           placeholder="장소를 검색하세요">
+                    <button class="btn btn-outline-secondary search-place" type="button" data-day="${dayCount}">
+                        <i class="fas fa-search"></i> 검색
+                    </button>
+                </div>
+                <div class="place-search-results" data-day="${dayCount}"></div>
+            </div>
+            <div class="schedule-items" data-day="${dayCount}">
+                <!-- Schedule items will be added here -->
+            </div>
+        `;
+        
+        daysContainer.appendChild(dayDiv);
+        
+        // Add event listener for the new search button
+        dayDiv.querySelector('.search-place').addEventListener('click', function() {
+            const day = this.getAttribute('data-day');
+            const input = document.querySelector(`input[data-day="${day}"]`);
+            const query = input.value.trim();
+            if (query) {
+                searchPlaces(query, day);
+            }
+        });
+    }
+
+    // Close search results when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.place-search')) {
+            document.querySelectorAll('.place-search-results').forEach(el => {
+                el.style.display = 'none';
+            });
+        }
+    });
+</script>
+</body>
+</html>

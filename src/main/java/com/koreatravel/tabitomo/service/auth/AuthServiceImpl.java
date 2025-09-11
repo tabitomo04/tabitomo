@@ -6,7 +6,6 @@ import com.koreatravel.tabitomo.domain.dto.member.MemberRegisterDTO;
 import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
 import com.koreatravel.tabitomo.exception.DuplicateEmailException;
 import com.koreatravel.tabitomo.exception.DuplicateNicknameException;
-import com.koreatravel.tabitomo.exception.InvalidTokenException;
 import com.koreatravel.tabitomo.exception.LoginException;
 import com.koreatravel.tabitomo.repository.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -43,7 +41,13 @@ public class AuthServiceImpl implements AuthService {
     private static final int MAX_LOGIN_ATTEMPTS = 5;
     private static final Duration LOGIN_ATTEMPT_WINDOW = Duration.ofMinutes(15);
     private static final Duration PASSWORD_RESET_TOKEN_EXPIRY = Duration.ofHours(24);
-    private static final Duration EMAIL_VERIFICATION_TOKEN_EXPIRY = Duration.ofDays(7);
+    
+    @Override
+    public boolean verifyEmail(String token) {
+        // Email verification is no longer required, so always return true
+        log.info("Email verification is no longer required. Token: {}", token);
+        return true;
+    }
     
     // In-memory store for login attempts (in production, consider using Redis)
     private final ConcurrentHashMap<String, LoginAttempt> loginAttempts = new ConcurrentHashMap<>();
@@ -112,8 +116,6 @@ public class AuthServiceImpl implements AuthService {
                 .nickname(registerDTO.getNickname())
                 .gender(genderValue)
                 .isActive(true) // 기본적으로 활성 상태로 설정
-                .emailVerified(false) // 이메일 인증 전
-                .emailVerificationToken(generateEmailVerificationToken())
                 .build();
 
         // TODO: 국가 및 선호 언어 설정 추가
@@ -145,12 +147,6 @@ public class AuthServiceImpl implements AuthService {
             // Get user profile
             MemberEntity member = memberRepository.findByEmail(email)
                     .orElseThrow(() -> new LoginException("error.auth.user.not.found"));
-
-            // Check if email is verified
-            if (!member.isEmailVerified()) {
-                log.warn("Login attempt with unverified email: {}", email);
-                throw new LoginException("error.auth.email.not.verified");
-            }
 
             // Check if account is active
             if (!member.isActive()) {
@@ -226,102 +222,19 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    @Transactional
-    public boolean verifyEmail(String token) {
-        if (token == null || token.length() != 36) { // UUID length
-            log.warn("Invalid email verification token format");
-            throw new InvalidTokenException("error.auth.invalid.token");
-        }
-        
-        return memberRepository.findByEmailVerifyToken(token)
-                .map(member -> {
-                    // Check if token is expired
-                    if (member.getEmailVerifyTokenExpiry() != null && 
-                        member.getEmailVerifyTokenExpiry().isBefore(LocalDateTime.now())) {
-                        log.warn("Expired email verification token for user: {}", member.getEmail());
-                        throw new InvalidTokenException("error.auth.token.expired");
-                    }
-                    
-                    // Already verified
-                    if (member.isEmailVerified()) {
-                        log.info("Email already verified for user: {}", member.getEmail());
-                        return true;
-                    }
-                    
-                    // Verify email
-                    member.verifyEmail();
-                    member.clearEmailVerificationToken();
-                    memberRepository.save(member);
-                    
-                    log.info("Email verified successfully for user: {}", member.getEmail());
-                    return true;
-                })
-                .orElseThrow(() -> {
-                    log.warn("No user found with verification token");
-                    return new InvalidTokenException("error.auth.invalid.token");
-                });
-    }
-
-    @Override
+    @Deprecated
     public boolean sendPasswordResetEmail(String email) {
-        log.info("Sending password reset email to: {}", email);
-        
-        return memberRepository.findByEmail(email)
-                .map(member -> {
-                    String resetToken = generateEmailVerificationToken();
-                    LocalDateTime expiryTime = LocalDateTime.now().plus(PASSWORD_RESET_TOKEN_EXPIRY);
-                    
-                    member.setPasswordResetToken(resetToken);
-                    member.setPasswordResetExpiry(expiryTime);
-                    memberRepository.save(member);
-                    
-                    // In production, send an actual email with the reset link
-                    String resetLink = String.format("/auth/reset-password?token=%s", resetToken);
-                    log.info("Password reset link for {}: {}", email, resetLink);
-                    
-                    // TODO: Implement email sending logic
-                    // emailService.sendPasswordResetEmail(member.getEmail(), resetLink);
-                    
-                    return true;
-                })
-                .orElseGet(() -> {
-                    // Return true even if email doesn't exist to prevent email enumeration
-                    log.debug("Password reset requested for non-existent email: {}", email);
-                    return true;
-                });
+        log.warn("Password reset via email is no longer supported. Requested for email: {}", email);
+        // Return true to prevent email enumeration
+        return true;
     }
 
     @Override
+    @Deprecated
     @Transactional
     public boolean resetPassword(String token, String newPassword) {
-        if (token == null || token.length() != 36) { // UUID length
-            log.warn("Invalid password reset token format");
-            throw new InvalidTokenException("error.auth.invalid.token");
-        }
-        
-        validatePassword(newPassword, newPassword); // Validate new password
-        
-        return memberRepository.findByPasswordResetToken(token, LocalDateTime.now())
-                .map(member -> {
-                    // Check if token is expired
-                    if (member.getPasswordResetExpiry() != null && 
-                        member.getPasswordResetExpiry().isBefore(LocalDateTime.now())) {
-                        log.warn("Expired password reset token for user: {}", member.getEmail());
-                        throw new InvalidTokenException("error.auth.token.expired");
-                    }
-                    
-                    // Update password and clear reset token
-                    member.updatePassword(passwordEncoder.encode(newPassword));
-                    member.clearPasswordResetToken();
-                    memberRepository.save(member);
-                    
-                    log.info("Password reset successfully for user: {}", member.getEmail());
-                    return true;
-                })
-                .orElseThrow(() -> {
-                    log.warn("Invalid or expired password reset token");
-                    return new InvalidTokenException("error.auth.invalid.token");
-                });
+        log.warn("Password reset via token is no longer supported");
+        throw new UnsupportedOperationException("Password reset via token is no longer supported. Please contact support for assistance.");
     }
 
     // Helper methods
@@ -343,10 +256,6 @@ public class AuthServiceImpl implements AuthService {
     private boolean isValidEmail(String email) {
         // Simple email validation, consider using a library like Apache Commons Validator
         return email != null && email.matches("^[A-Za-z0-9+_.-]+@(.+)$");
-    }
-    
-    private String generateEmailVerificationToken() {
-        return UUID.randomUUID().toString();
     }
     
     private void checkLoginAttempts(String email) {

@@ -14,6 +14,7 @@ public interface PathConstants {
     String RESET_PASSWORD = AUTH + "/reset-password";
     String CHECK_EMAIL = AUTH + "/check-email";
     String CHECK_NICKNAME = AUTH + "/check-nickname";
+    String CURRENT_USER = AUTH + "/me";
     String LOGIN_SUCCESS = LOGIN + "/success";
     String LOGIN_ERROR = LOGIN + "-error";
     String LOGOUT_SUCCESS = LOGOUT + "/success";

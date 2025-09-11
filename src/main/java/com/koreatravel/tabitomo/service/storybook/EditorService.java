@@ -7,8 +7,10 @@ import com.koreatravel.tabitomo.domain.dto.trip.TempsaveDTO;
 import com.koreatravel.tabitomo.domain.entity.storybook.MediaEntity;
 import com.koreatravel.tabitomo.domain.entity.storybook.MediaEntity.MediaStatus;
 import com.koreatravel.tabitomo.domain.entity.storybook.MediaEntity.MediaType;
+import com.koreatravel.tabitomo.domain.entity.storybook.LikeEntity;
 import com.koreatravel.tabitomo.domain.entity.storybook.StorybookEntity;
 import com.koreatravel.tabitomo.domain.entity.storybook.TempsaveEntity;
+import com.koreatravel.tabitomo.repository.storybook.LikeRepository;
 import com.koreatravel.tabitomo.repository.storybook.MediaRepository;
 import com.koreatravel.tabitomo.repository.storybook.StorybookRepository;
 import com.koreatravel.tabitomo.repository.storybook.TempsaveRepository;
@@ -16,9 +18,9 @@ import com.koreatravel.tabitomo.service.StorybookService;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.nio.file.Paths;
@@ -30,6 +32,7 @@ import org.jsoup.select.Elements;
 import org.jsoup.nodes.Element;
 
 @Service
+@Slf4j
 public class EditorService implements StorybookService {
 
 
@@ -40,6 +43,11 @@ public class EditorService implements StorybookService {
     private TempsaveRepository tempsaveRepository;
     @Autowired
     private MediaRepository mediaRepository;
+    
+    @Autowired
+    private LikeRepository likeRepository;
+    
+    // MemberRepository is not used as we're now using email directly
 
 
     /**
@@ -47,10 +55,12 @@ public class EditorService implements StorybookService {
      * @param booknum 해당 글 booknum
      * @return 해당 글 내용
      */
+    /**
+     * 스토리북 조회
+     */
     public StorybookDTO getstory(Integer booknum) {
         StorybookEntity entity = storybookRepository.findById(booknum)
                 .orElseThrow(() -> new EntityNotFoundException(booknum + " : 해당번호 없음"));
-
 
         // 글 + 미디어 DTO로 변환
         StorybookDTO dto = StorybookDTO.builder()
@@ -369,6 +379,97 @@ public class EditorService implements StorybookService {
         }
         // 미디어 데이터 삭제
         mediaRepository.deleteByBookNumAndStatus(tempId, MediaStatus.TEMP);
+    }
+    
+    /**
+     * 스토리북에 좋아요 추가
+     */
+    @Transactional
+    public int addLike(Integer booknum) {
+        // 현재 인증된 사용자 이메일 가져오기
+        String email = getCurrentUserEmail();
+        if (email == null || "anonymousUser".equals(email)) {
+            throw new RuntimeException("로그인이 필요합니다.");
+        }
+        
+        // 이미 좋아요를 눌렀는지 확인
+        if (likeRepository.existsByBooknumAndEmail(booknum, email)) {
+            throw new IllegalStateException("이미 좋아요를 누르셨습니다.");
+        }
+        
+        // 좋아요 추가
+        LikeEntity like = LikeEntity.builder()
+                .booknum(booknum)
+                .email(email)
+                .build();
+        
+        likeRepository.save(like);
+        
+        // 좋아요 수 업데이트
+        StorybookEntity storybook = storybookRepository.findById(booknum)
+                .orElseThrow(() -> new EntityNotFoundException("스토리북을 찾을 수 없습니다."));
+        storybook.setLikes(storybook.getLikes() + 1);
+        storybookRepository.save(storybook);
+        
+        return storybook.getLikes();
+    }
+    
+    /**
+     * 스토리북 좋아요 취소
+     */
+    @Transactional
+    public int removeLike(Integer booknum) {
+        // 현재 인증된 사용자 이메일 가져오기
+        String email = getCurrentUserEmail();
+        if (email == null || "anonymousUser".equals(email)) {
+            throw new RuntimeException("로그인이 필요합니다.");
+        }
+        
+        // 좋아요 삭제
+        likeRepository.deleteByBooknumAndEmail(booknum, email);
+        
+        // 좋아요 수 업데이트
+        StorybookEntity storybook = storybookRepository.findById(booknum)
+                .orElseThrow(() -> new EntityNotFoundException("스토리북을 찾을 수 없습니다."));
+        int newLikeCount = Math.max(0, storybook.getLikes() - 1);
+        storybook.setLikes(newLikeCount);
+        storybookRepository.save(storybook);
+        
+        return newLikeCount;
+    }
+    
+    /**
+     * 현재 사용자가 특정 스토리북에 좋아요를 눌렀는지 확인
+     */
+    public boolean isLikedByCurrentUser(Integer booknum) {
+        // 현재 인증된 사용자 이메일 가져오기
+        String email = getCurrentUserEmail();
+        if (email == null || "anonymousUser".equals(email)) {
+            return false;
+        }
+        
+        try {
+            return likeRepository.existsByBooknumAndEmail(booknum, email);
+        } catch (Exception e) {
+            log.error("Error checking like status", e);
+            return false;
+        }
+    }
+    
+    /**
+     * 현재 인증된 사용자의 이메일 가져오기
+     */
+    private String getCurrentUserEmail() {
+        Object principal = org.springframework.security.core.context.SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+        
+        if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
+            return ((org.springframework.security.core.userdetails.UserDetails) principal).getUsername();
+        } else if (principal instanceof String) {
+            return (String) principal;
+        }
+        
+        return null;
     }
 }
 

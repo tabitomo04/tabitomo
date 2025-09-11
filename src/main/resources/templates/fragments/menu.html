@@ -16,6 +16,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="/trip" th:classappend="${#httpServletRequest.requestURI.startsWith('/trip') and !#httpServletRequest.requestURI.startsWith('/tripselect') ? 'active' : ''}">
+                        <i class="fas fa-calendar-alt"></i> <span>나의 여행</span>
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="/accommodation" th:classappend="${#httpServletRequest.requestURI.startsWith('/accommodation') ? 'active' : ''}">
                         <i class="fas fa-hotel"></i> <span th:text="#{menu.accommodation}">숙소</span>
                     </a>

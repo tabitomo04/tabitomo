@@ -1,96 +1,377 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>스토리북 개별 페이지</title>
-  <link rel="stylesheet" href="css/storyview.css">
-  <link rel="stylesheet" href="css/style.css">
-
-
-  <script src="js/jquery-3.7.1.min.js"></script>
-  <script src="js/main.js"></script>
-
-
-  <script>
-    // 유튜브 출력 코드
+  <title>스토리북 상세보기 | TabiTomo</title>
+  
+  <!-- CSS -->
+  <link rel="stylesheet" th:href="@{/css/storyview.css}">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <link rel="stylesheet" th:href="@{/css/modal.css}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
+  <!-- Scripts -->
+  <script th:src="@{/js/jquery-3.7.1.min.js}"></script>
+  <script th:src="@{/js/main.js}"></script>
+  <script th:src="@{/js/modal.js}"></script>
+  
+  <script th:inline="javascript">
+    // 현재 URL 복사 함수
+    function clip() {
+      const url = window.location.href;
+      navigator.clipboard.writeText(url).then(() => {
+        alert('URL이 클립보드에 복사되었습니다!');
+      }).catch(err => {
+        console.error('URL 복사 실패:', err);
+        alert('URL 복사에 실패했습니다. 수동으로 복사해주세요.');
+      });
+    }
+    
+    // 유튜브 임베드 변환
     $(document).ready(function() {
-        document.querySelectorAll('oembed[url]').forEach(element => {
-            var url = element.getAttribute('url');
-            var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#\&\?]*).*/;
-            var matchs = url.match(regExp);
-            if(matchs && matchs[7]){
-                element.parentElement.outerHTML = `
-                <div style="position: relative; height: 0; padding-bottom: 56.25%;">
-                    <iframe src="https://www.youtube.com/embed/${matchs[7]}?rel=0"
-                            style="position: absolute; width: 100%; height: 100%; top: 0; left: 0;"
-                            frameborder="0" allow="autoplay; encrypted-media" allowfullscreen>
-                    </iframe>
-                </div>`;
-            }
-        });
+      // 유튜브 링크를 iframe으로 변환
+      document.querySelectorAll('oembed[url]').forEach(element => {
+        const url = element.getAttribute('url');
+        const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#\&\?]*).*/;
+        const matchs = url.match(regExp);
+        if (matchs && matchs[7]) {
+          element.outerHTML = `
+            <div class="youtube-embed">
+              <iframe 
+                src="https://www.youtube.com/embed/${matchs[7]}?rel=0"
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen>
+              </iframe>
+            </div>`;
+        }
+      });
+      
+      // 이미지에 반응형 스타일 적용
+      document.querySelectorAll('#postContent img').forEach(img => {
+        img.style.maxWidth = '100%';
+        img.style.height = 'auto';
+        img.style.display = 'block';
+        img.style.margin = '1.5rem auto';
+        img.style.borderRadius = '8px';
+        img.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+      });
     });
-
-    // 메뉴 클릭 시 토글메뉴 열고 닫기
+    
+    // 드롭다운 메뉴 토글
     function toggleDropdown(el) {
-    const menu = el.nextElementSibling;
-    if (menu.style.display === 'block') {
+      const menu = el.nextElementSibling;
+      if (menu.style.display === 'block') {
         menu.style.display = 'none';
-    } else {
+      } else {
         // 다른 열려 있는 메뉴 닫기
-        //document.querySelectorAll('.dropdown-content').forEach(m => m.style.display = 'none');
-        menu.style.display = 'block';
-    }
-}
-
-// 다른 부분 클릭 시 토글메뉴 닫기
-document.addEventListener('click', function(e) {
-    if (!e.target.closest('.more-btn')) {
         document.querySelectorAll('.dropdown-content').forEach(m => m.style.display = 'none');
+        menu.style.display = 'block';
+      }
     }
-});
+    
+    // 다른 부분 클릭 시 드롭다운 닫기
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.more-btn')) {
+        document.querySelectorAll('.dropdown-content').forEach(m => m.style.display = 'none');
+      }
+    });
+    
+    // 좋아요 상태 관리
+    let liked = /*[[${liked}]]*/ false;
+    
+    // 좋아요 토글 함수
+    function toggleLike() {
+      const booknum = /*[[${post.booknum}]]*/ 0;
+      const btn = $('#likeBtn');
+      const likeCount = $('#like-count');
+      
+      $.ajax({
+        url: liked ? '/storybook/unlike' : '/storybook/like',
+        method: 'POST',
+        data: { booknum: booknum },
+        success: function(response) {
+          if (response.success) {
+            liked = !liked;
+            likeCount.text(response.likes);
+            btn.toggleClass('active', liked);
+            
+            // 좋아요 애니메이션
+            if (liked) {
+              btn.find('i').removeClass('far').addClass('fas');
+              btn.addClass('pulse');
+              setTimeout(() => btn.removeClass('pulse'), 300);
+            } else {
+              btn.find('i').removeClass('fas').addClass('far');
+            }
+          }
+        },
+        error: function(xhr) {
+          if (xhr.status === 401) {
+            alert('로그인이 필요합니다.');
+            window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+          } else {
+            alert('오류가 발생했습니다. 다시 시도해주세요.');
+          }
+        }
+      });
+    }
+    
+    // 페이지 로드 시 좋아요 상태 확인
+    $(document).ready(function() {
+      const booknum = /*[[${post.booknum}]]*/ 0;
+      if (booknum > 0) {
+        $.get('/storybook/check-like', { booknum: booknum }, function(response) {
+          if (response.liked) {
+            $('#likeBtn').addClass('active').find('i').removeClass('far').addClass('fas');
+          }
+        });
+      }
+    });
   </script>
+  
+  <style>
+    /* 추가 스타일 */
+    .youtube-embed {
+      position: relative;
+      padding-bottom: 56.25%;
+      height: 0;
+      overflow: hidden;
+      margin: 2rem 0;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .youtube-embed iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: 12px;
+    }
+    
+    .content-block {
+      line-height: 1.8;
+      font-size: 1.1rem;
+      color: #333;
+    }
+    
+    .content-block p {
+      margin-bottom: 1.5rem;
+    }
+    
+    .content-block h2, 
+    .content-block h3, 
+    .content-block h4 {
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+      color: #2c3e50;
+    }
+    
+    .content-block a {
+      color: #4361ee;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    
+    .content-block a:hover {
+      color: #3a56d4;
+      text-decoration: underline;
+    }
+    
+    .pulse {
+      animation: pulse 0.5s;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+  </style>
 </head>
 <body>
-<div class="container">
-  <!-- 태그 -->
-  <div class="tags">
-    <span>#힐링</span>
-    <span>#제주도</span>
-    <span>#풀꽃</span>
-  </div>
-
-  <!-- 제목 & 부제목 -->
-
-  <div class="header">
-    <span class="title" th:text="${post.title}"></span>
-    <div class="dropdown">
-      <a class="more-btn" onclick="toggleDropdown(this)">⋮</a>
-      <div class="dropdown-content">
-        <a th:href="@{'/edit?booknum=' + ${post.booknum}}">수정</a>
-        <a th:href="@{'/delete?booknum=' + ${post.booknum}}"
-           onclick="return confirm('정말 삭제하시겠습니까?');">삭제</a>
+  <!-- 로그인한 사용자 정보 (히든) -->
+  <input type="hidden" id="currentUser" sec:authentication="name" th:value="${#authentication.principal.member.email}">
+  <input type="hidden" id="booknum" th:value="${post.booknum}">
+  
+  <div class="story-container">
+    <!-- 태그 -->
+    <div class="story-tags" th:if="${not #lists.isEmpty(post.tags)}">
+      <span th:each="tag : ${post.tags}" th:text="'#' + ${tag}" class="tag"></span>
+    </div>
+    
+    <!-- 제목 영역 -->
+    <div class="story-header">
+      <h1 class="story-title" th:text="${post.title}"></h1>
+      
+      <!-- 작성자와 공유/좋아요 -->
+      <div class="story-meta">
+        <div class="author-info">
+          <img th:if="${post.author.profileImage}" th:src="${post.author.profileImage}" class="author-avatar" alt="프로필">
+          <img th:unless="${post.author.profileImage}" th:src="@{/images/default-avatar.png}" class="author-avatar" alt="기본 프로필">
+          <div>
+            <span class="author-name" th:text="${post.author.nickname}"></span>
+            <span class="post-date" th:text="${#temporals.format(post.createDate, 'yyyy.MM.dd')}"></span>
+          </div>
+        </div>
+        
+        <div class="story-actions">
+          <button class="btn-share" onclick="clip()" data-tooltip="URL 복사">
+            <i class="fas fa-share-alt"></i> 공유
+          </button>
+          <button id="likeBtn" class="btn-like" onclick="toggleLike()" th:classappend="${liked} ? 'active'">
+            <i th:class="${liked} ? 'fas fa-heart' : 'far fa-heart'"></i>
+            <span id="like-count" th:text="${post.likes}">0</span>
+          </button>
+          
+          <!-- 수정/삭제 드롭다운 (작성자만 보이게) -->
+          <div class="dropdown" sec:authorize="isAuthenticated()" th:if="${#authentication.principal.member.email == post.author.email}">
+            <button class="btn-more" onclick="toggleDropdown(this)">
+              <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <div class="dropdown-content">
+              <a th:href="@{'/storybook/update?booknum=' + ${post.booknum}}">
+                <i class="fas fa-edit"></i> 수정하기
+              </a>
+              <a href="#" th:onclick="'return confirm(\'정말 삭제하시겠습니까?\') ? (function(){ location.href=\'/storybook/delete?booknum=${post.booknum}\'; return false; })() : false;'">
+                <i class="fas fa-trash-alt"></i> 삭제하기
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 부제목 -->
+      <p class="story-subtitle" th:if="${post.subtitle}" th:text="${post.subtitle}"></p>
+    </div>
+    
+    <!-- 썸네일 이미지 -->
+    <div class="story-thumbnail" th:if="${post.thumbnail}">
+      <img th:src="${post.thumbnail}" alt="썸네일" class="thumbnail-img">
+    </div>
+    
+    <!-- 본문 내용 -->
+    <div class="story-content">
+      <div th:utext="${post.content}" class="content-block" id="postContent"></div>
+    </div>
+    
+    <!-- 태그 및 공유 -->
+    <div class="story-footer">
+      <div class="tags" th:if="${not #lists.isEmpty(post.tags)}">
+        <span th:each="tag : ${post.tags}" th:text="'#' + ${tag}"></span>
+      </div>
+      
+      <div class="share-buttons">
+        <span class="share-label">공유하기:</span>
+        <a href="#" class="share-btn facebook" onclick="shareFacebook()">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+        <a href="#" class="share-btn twitter" onclick="shareTwitter()">
+          <i class="fab fa-twitter"></i>
+        </a>
+        <a href="#" class="share-btn link" onclick="clip()">
+          <i class="fas fa-link"></i>
+        </a>
+      </div>
+    </div>
+    
+    <!-- 댓글 섹션 (추가 예정) -->
+    <div class="comments-section">
+      <h3>댓글 <span class="comment-count">0</span></h3>
+      <div class="comment-form">
+        <textarea placeholder="댓글을 작성해주세요." rows="3"></textarea>
+        <button class="btn-comment">댓글 작성</button>
+      </div>
+      <div class="comments-list">
+        <!-- 댓글 목록이 여기에 표시됩니다 -->
       </div>
     </div>
   </div>
-  <div th:text="${post.subtitle}" class="subtitle"></div>
-
-  <!-- 메타 정보 -->
-  <div class="meta">
-    <div>
-    <span>정민호</span> · <span th:text="${#temporals.format(post.createDate, 'yy.MM.dd')}"></span>
-    </div>
-    <div class="actions">
-      <button onclick="clip()">URL 공유</button>
-      <span>❤</span><span th:text="${post.likes}"></span>
-    </div>
-  </div>
-  <hr class="line">
-  <!-- 본문 -->
-  <div>
-    <div th:utext="${post.content}" class="content-block" id="postContent">
-    </div>
-  </div>
-</div>
+  
+  <script>
+    // 소셜 공유 함수
+    function shareFacebook() {
+      const url = encodeURIComponent(window.location.href);
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank', 'width=600,height=400');
+    }
+    
+    function shareTwitter() {
+      const text = encodeURIComponent(document.title);
+      const url = encodeURIComponent(window.location.href);
+      window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank', 'width=600,height=400');
+    }
+    
+    // 이미지 클릭 시 확대 보기
+    document.addEventListener('click', function(e) {
+      if (e.target.tagName === 'IMG' && e.target.closest('.content-block')) {
+        const imgSrc = e.target.src;
+        const modal = `
+          <div class="image-modal" onclick="this.remove()">
+            <div class="modal-content">
+              <img src="${imgSrc}" alt="확대 이미지">
+              <button class="close-modal">&times;</button>
+            </div>
+          </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modal);
+        document.body.style.overflow = 'hidden';
+      }
+      
+      // 모달 닫기
+      if (e.target.classList.contains('image-modal') || e.target.classList.contains('close-modal')) {
+        const modal = document.querySelector('.image-modal');
+        if (modal) {
+          modal.remove();
+          document.body.style.overflow = '';
+        }
+      }
+    });
+    
+    // 모달 스타일
+    const modalStyle = document.createElement('style');
+    modalStyle.textContent = `
+      .image-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.9);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        cursor: zoom-out;
+      }
+      
+      .modal-content {
+        position: relative;
+        max-width: 90%;
+        max-height: 90%;
+      }
+      
+      .modal-content img {
+        max-width: 100%;
+        max-height: 90vh;
+        object-fit: contain;
+      }
+      
+      .close-modal {
+        position: absolute;
+        top: -40px;
+        right: 0;
+        background: none;
+        border: none;
+        color: white;
+        font-size: 2rem;
+        cursor: pointer;
+      }
+    `;
+    document.head.appendChild(modalStyle);
+  </script>
 </body>
 </html>

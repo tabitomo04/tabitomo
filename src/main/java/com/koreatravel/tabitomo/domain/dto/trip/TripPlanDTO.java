@@ -48,6 +48,6 @@ public class TripPlanDTO {
         private String imageUrl;
         private Double latitude;
         private Double longitude;
-        private String address; // 주소 필드 추가
+        private String address; // 주소 필드
     }
 }

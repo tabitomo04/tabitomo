@@ -30,7 +30,6 @@ public class MemberDetailsService implements UserDetailsService {
     private static final String DEFAULT_ROLE = "ROLE_USER";
     private static final String USER_NOT_FOUND_MSG = "error.user.not.found";
     private static final String ACCOUNT_INACTIVE_MSG = "error.account.inactive";
-    private static final String EMAIL_NOT_VERIFIED_MSG = "error.email.not.verified";
     private static final String DATABASE_ERROR_MSG = "error.database.access";
 
     /**
@@ -55,11 +54,6 @@ public class MemberDetailsService implements UserDetailsService {
             if (!member.isActive()) {
                 log.warn("Inactive user attempted login: {}", email);
                 throw new UsernameNotFoundException(ACCOUNT_INACTIVE_MSG);
-            }
-            
-            if (!member.isEmailVerified()) {
-                log.warn("Unverified email attempted login: {}", email);
-                throw new UsernameNotFoundException(EMAIL_NOT_VERIFIED_MSG);
             }
             
             log.debug("Successfully loaded user: {} (ID: {})", email, member.getId());

@@ -4,46 +4,112 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>여행 스토리 검색 페이지</title>
-
-  <link rel="stylesheet" href= "css/storylist.css">
+  <link rel="stylesheet" th:href= "@{/css/storylist.css}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 <div class="container">
   <h1>당신의 여행 이야기를 들려주세요</h1>
 
   <div class="search-box">
-    <input type="text" placeholder="검색어를 입력하세요" />
-    <button>검색</button>
+    <input type="text" placeholder="검색어를 입력하세요" id="searchInput" th:value="${keyword ?: ''}" />
+    <button id="searchBtn"><i class="fas fa-search"></i> 검색</button>
   </div>
 
   <div class="filters">
-    <button>HOT</button>
-    <button>NEW</button>
+    <button th:onclick="|location.href='@{/storybook/list(sort='hot')}'|" 
+            th:classappend="${sort == 'hot'} ? 'active' : ''">
+      <i class="fas fa-fire"></i> HOT
+    </button>
+    <button th:onclick="|location.href='@{/storybook/list(sort='new')}'|"
+            th:classappend="${sort == 'new'} ? 'active' : ''">
+      <i class="far fa-clock"></i> NEW
+    </button>
   </div>
 
-  <div class="grid">
-
-
-    <div th:if="${storylist}" th:each="storylist, status: ${storylist}">
-      <a class="link" th:href="@{'/view?booknum=' + ${storylist.booknum}}">
+  <div class="grid" th:if="${storylist != null and not #lists.isEmpty(storylist)}">
+    <div th:each="story : ${storylist}">
+      <a class="link" th:href="@{'/storybook/detail?booknum=' + ${story.booknum}}">
         <div class="card">
-      <div class="likes">❤ <span th:text="${storylist.likes}"></span></div>
-      <div class="thumbnail">
-        <img th:src="@{${storylist.thumbnail}}" alt="썸네일">
-      </div>
-      <h3 th:text="${storylist.title}"></h3>
-      <p th:text="${storylist.subtitle}"></p>
-      <div class="meta">
-        <span th:text="${storylist.booknum}"></span>
-        <span th:text="${#temporals.format(storylist.createDate, 'yy.MM.dd')}"></span>
-      </div>
-      </div>
+          <div class="likes">
+            <i class="far fa-heart"></i> <span th:text="${story.likes}"></span>
+          </div>
+          <div class="thumbnail">
+            <img th:if="${story.thumbnail}" th:src="${story.thumbnail}" alt="썸네일" onerror="this.src='/images/default-thumbnail.jpg'">
+            <img th:unless="${story.thumbnail}" src="/images/default-thumbnail.jpg" alt="기본 썸네일">
+          </div>
+          <h3 th:text="${story.title}"></h3>
+          <p class="subtitle" th:text="${story.subtitle}"></p>
+          <div class="meta">
+            <span class="author" th:text="${story.member?.nickname ?: '익명'}"></span>
+            <span class="date" th:text="${#temporals.format(story.createDate, 'yyyy.MM.dd')}"></span>
+          </div>
+        </div>
       </a>
-
     </div>
+  </div>
 
+  <div class="empty-state" th:if="${storylist == null or #lists.isEmpty(storylist)}">
+    <i class="far fa-folder-open"></i>
+    <p>등록된 스토리가 없습니다. 첫 번째 스토리를 작성해보세요!</p>
+    <a href="/storybook/write" class="btn-write">
+      <i class="fas fa-pen"></i> 스토리 작성하기
+    </a>
+  </div>
 
+  <!-- 페이징 네비게이션 -->
+  <div class="pagination-container" th:if="${totalPages > 1}">
+    <ul class="pagination">
+      <!-- 이전 페이지 버튼 -->
+      <li>
+        <a th:if="${currentPage > 0}" 
+           th:href="@{/storybook/list(sort=${sort}, page=${currentPage - 1}, size=${size}, keyword=${keyword})}" 
+           class="page-btn prev-next">
+          <i class="fas fa-chevron-left"></i> 이전
+        </a>
+      </li>
+
+      <!-- 페이지 번호들 -->
+      <li th:each="pageNum : ${#numbers.sequence(1, totalPages)}">
+        <a th:href="@{/storybook/list(sort=${sort}, page=${pageNum - 1}, size=${size}, keyword=${keyword})}" 
+           th:text="${pageNum}" 
+           th:classappend="${pageNum == currentPage + 1} ? 'current' : ''" 
+           class="page-btn">
+        </a>
+      </li>
+
+      <!-- 다음 페이지 버튼 -->
+      <li>
+        <a th:if="${currentPage < totalPages - 1}" 
+           th:href="@{/storybook/list(sort=${sort}, page=${currentPage + 1}, size=${size}, keyword=${keyword})}" 
+           class="page-btn prev-next">
+          다음 <i class="fas fa-chevron-right"></i>
+        </a>
+      </li>
+    </ul>
   </div>
 </div>
+
+<script th:inline="javascript">
+  document.addEventListener('DOMContentLoaded', function() {
+    // 검색 기능
+    const searchBtn = document.getElementById('searchBtn');
+    const searchInput = document.getElementById('searchInput');
+    
+    function performSearch() {
+      const keyword = searchInput.value.trim();
+      const url = /*[[@{/storybook/list}]]*/ '';
+      window.location.href = `${url}?sort=[[${sort}]]&page=0&size=[[${size}]]&keyword=${encodeURIComponent(keyword)}`;
+    }
+    
+    searchBtn.addEventListener('click', performSearch);
+    
+    searchInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        performSearch();
+      }
+    });
+  });
+</script>
 </body>
 </html>

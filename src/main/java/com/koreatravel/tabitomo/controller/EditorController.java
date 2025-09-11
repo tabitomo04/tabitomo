@@ -20,6 +20,7 @@ import java.util.Map;
 
 @Slf4j
 @Controller
+@RequestMapping("/storybook")
 public class EditorController {
 
 
@@ -30,6 +31,12 @@ public class EditorController {
     @GetMapping("/editor")
     public String editor() {
         return "editor";
+    }
+
+    // 스토리북 작성 페이지 (리다이렉트용)
+    @GetMapping("/write")
+    public String write() {
+        return "redirect:/storybook/editor";
     }
 
 
@@ -71,14 +78,17 @@ public class EditorController {
     /**
      * 저장된 해당 스토리북 출력
      * @param booknum 해당 스토리북 넘버
-     * @param model 해당 스토리북 제목+내용
+     * @param model 해당 스토리북 제목+내용 및 좋아요 상태
      * @return 스토리북 출력 페이지
      */
     @GetMapping("/view")
     public String view(@RequestParam("booknum") Integer booknum, Model model) {
         StorybookDTO dto = editorService.getstory(booknum);
-        model.addAttribute("post",dto);
-        return "storyview";
+        boolean isLiked = editorService.isLikedByCurrentUser(booknum);
+        
+        model.addAttribute("post", dto);
+        model.addAttribute("liked", isLiked);
+        return "storybook";
     }
 
 
@@ -108,7 +118,7 @@ public class EditorController {
      * @param model
      * @return
      */
-    @GetMapping("/storylist")
+    @GetMapping("/")
     public String storylist(Model model){
 
         List<StorybookListDTO> storybookList = editorService.getStorybookList();
@@ -169,8 +179,68 @@ public class EditorController {
         return "editor-mypage";
     }
 
+    /**
+     * 좋아요 추가/제거
+     * @param booknum 스토리북 번호
+     * @return 처리 결과 및 현재 좋아요 수
+     */
+    @PostMapping("/like")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> likePost(@RequestParam("booknum") Integer booknum) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            int likeCount = editorService.addLike(booknum);
+            response.put("success", true);
+            response.put("likes", likeCount);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error liking post: " + booknum, e);
+            response.put("success", false);
+            response.put("message", "좋아요 처리 중 오류가 발생했습니다.");
+            return ResponseEntity.status(500).body(response);
+        }
+    }
 
+    /**
+     * 좋아요 취소
+     * @param booknum 스토리북 번호
+     * @return 처리 결과 및 현재 좋아요 수
+     */
+    @PostMapping("/unlike")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> unlikePost(@RequestParam("booknum") Integer booknum) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            int likeCount = editorService.removeLike(booknum);
+            response.put("success", true);
+            response.put("likes", likeCount);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error unliking post: " + booknum, e);
+            response.put("success", false);
+            response.put("message", "좋아요 취소 중 오류가 발생했습니다.");
+            return ResponseEntity.status(500).body(response);
+        }
+    }
 
-
+    /**
+     * 사용자의 좋아요 여부 확인
+     * @param booknum 스토리북 번호
+     * @return 좋아요 여부
+     */
+    @GetMapping("/check-like")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> checkLike(@RequestParam("booknum") Integer booknum) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            boolean isLiked = editorService.isLikedByCurrentUser(booknum);
+            response.put("liked", isLiked);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error checking like status for post: " + booknum, e);
+            response.put("liked", false);
+            return ResponseEntity.ok(response);
+        }
+    }
 
 }

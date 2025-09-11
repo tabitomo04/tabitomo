@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="ko">
+<head th:replace="~{fragments/header :: head}">
+    <title>새 여행 계획 - Tabitomo</title>
+    <link rel="stylesheet" href="/css/tripselect.css">
+    <link rel="stylesheet" href="/css/trip.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        .form-section {
+            background-color: #fff;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        .form-section h2 {
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #f8f9fa;
+        }
+        .form-label {
+            font-weight: 500;
+            color: #495057;
+        }
+        .btn-next {
+            min-width: 120px;
+        }
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            counter-reset: step;
+        }
+        .step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 60%;
+            right: -40%;
+            height: 2px;
+            background-color: #dee2e6;
+            z-index: 1;
+        }
+        .step.active:not(:last-child)::after {
+            background-color: #0d6efd;
+        }
+        .step.completed:not(:last-child)::after {
+            background-color: #0d6efd;
+        }
+        .step-number {
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            border-radius: 50%;
+            background-color: #dee2e6;
+            color: #6c757d;
+            display: inline-block;
+            text-align: center;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 2;
+        }
+        .step.active .step-number {
+            background-color: #0d6efd;
+            color: white;
+        }
+        .step.completed .step-number {
+            background-color: #198754;
+            color: white;
+        }
+        .step.completed .step-number::before {
+            content: '✓';
+        }
+        .step-label {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+        .step.active .step-label {
+            color: #0d6efd;
+            font-weight: 500;
+        }
+        .step.completed .step-label {
+            color: #198754;
+            font-weight: 500;
+        }
+        #step2, #step3, #step4, #step5 {
+            display: none;
+        }
+        .style-option {
+            cursor: pointer;
+            border: 2px solid #dee2e6;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.2s;
+        }
+        .style-option:hover {
+            border-color: #0d6efd;
+            background-color: #f8f9fa;
+        }
+        .style-option.selected {
+            border-color: #0d6efd;
+            background-color: #f0f7ff;
+        }
+        .style-option input[type="checkbox"] {
+            display: none;
+        }
+        .style-option i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: #6c757d;
+        }
+        .style-option.selected i {
+            color: #0d6efd;
+        }
+        .preview-card {
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+<!-- Header -->
+<div th:replace="~{fragments/header :: header}"></div>
+
+<!-- Navigation Menu -->
+<div th:replace="~{fragments/menu :: menu}"></div>
+
+<!-- Main Content -->
+<main class="container py-5">
+    <h1 class="mb-4">새 여행 계획</h1>
+    
+    <!-- Step Indicator -->
+    <div class="step-indicator mb-5">
+        <div class="step active" id="step1-indicator">
+            <div class="step-number">1</div>
+            <div class="step-label">기본 정보</div>
+        </div>
+        <div class="step" id="step2-indicator">
+            <div class="step-number">2</div>
+            <div class="step-label">여행 스타일</div>
+        </div>
+        <div class="step" id="step3-indicator">
+            <div class="step-number">3</div>
+            <div class="step-label">숙소 정보</div>
+        </div>
+        <div class="step" id="step4-indicator">
+            <div class="step-number">4</div>
+            <div class="step-label">일정 추가</div>
+        </div>
+        <div class="step" id="step5-indicator">
+            <div class="step-number">5</div>
+            <div class="step-label">완료</div>
+        </div>
+    </div>
+    
+    <form id="tripForm" th:action="@{/trip}" th:object="${tripPlanDTO}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        
+        <!-- Step 1: Basic Information -->
+        <div class="form-section" id="step1">
+            <h2>기본 정보 입력</h2>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="planName" class="form-label">여행 제목</label>
+                    <input type="text" class="form-control" id="planName" th:field="*{planName}" required>
+                    <div class="invalid-feedback">
+                        여행 제목을 입력해주세요.
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="destination" class="form-label">여행지</label>
+                    <input type="text" class="form-control" id="destination" th:field="*{destination}" required>
+                    <div class="invalid-feedback">
+                        여행지를 입력해주세요.
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="startDate" class="form-label">출발일</label>
+                    <input type="text" class="form-control datepicker" id="startDate" th:field="*{startDate}" required>
+                    <div class="invalid-feedback">
+                        출발일을 선택해주세요.
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="endDate" class="form-label">종료일</label>
+                    <input type="text" class="form-control datepicker" id="endDate" th:field="*{endDate}" required>
+                    <div class="invalid-feedback">
+                        종료일을 선택해주세요.
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex justify-content-end mt-4">
+                <button type="button" class="btn btn-primary btn-next" onclick="nextStep(1, 2)">다음</button>
+            </div>
+        </div>
+        
+        <!-- Step 2: Travel Style -->
+        <div class="form-section" id="step2">
+            <h2>여행 스타일 선택</h2>
+            <p class="text-muted mb-4">선호하는 여행 스타일을 모두 선택해주세요. (최대 3개)</p>
+            
+            <div class="row">
+                <div class="col-md-4">
+                    <label class="style-option">
+                        <input type="checkbox" name="styles" value="nature">
+                        <div class="text-center">
+                            <i class="fas fa-mountain"></i>
+                            <p class="mb-0">자연 경관</p>
+                        </div>
+                    </label>
+                </div>
+                <div class="col-md-4">
+                    <label class="style-option">
+                        <input type="checkbox" name="styles" value="history">
+                        <div class="text-center">
+                            <i class="fas fa-landmark"></i>
+                            <p class="mb-0">역사 유적</p>
+                        </div>
+                    </label>
+                </div>
+                <div class="col-md-4">
+                    <label class="style-option">
+                        <input type="checkbox" name="styles" value="shopping">
+                        <div class="text-center">
+                            <i class="fas fa-shopping-bag"></i>
+                            <p class="mb-0">쇼핑</p>
+                        </div>
+                    </label>
+                </div>
+                <div class="col-md-4">
+                    <label class="style-option">
+                        <input type="checkbox" name="styles" value="food">
+                        <div class="text-center">
+                            <i class="fas fa-utensils"></i>
+                            <p class="mb-0">맛집 탐방</p>
+                        </div>
+                    </label>
+                </div>
+                <div class="col-md-4">
+                    <label class="style-option">
+                        <input type="checkbox" name="styles" value="adventure">
+                        <div class="text-center">
+                            <i class="fas fa-hiking"></i>
+                            <p class="mb-0">액티비티</p>
+                        </div>
+                    </label>
+                </div>
+                <div class="col-md-4">
+                    <label class="style-option">
+                        <input type="checkbox" name="styles" value="relax">
+                        <div class="text-center">
+                            <i class="fas fa-umbrella-beach"></i>
+                            <p class="mb-0">휴양</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-between mt-4">
+                <button type="button" class="btn btn-outline-secondary" onclick="prevStep(2, 1)">이전</button>
+                <button type="button" class="btn btn-primary btn-next" onclick="nextStep(2, 3)">다음</button>
+            </div>
+        </div>
+        
+        <!-- Step 3: Accommodation -->
+        <div class="form-section" id="step3">
+            <h2>숙소 정보</h2>
+            <p class="text-muted mb-4">숙소 예약 정보를 입력해주세요. (선택사항)</p>
+            
+            <div class="mb-3">
+                <label for="accommodationName" class="form-label">숙소명</label>
+                <input type="text" class="form-control" id="accommodationName" th:field="*{accommodation.placeName}">
+            </div>
+            <div class="mb-3">
+                <label for="accommodationAddress" class="form-label">주소</label>
+                <input type="text" class="form-control" id="accommodationAddress" th:field="*{accommodation.address}">
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="checkInDate" class="form-label">체크인</label>
+                    <input type="text" class="form-control datepicker" id="checkInDate">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="checkOutDate" class="form-label">체크아웃</label>
+                    <input type="text" class="form-control datepicker" id="checkOutDate">
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="accommodationBudget" class="form-label">숙박 예산 (1박 기준)</label>
+                <div class="input-group">
+                    <input type="number" class="form-control" id="accommodationBudget" th:field="*{accommodationBudget}" min="0">
+                    <span class="input-group-text">원</span>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">원하는 부대시설 (선택사항)</label>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="wifi" name="facilities" value="wifi">
+                            <label class="form-check-label" for="wifi">
+                                <i class="fas fa-wifi me-1"></i> 무선 인터넷
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="parking" name="facilities" value="parking">
+                            <label class="form-check-label" for="parking">
+                                <i class="fas fa-parking me-1"></i> 주차장
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="breakfast" name="facilities" value="breakfast">
+                            <label class="form-check-label" for="breakfast">
+                                <i class="fas fa-coffee me-1"></i> 조식
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="pool" name="facilities" value="pool">
+                            <label class="form-check-label" for="pool">
+                                <i class="fas fa-swimming-pool me-1"></i> 수영장
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="gym" name="facilities" value="gym">
+                            <label class="form-check-label" for="gym">
+                                <i class="fas fa-dumbbell me-1"></i> 헬스장
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="pet" name="facilities" value="pet">
+                            <label class="form-check-label" for="pet">
+                                <i class="fas fa-paw me-1"></i> 반려동물 동반
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-between mt-4">
+                <button type="button" class="btn btn-outline-secondary" onclick="prevStep(3, 2)">이전</button>
+                <button type="button" class="btn btn-primary btn-next" onclick="nextStep(3, 4)">다음</button>
+            </div>
+        </div>
+        
+        <!-- Step 4: Add Schedule -->
+        <div class="form-section" id="step4">
+            <h2>일정 추가</h2>
+            <p class="text-muted mb-4">여행 일정을 추가해주세요. (선택사항)</p>
+            
+            <div id="scheduleContainer">
+                <!-- Schedule items will be added here dynamically -->
+            </div>
+            
+            <div class="text-center mt-3">
+                <button type="button" class="btn btn-outline-primary" onclick="addScheduleItem()">
+                    <i class="fas fa-plus me-1"></i> 일정 추가하기
+                </button>
+            </div>
+            
+            <div class="d-flex justify-content-between mt-4">
+                <button type="button" class="btn btn-outline-secondary" onclick="prevStep(4, 3)">이전</button>
+                <button type="button" class="btn btn-primary btn-next" onclick="nextStep(4, 5)">일정 생성하기</button>
+            </div>
+        </div>
+        
+        <!-- Step 5: Complete -->
+        <div class="form-section text-center" id="step5">
+            <div class="py-5">
+                <div class="mb-4">
+                    <i class="fas fa-check-circle text-success" style="font-size: 5rem;"></i>
+                </div>
+                <h2 class="mb-3">여행 계획이 완성되었습니다!</h2>
+                <p class="text-muted mb-4">아래 버튼을 눌러 여행 계획을 확인하세요.</p>
+                
+                <div class="preview-card mx-auto" style="max-width: 500px;">
+                    <h4 id="tripTitlePreview">여행 제목</h4>
+                    <p class="text-muted" id="tripDatePreview">날짜</p>
+                    <p id="tripDestinationPreview">여행지</p>
+                    <div id="tripStylesPreview" class="mb-2"></div>
+                </div>
+                
+                <div class="mt-5">
+                    <button type="submit" class="btn btn-primary btn-lg me-3">
+                        <i class="fas fa-check me-2"></i>여행 계획 저장하기
+                    </button>
+                    <a href="/trip" class="btn btn-outline-secondary btn-lg">
+                        <i class="fas fa-list me-2"></i>내 여행 목록 보기
+                    </a>
+                </div>
+            </div>
+        </div>
+    </form>
+</main>
+
+<!-- Footer -->
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ko.js"></script>
+
+<script>
+    // Initialize date picker
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize date picker with Korean locale
+        flatpickr(".datepicker", {
+            locale: "ko",
+            dateFormat: "Y-m-d",
+            minDate: "today"
+        });
+        
+        // Style option selection
+        document.querySelectorAll('.style-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const checkbox = this.querySelector('input[type="checkbox"]');
+                const checkedCount = document.querySelectorAll('input[name="styles"]:checked').length;
+                
+                if (checkbox.checked) {
+                    checkbox.checked = false;
+                    this.classList.remove('selected');
+                } else {
+                    if (checkedCount >= 3) {
+                        alert('최대 3개까지 선택 가능합니다.');
+                        return;
+                    }
+                    checkbox.checked = true;
+                    this.classList.add('selected');
+                }
+            });
+        });
+    });
+    
+    // Form steps navigation
+    function showStep(step) {
+        document.querySelectorAll('.form-section').forEach(section => {
+            section.style.display = 'none';
+        });
+        document.getElementById(`step${step}`).style.display = 'block';
+        
+        // Update step indicators
+        document.querySelectorAll('.step').forEach((stepEl, index) => {
+            if (index + 1 < step) {
+                stepEl.classList.remove('active');
+                stepEl.classList.add('completed');
+            } else if (index + 1 === step) {
+                stepEl.classList.add('active');
+                stepEl.classList.remove('completed');
+            } else {
+                stepEl.classList.remove('active', 'completed');
+            }
+        });
+    }
+    
+    function nextStep(current, next) {
+        // Validate current step before proceeding
+        if (current === 1) {
+            const form = document.getElementById('tripForm');
+            if (!form.checkValidity()) {
+                form.classList.add('was-validated');
+                return;
+            }
+            updatePreview();
+        }
+        
+        showStep(next);
+    }
+    
+    function prevStep(current, prev) {
+        showStep(prev);
+    }
+    
+    // Update preview in the final step
+    function updatePreview() {
+        const title = document.getElementById('planName').value || '제목 없음';
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        const destination = document.getElementById('destination').value || '미정';
+        
+        document.getElementById('tripTitlePreview').textContent = title;
+        document.getElementById('tripDatePreview').textContent = 
+            `${startDate} ~ ${endDate} (${calculateDays(startDate, endDate)}일간)`;
+        document.getElementById('tripDestinationPreview').innerHTML = 
+            `<i class="fas fa-map-marker-alt me-2"></i>${destination}`;
+        
+        // Update selected styles
+        const stylesPreview = document.getElementById('tripStylesPreview');
+        stylesPreview.innerHTML = '';
+        document.querySelectorAll('input[name="styles"]:checked').forEach(checkbox => {
+            const styleName = checkbox.parentElement.querySelector('p').textContent;
+            const styleBadge = document.createElement('span');
+            styleBadge.className = 'badge bg-light text-dark me-2 mb-2';
+            styleBadge.innerHTML = `<i class="${getStyleIcon(checkbox.value)} me-1"></i>${styleName}`;
+            stylesPreview.appendChild(styleBadge);
+        });
+    }
+    
+    // Helper function to get icon for each style
+    function getStyleIcon(style) {
+        const icons = {
+            'nature': 'fas fa-mountain',
+            'history': 'fas fa-landmark',
+            'shopping': 'fas fa-shopping-bag',
+            'food': 'fas fa-utensils',
+            'adventure': 'fas fa-hiking',
+            'relax': 'fas fa-umbrella-beach'
+        };
+        return icons[style] || 'fas fa-check';
+    }
+    
+    // Calculate days between two dates
+    function calculateDays(startDate, endDate) {
+        if (!startDate || !endDate) return 0;
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const diffTime = Math.abs(end - start);
+        return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    }
+    
+    // Add schedule item
+    let scheduleItemCount = 0;
+    function addScheduleItem() {
+        const container = document.getElementById('scheduleContainer');
+        const itemId = `schedule-${scheduleItemCount++}`;
+        
+        const item = document.createElement('div');
+        item.className = 'schedule-item card mb-3';
+        item.id = itemId;
+        
+        item.innerHTML = `
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">일정 ${scheduleItemCount}</h5>
+                <button type="button" class="btn-close" onclick="removeScheduleItem('${itemId}')"></button>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="${itemId}-date" class="form-label">날짜</label>
+                        <input type="text" class="form-control datepicker" id="${itemId}-date">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="${itemId}-time" class="form-label">시간</label>
+                        <input type="time" class="form-control" id="${itemId}-time">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="${itemId}-title" class="form-label">제목</label>
+                    <input type="text" class="form-control" id="${itemId}-title" placeholder="예: 경복궁 관람">
+                </div>
+                <div class="mb-3">
+                    <label for="${itemId}-location" class="form-label">위치</label>
+                    <input type="text" class="form-control" id="${itemId}-location" placeholder="예: 서울 종로구 사직로 161">
+                </div>
+                <div class="mb-3">
+                    <label for="${itemId}-memo" class="form-label">메모</label>
+                    <textarea class="form-control" id="${itemId}-memo" rows="2" placeholder="추가 정보나 메모를 입력해주세요."></textarea>
+                </div>
+            </div>
+        `;
+        
+        container.appendChild(item);
+        
+        // Initialize date picker for the new item
+        flatpickr(`#${itemId}-date`, {
+            locale: "ko",
+            dateFormat: "Y-m-d",
+            minDate: document.getElementById('startDate').value || "today"
+        });
+    }
+    
+    // Remove schedule item
+    function removeScheduleItem(itemId) {
+        const item = document.getElementById(itemId);
+        if (item) {
+            item.remove();
+            // Renumber remaining items
+            const items = document.querySelectorAll('.schedule-item');
+            items.forEach((item, index) => {
+                const title = item.querySelector('h5');
+                if (title) {
+                    title.textContent = `일정 ${index + 1}`;
+                }
+            });
+        }
+    }
+    
+    // Initialize first step
+    showStep(1);
+</script>
+</body>
+</html>

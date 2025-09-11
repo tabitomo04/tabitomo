@@ -1,9 +1,58 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       lang="ko">
 <head th:replace="~{fragments/header :: head}">
     <title>여행 계획 상세 - Tabitomo</title>
     <link rel="stylesheet" href="/css/tripselect.css">
+    <link rel="stylesheet" href="/css/trip.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .trip-header {
+            background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0.5rem;
+        }
+        .schedule-day {
+            border-left: 4px solid #4b6cb7;
+            margin-bottom: 2rem;
+            padding-left: 1rem;
+        }
+        .schedule-item {
+            background: #f8f9fa;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: transform 0.2s;
+        }
+        .schedule-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        }
+        .place-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+        }
+        .accommodation-card {
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+        .accommodation-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        }
+        .map-container {
+            height: 300px;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+    </style>
 </head>
 <body>
 <!-- Header -->
@@ -14,20 +63,269 @@
 
 <!-- Main Content -->
 <main class="container py-5">
-    <h1 class="mb-4" th:text="${tripPlan.planName}">여행 계획 이름</h1>
-
-    <!-- 저장된 여행 계획 내용을 컨테이너 div로 감싸서 렌더링 -->
-    <div>
-        <th:block th:utext="${tripPlan.planDetails}"></th:block>
+    <!-- Trip Header -->
+    <div class="trip-header text-center mb-5">
+        <div class="container">
+            <h1 class="display-5 fw-bold mb-3" th:text="${trip.title}">여행 제목</h1>
+            <p class="lead" th:text="${#temporals.format(trip.startDate, 'yyyy년 MM월 dd일')} + ' - ' + ${#temporals.format(trip.endDate, 'yyyy년 MM월 dd일')}">
+                여행 기간
+            </p>
+            <div class="mt-3">
+                <button class="btn btn-light me-2" onclick="window.print()">
+                    <i class="fas fa-print me-1"></i> 인쇄하기
+                </button>
+                <a th:href="@{/trip/edit/{id}(id=${trip.id})}" class="btn btn-outline-light me-2">
+                    <i class="fas fa-edit me-1"></i> 수정하기
+                </a>
+                <button class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#shareModal">
+                    <i class="fas fa-share-alt me-1"></i> 공유하기
+                </button>
+            </div>
+        </div>
     </div>
 
-    <div class="mt-4">
-        <a th:href="@{/mypage}" class="btn btn-primary">마이페이지로 돌아가기</a>
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Accommodation Info -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-hotel me-2"></i> 숙소 정보</h5>
+                </div>
+                <div class="card-body">
+                    <div th:if="${trip.accommodation != null}" class="row">
+                        <div class="col-md-4">
+                            <img th:if="${trip.accommodation.imageUrl}" 
+                                 th:src="${trip.accommodation.imageUrl}" 
+                                 class="img-fluid rounded" 
+                                 alt="숙소 이미지">
+                            <div class="default-accommodation">
+                                <div>
+                                    <i class="fas fa-image fa-2x mb-2"></i>
+                                    <p class="mb-0">이미지 없음</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <h4 th:text="${trip.accommodation.name}">숙소 이름</h4>
+                            <p class="text-muted" th:if="${trip.accommodation.address}">
+                                <i class="fas fa-map-marker-alt me-2"></i> 
+                                <span th:text="${trip.accommodation.address}">주소</span>
+                            </p>
+                            <p th:if="${trip.accommodation.description}" 
+                               th:text="${trip.accommodation.description}">
+                                숙소 설명
+                            </p>
+                            <div class="mt-3">
+                                <a th:href="#" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-external-link-alt me-1"></i> 상세 정보
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:unless="${trip.accommodation != null}" class="text-center py-4">
+                        <p class="text-muted">등록된 숙소 정보가 없습니다.</p>
+                        <a th:href="@{/trip/edit/} + ${trip.id} + '?tab=accommodation'" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i> 숙소 추가하기
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Schedule -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i> 일정</h5>
+                </div>
+                <div class="card-body">
+                    <div th:if="${!schedules.isEmpty()}">
+                        <div th:each="daySchedules : ${#maps.groupBy(schedules, 'day')}" class="mb-4">
+                            <div class="schedule-day">
+                                <h4 class="d-flex align-items-center">
+                                    <span class="badge bg-primary me-2" th:text="${daySchedules.key} + '일차'">1일차</span>
+                                    <small class="text-muted" th:text="${#temporals.format(trip.startDate.plusDays(daySchedules.key - 1), 'MM월 dd일 (E)')">
+                                        01월 01일 (월)
+                                    </small>
+                                </h4>
+                            </div>
+                            
+                            <div th:each="schedule : ${daySchedules.value}" class="schedule-item">
+                                <div class="d-flex">
+                                    <div class="flex-shrink-0 me-3">
+                                        <div class="bg-primary text-white text-center rounded p-2" style="width: 80px;">
+                                            <div class="fw-bold" th:text="${schedule.startTime} + (${schedule.endTime} ? ' - ' + ${schedule.endTime} : '')">
+                                                10:00 - 12:00
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h5 class="mt-0 mb-1" th:text="${schedule.place.name}">장소 이름</h5>
+                                        <p class="text-muted mb-1" th:if="${schedule.place.address}" th:text="${schedule.place.address}">
+                                            주소
+                                        </p>
+                                        <p class="mb-0" th:if="${schedule.memo}" th:text="${schedule.memo}">
+                                            메모
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:unless="${!schedules.isEmpty()}" class="text-center py-4">
+                        <p class="text-muted">등록된 일정이 없습니다.</p>
+                        <a th:href="@{/trip/edit/} + ${trip.id} + '?tab=schedule'" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i> 일정 추가하기
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Trip Summary -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i> 여행 요약</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="far fa-calendar-alt me-2"></i> 여행 기간</span>
+                            <span th:text="${#temporals.daysBetween(trip.startDate, trip.endDate) + 1} + '박 ' + ${#temporals.daysBetween(trip.startDate, trip.endDate) + 2} + '일'">
+                                2박 3일
+                            </span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-map-marker-alt me-2"></i> 여행지</span>
+                            <span th:text="${trip.destination ?: '미정'}">서울</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-hotel me-2"></i> 숙소</span>
+                            <span th:if="${trip.accommodation != null}" th:text="${trip.accommodation.name}">숙소 이름</span>
+                            <span th:unless="${trip.accommodation != null}" class="text-muted">미정</span>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <span><i class="fas fa-route me-2"></i> 총 방문 장소</span>
+                                <span th:text="${#lists.size(schedules)} + '곳'">5곳</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Map -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-map-marked-alt me-2"></i> 여행지 지도</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div id="map" class="map-container">
+                        <!-- Map will be rendered here by JavaScript -->
+                        <div class="d-flex justify-content-center align-items-center h-100 bg-light">
+                            <div class="text-center p-4">
+                                <i class="fas fa-map-marked-alt fa-3x text-muted mb-3"></i>
+                                <p class="mb-0">지도를 불러오는 중입니다...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weather -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-cloud-sun me-2"></i> 날씨 예보</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center py-3">
+                        <i class="fas fa-cloud-sun fa-3x text-warning mb-2"></i>
+                        <p class="mb-1">날씨 정보를 불러오는 중입니다...</p>
+                        <small class="text-muted">여행 일정에 맞는 날씨 정보를 표시합니다.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div class="modal fade" id="shareModal" tabindex="-1" aria-labelledby="shareModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="shareModalLabel">여행 계획 공유</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="shareLink" class="form-label">공유 링크</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="shareLink" 
+                                   th:value="${#httpServletRequest.scheme} + '://' + ${#httpServletRequest.serverName} + ':' + ${#httpServletRequest.serverPort} + '/trip/share/' + ${trip.id}"
+                                   readonly>
+                            <button class="btn btn-outline-secondary" type="button" id="copyLinkBtn">
+                                <i class="far fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-center gap-2">
+                        <button class="btn btn-outline-primary btn-sm">
+                            <i class="fab fa-facebook-f me-1"></i> Facebook
+                        </button>
+                        <button class="btn btn-outline-info btn-sm">
+                            <i class="fab fa-twitter me-1"></i> Twitter
+                        </button>
+                        <button class="btn btn-outline-success btn-sm">
+                            <i class="fab fa-kakaotalk me-1"></i> KakaoTalk
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                </div>
+            </div>
+        </div>
     </div>
 </main>
 
 <!-- Footer -->
 <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Copy share link to clipboard
+    document.getElementById('copyLinkBtn').addEventListener('click', function() {
+        const shareLink = document.getElementById('shareLink');
+        shareLink.select();
+        document.execCommand('copy');
+        
+        // Show tooltip or alert
+        const tooltip = new bootstrap.Tooltip(this, {
+            title: '링크가 복사되었습니다!',
+            trigger: 'manual'
+        });
+        tooltip.show();
+        
+        // Hide tooltip after 2 seconds
+        setTimeout(() => {
+            tooltip.hide();
+        }, 2000);
+    });
+    
+    // Initialize map (example with Google Maps)
+    function initMap() {
+        // This is a placeholder. In a real implementation, you would initialize your map here
+        // using the Google Maps JavaScript API or another mapping library
+        console.log('Map initialization would happen here');
+    }
+    
+    // Load map when document is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        initMap();
+    });
+</script>
 
 </body>
 </html>

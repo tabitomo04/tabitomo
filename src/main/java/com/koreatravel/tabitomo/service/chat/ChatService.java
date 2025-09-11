@@ -47,27 +47,51 @@ public class ChatService {
         return qaRepo.findByCategoryId(categoryId);
     }
 
-    // 기존 getAnswerByKeyword 메서드 확장 (점수 기반)
+    // 언어 코드를 변환하는 헬퍼 메서드
+    public String processLanguageCode(String lang) {
+        if (lang != null) {
+            switch (lang.toLowerCase()) {
+                case "en":
+                    return "en-US";
+                case "ja":
+                    return "ja-JP";
+                default:
+                    return "ko-KR";
+            }
+        }
+        return "ko-KR";
+    }
+    
+    // 키워드 기반 응답 생성 (점수 기반)
     public String getAnswerByKeywordWithScore(String input, int threshold) {
+        // 1. 동의어 처리
         String processedInput = processSynonyms(input);
+        
+        // 2. 금지어 검사
+        if (containsForbiddenWord(processedInput)) {
+            return "죄송합니다. 부적절한 단어가 포함되어 있습니다.";
+        }
+        
+        // 3. 키워드 기반 점수 계산
         List<ChatKeywordEntity> keywords = keywordRepo.findByKeywordInInput(processedInput);
         Map<Integer, Integer> qaScores = new HashMap<>();
-
+        
+        // 4. 각 키워드에 대한 가중치 합산
         for (ChatKeywordEntity keyword : keywords) {
             int currentScore = qaScores.getOrDefault(keyword.getQaId(), 0);
             qaScores.put(keyword.getQaId(), currentScore + keyword.getWeight());
         }
-
-        Optional<Integer> bestQaId = qaScores.entrySet().stream()
-                .max(Map.Entry.comparingByValue())
+        
+        // 5. 최고 점수 Q&A 찾기
+        return qaScores.entrySet().stream()
                 .filter(entry -> entry.getValue() >= threshold)
-                .map(Map.Entry::getKey);
-
-        if (bestQaId.isPresent()) {
-            return qaRepo.findById(bestQaId.get()).map(ChatQAEntity::getAnswer).orElse(null);
-        }
-
-        return null;
+                .max(Map.Entry.comparingByValue())
+                .map(entry -> {
+                    Optional<ChatQAEntity> qaOpt = qaRepo.findById(entry.getKey());
+                    return qaOpt.map(ChatQAEntity::getAnswer)
+                             .orElse("죄송합니다. 적절한 답변을 찾을 수 없습니다.");
+                })
+                .orElse("죄송합니다. 질문을 이해하지 못했습니다. 더 자세히 설명해 주시겠어요?");
     }
 
     // 이전에 삭제했던 메서드를 다시 추가합니다.

@@ -12,6 +12,8 @@ public class ChatResponseDTO {
     private String answerSource;
     private String answer;
     private Integer feedbackId;
+    private String response;  // For chat response
+    private String language;  // For language setting
 
     public ChatResponseDTO(String reply) {
         this.reply = reply;

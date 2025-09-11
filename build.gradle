@@ -60,9 +60,7 @@ dependencies {
     implementation 'org.springframework.session:spring-session-jdbc'
     
     // Database
-    implementation 'org.flywaydb:flyway-core:9.22.3'
     implementation 'mysql:mysql-connector-java:8.0.33'
-    implementation 'org.flywaydb:flyway-mysql:9.22.3'
     
     // Thymeleaf
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'

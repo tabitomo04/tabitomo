@@ -7,13 +7,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.koreatravel.tabitomo.repository.chat.ChatQARepository;
-import com.koreatravel.tabitomo.repository.chat.ForbiddenWordRepository;
 import com.koreatravel.tabitomo.repository.chat.ChatCategoryRepository;
 import com.koreatravel.tabitomo.domain.dto.chat.ChatRequestDTO;
 import com.koreatravel.tabitomo.domain.dto.chat.ChatResponseDTO;
 import com.koreatravel.tabitomo.domain.entity.chat.ChatCategoryEntity;
 import com.koreatravel.tabitomo.domain.entity.chat.ChatQAEntity;
-import com.koreatravel.tabitomo.domain.entity.chat.ForbiddenWordEntity;
 import com.koreatravel.tabitomo.service.chat.AnswerService;
 import com.koreatravel.tabitomo.service.chat.ChatService;
 
@@ -27,8 +25,7 @@ import java.util.Map;
 public class ChatController {
 
     private final ChatQARepository chatQARepository;
-    private final ForbiddenWordRepository forbiddenWordRepository;
-    private final ChatCategoryRepository chatCategoryRepository; // ChatCategoryRepository 추가
+    private final ChatCategoryRepository chatCategoryRepository; 
     private final AnswerService answerService;
     private final ChatService chatService;
 
@@ -46,7 +43,31 @@ public class ChatController {
 
     @GetMapping("/categories")
     public List<ChatCategoryEntity> getCategories() {
-        return chatCategoryRepository.findAll(); // ChatCategory 목록을 직접 반환하도록 수정
+        return chatCategoryRepository.findAll();
+    }
+    
+    @PostMapping("/ask")
+    public ResponseEntity<?> chat(@RequestBody ChatRequestDTO request) {
+        try {
+            // 1. 채팅 요청 처리 (ChatService의 handleChatRequest 메서드 사용)
+            ChatResponseDTO response = chatService.handleChatRequest(request);
+            
+            // 2. 언어 처리 (요청에 언어가 있는 경우)
+            if (request.getLanguage() != null) {
+                String processedLanguage = processLanguageCode(request.getLanguage());
+                response.setLanguage(processedLanguage);
+            }
+            
+            // 3. 응답 반환
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("채팅 처리 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
+    
+    private String processLanguageCode(String lang) {
+        return chatService.processLanguageCode(lang);
     }
 
     @GetMapping("/qa/{categoryId}")
@@ -77,12 +98,10 @@ public class ChatController {
     public Map<String, Boolean> checkForbiddenWord(@RequestBody Map<String, String> request) {
         String inputWord = request.get("word");
         Map<String, Boolean> response = new HashMap<>();
-
-        List<ForbiddenWordEntity> forbiddenWords = forbiddenWordRepository.findAll();
-
-        boolean isForbidden = forbiddenWords.stream()
-                .anyMatch(forbidden -> inputWord.toLowerCase().contains(forbidden.getWord().toLowerCase()));
-
+        
+        // Use chatService to check for forbidden words
+        boolean isForbidden = chatService.containsForbiddenWord(inputWord);
+        
         response.put("isForbidden", isForbidden);
         return response;
     }

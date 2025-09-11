@@ -27,8 +27,9 @@ public class MediaEntity {
     private Integer displayOrder;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 20)
-    private MediaStatus status;
+    @Column(name = "status", nullable = false, length = 20, columnDefinition = "varchar(20) default 'UPLOAD'")
+    @Builder.Default
+    private MediaStatus status = MediaStatus.UPLOAD;
 
     @Column(name = "media_url", nullable = false, length = 255)
     private String mediaUrl;

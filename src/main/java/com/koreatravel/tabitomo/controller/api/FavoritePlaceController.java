@@ -7,8 +7,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import com.koreatravel.tabitomo.config.security.MemberDetails;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,10 +23,9 @@ public class FavoritePlaceController {
      */
     @GetMapping
     public ResponseEntity<Page<FavoritePlaceDetailDTO>> getFavorites(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal MemberDetails memberDetails,
             @PageableDefault(size = 10) Pageable pageable) {
-        String email = userDetails.getUsername();
-        return ResponseEntity.ok(favoritePlaceService.getFavorites(email, pageable));
+        return ResponseEntity.ok(favoritePlaceService.getFavorites(memberDetails.getMember().getId(), pageable));
     }
 
     /**
@@ -34,10 +33,9 @@ public class FavoritePlaceController {
      */
     @PostMapping("/{placeId}")
     public ResponseEntity<FavoritePlaceDetailDTO> addFavorite(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal MemberDetails memberDetails,
             @PathVariable String placeId) {
-        String email = userDetails.getUsername();
-        return ResponseEntity.ok(favoritePlaceService.addFavorite(email, placeId));
+        return ResponseEntity.ok(favoritePlaceService.addFavorite(memberDetails.getMember().getId(), placeId));
     }
 
     /**
@@ -45,10 +43,9 @@ public class FavoritePlaceController {
      */
     @DeleteMapping("/{placeId}")
     public ResponseEntity<Void> removeFavorite(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal MemberDetails memberDetails,
             @PathVariable String placeId) {
-        String email = userDetails.getUsername();
-        favoritePlaceService.removeFavorite(email, placeId);
+        favoritePlaceService.removeFavorite(memberDetails.getMember().getId(), placeId);
         return ResponseEntity.noContent().build();
     }
 
@@ -57,9 +54,8 @@ public class FavoritePlaceController {
      */
     @GetMapping("/check/{placeId}")
     public ResponseEntity<Boolean> isFavorite(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal MemberDetails memberDetails,
             @PathVariable String placeId) {
-        String email = userDetails.getUsername();
-        return ResponseEntity.ok(favoritePlaceService.isFavorite(email, placeId));
+        return ResponseEntity.ok(favoritePlaceService.isFavorite(memberDetails.getMember().getId(), placeId));
     }
 }

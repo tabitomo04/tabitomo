@@ -6,6 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -20,11 +21,14 @@ public class TripPlanEntity {
     @Column(name = "trip_plan_id")
     private Long id;
 
-    @Column(name = "member_email", nullable = false, length = 320)
+    @Column(name = "member_id", columnDefinition = "BINARY(16)", nullable = false)
+    private UUID memberId;
+    
+    @Column(name = "member_email", insertable = false, updatable = false, length = 320)
     private String memberEmail;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_email", referencedColumnName = "email", insertable = false, updatable = false)
+    @JoinColumn(name = "member_id", referencedColumnName = "id", insertable = false, updatable = false)
     private MemberEntity member;
 
     @Column(name = "plan_name", nullable = false, length = 100)

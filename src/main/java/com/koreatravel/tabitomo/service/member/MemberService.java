@@ -19,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * 회원 관련 비즈니스 로직을 처리하는 서비스 클래스
@@ -40,14 +41,21 @@ public class MemberService {
     /**
      * 회원 프로필 조회
      */
+    public MemberProfileDTO getMemberProfileById(UUID id) {
+        MemberEntity member = memberRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+        return buildProfileDTO(member);
+    }
+    
     public MemberProfileDTO getMemberProfile(String email) {
         MemberEntity member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
-        
+        return buildProfileDTO(member);
+    }
+    
+    private MemberProfileDTO buildProfileDTO(MemberEntity member) {
         // Get gender as string from member entity
         String gender = member.getGender();
-        
-        // Build profile DTO with available information
         MemberProfileDTO.MemberProfileDTOBuilder builder = MemberProfileDTO.builder()
                 .email(member.getEmail())
                 .nickname(member.getNickname())
@@ -67,9 +75,19 @@ public class MemberService {
      * 회원 정보 수정
      */
     @Transactional
-    public void updateMemberProfile(String email, MemberUpdateDTO updateDTO) {
+    public MemberProfileDTO updateMemberProfileById(UUID id, MemberUpdateDTO updateDTO) {
+        MemberEntity member = memberRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+        return updateMemberProfile(member, updateDTO);
+    }
+    
+    public MemberProfileDTO updateMemberProfile(String email, MemberUpdateDTO updateDTO) {
         MemberEntity member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+        return updateMemberProfile(member, updateDTO);
+    }
+    
+    private MemberProfileDTO updateMemberProfile(MemberEntity member, MemberUpdateDTO updateDTO) {
         
         // 닉네임 변경 시 중복 확인
         if (updateDTO.getNickname() != null && !updateDTO.getNickname().equals(member.getNickname())) {
@@ -93,6 +111,7 @@ public class MemberService {
         }
         
         memberRepository.save(member);
+        return buildProfileDTO(member);
     }
     
     /**
@@ -242,13 +261,53 @@ public class MemberService {
      * 회원 탈퇴
      */
     @Transactional
-    public void deactivateAccount(String email) {
+    public void deactivateAccountById(UUID id, String password) {
+        MemberEntity member = memberRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+        deactivateAccount(member, password);
+    }
+    
+    public void deactivateAccount(String email, String password) {
         MemberEntity member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+        deactivateAccount(member, password);
+    }
+    
+    private void deactivateAccount(MemberEntity member, String password) {
+        
+        if (!passwordEncoder.matches(password, member.getPassword())) {
+            throw new ValidationException("Password is incorrect");
+        }
         
         member.setActive(false);
         memberRepository.save(member);
         
-        log.info("Account deactivated for user: {}", email);
+        log.info("Account deactivated for user: {}", member.getEmail());
+    }
+    
+    /**
+     * 비밀번호 변경
+     */
+    @Transactional
+    public void changePasswordById(UUID id, String currentPassword, String newPassword) {
+        MemberEntity member = memberRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+        changePassword(member, currentPassword, newPassword);
+    }
+    
+    public void changePassword(String email, String currentPassword, String newPassword) {
+        MemberEntity member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+        changePassword(member, currentPassword, newPassword);
+    }
+    
+    private void changePassword(MemberEntity member, String currentPassword, String newPassword) {
+        
+        if (!passwordEncoder.matches(currentPassword, member.getPassword())) {
+            throw new ValidationException("Current password is incorrect");
+        }
+        
+        member.setPassword(passwordEncoder.encode(newPassword));
+        memberRepository.save(member);
     }
 }

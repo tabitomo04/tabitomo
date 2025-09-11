@@ -3,44 +3,347 @@
       lang="ko">
 <head th:replace="~{fragments/header :: head}">
     <title>마이페이지 - Tabitomo</title>
+    <style>
+        .profile-section {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+        }
+        
+        .profile-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 3rem;
+            margin-bottom: 2rem;
+        }
+        
+        .profile-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #f0f2f5;
+        }
+        
+        .profile-info {
+            flex: 1;
+        }
+        
+        .profile-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #212529;
+        }
+        
+        .profile-email {
+            color: #6c757d;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .profile-bio {
+            color: #495057;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+        
+        .tag {
+            display: inline-block;
+            background-color: #f1f3f5;
+            color: #495057;
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+        }
+        
+        .section-title {
+            position: relative;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .section-title h2 {
+            font-weight: 700;
+            color: #212529;
+            margin-bottom: 0;
+            display: inline-block;
+        }
+        
+        .btn-edit {
+            margin-left: 1rem;
+            font-size: 0.9rem;
+            padding: 0.25rem 0.75rem;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 100%;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .card-img-top {
+            height: 180px;
+            object-fit: cover;
+        }
+        
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        .card-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #212529;
+        }
+        
+        .card-text {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        
+        .meta {
+            font-size: 0.8rem;
+            color: #adb5bd;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .meta i {
+            margin-right: 0.3rem;
+        }
+        
+        .btn-more {
+            display: block;
+            width: 200px;
+            margin: 2rem auto 0;
+            text-align: center;
+            border: 1px solid #dee2e6;
+            background: white;
+            color: #495057;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-more:hover {
+            background: #f8f9fa;
+            border-color: #ced4da;
+        }
+        
+        @media (max-width: 768px) {
+            .profile-header {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            
+            .profile-email {
+                justify-content: center;
+            }
+            
+            .profile-buttons {
+                display: flex;
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
 <body>
-<!-- Header -->
-<div th:replace="~{fragments/header :: header}"></div>
+    <!-- Header -->
+    <div th:replace="~{fragments/header :: header}"></div>
 
-<!-- Navigation Menu -->
-<div th:replace="~{fragments/menu :: menu}"></div>
-
-<!-- Main Content -->
-<main class="container py-5">
-    <h1 class="mb-4">마이페이지</h1>
-
-    <!-- Error Message Display -->
-    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
-        <span th:text="${errorMessage}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-
-    <section>
-        <h2 class="h3 mb-3">나의 여행 계획</h2>
-        <div th:if="${tripPlans.isEmpty()}" class="alert alert-info" role="alert">
-            저장된 여행 계획이 없습니다.
-        </div>
-
-        <div class="list-group" th:unless="${tripPlans.isEmpty()}">
-            <a th:each="plan : ${tripPlans}" th:href="@{/trips/{id}(id=${plan.id})}" class="list-group-item list-group-item-action flex-column align-items-start">
-                <div class="d-flex w-100 justify-content-between">
-                    <h5 class="mb-1" th:text="${plan.planName}">여행 계획 이름</h5>
-                    <small th:text="${#temporals.format(plan.createdAt, 'yyyy-MM-dd HH:mm')}">3 days ago</small>
+    <!-- Main Content -->
+    <main class="container py-5">
+        <!-- Profile Section -->
+        <section class="profile-section">
+            <div class="profile-header">
+                <img th:src="${session.userProfileImage != null} ? ${session.userProfileImage} : '/image/default image.svg'" 
+                     class="profile-image" 
+                     alt="프로필 이미지"
+                     onerror="this.onerror=null; this.src='/image/default image.svg'">
+                <div class="profile-info">
+                    <h1 class="profile-name" th:text="${user.nickname != null} ? ${user.nickname} : '사용자'">사용자 닉네임</h1>
+                    <div class="profile-email">
+                        <i class="fas fa-envelope"></i>
+                        <span th:text="${user.email}">user@example.com</span>
+                        <span class="badge bg-secondary ms-2">공개</span>
+                    </div>
+                    <p class="profile-bio" th:if="${user.bio}" th:text="${user.bio}">
+                        여행을 사랑하는 여행자입니다. 새로운 경험과 추억을 만드는 것을 좋아합니다.
+                    </p>
+                    <div class="tags mb-3">
+                        <span class="tag">#여행</span>
+                        <span class="tag">#맛집탐방</span>
+                        <span class="tag">#자연경관</span>
+                        <span class="tag">#역사여행</span>
+                    </div>
+                    <a href="/mypage/edit" class="btn btn-outline-primary">
+                        <i class="fas fa-user-edit me-1"></i> 프로필 수정
+                    </a>
                 </div>
-                <p class="mb-1">여기를 클릭하여 상세 내용을 확인하세요.</p>
-            </a>
-        </div>
-    </section>
-</main>
+            </div>
+        </section>
 
-<!-- Footer -->
-<footer th:replace="~{fragments/footer :: footer}"></footer>
+        <!-- My Storybooks Section -->
+        <section class="mb-5">
+            <div class="section-title d-flex justify-content-between align-items-center">
+                <h2>내 스토리북</h2>
+                <div>
+                    <a href="/editor" class="btn btn-outline-secondary btn-sm me-2">
+                        <i class="fas fa-plus me-1"></i> 새 스토리 작성
+                    </a>
+                    <a href="#" class="btn btn-outline-secondary btn-sm">
+                        임시저장본
+                    </a>
+                </div>
+            </div>
+            
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                <!-- Storybook Card 1 -->
+                <div class="col" th:each="story : ${stories}">
+                    <div class="card h-100">
+                        <img src="https://via.placeholder.com/300x180" class="card-img-top" alt="스토리 썸네일">
+                        <div class="card-body">
+                            <h5 class="card-title" th:text="${story.title}">서울 여행기</h5>
+                            <p class="card-text" th:text="${story.subtitle}">서울의 숨은 명소들을 찾아서 떠난 여행기</p>
+                            <div class="meta">
+                                <span><i class="far fa-heart"></i> 128</span>
+                                <span><i class="far fa-comment"></i> 24</span>
+                                <span><i class="far fa-calendar"></i> 2023.11.15</span>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white border-top-0">
+                            <a href="#" class="btn btn-sm btn-outline-primary w-100">보러가기</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Storybook Card 2 -->
+                <div class="col">
+                    <div class="card h-100">
+                        <img src="https://via.placeholder.com/300x180/4CAF50/FFFFFF" class="card-img-top" alt="스토리 썸네일">
+                        <div class="card-body">
+                            <h5 class="card-title">제주도 한 달 살기</h5>
+                            <p class="card-text">제주에서의 한 달 간의 여유로운 생활기</p>
+                            <div class="meta">
+                                <span><i class="far fa-heart"></i> 98</span>
+                                <span><i class="far fa-comment"></i> 15</span>
+                                <span><i class="far fa-calendar"></i> 2023.10.05</span>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white border-top-0">
+                            <a href="#" class="btn btn-sm btn-outline-primary w-100">보러가기</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Storybook Card 3 -->
+                <div class="col">
+                    <div class="card h-100">
+                        <img src="https://via.placeholder.com/300x180/2196F3/FFFFFF" class="card-img-top" alt="스토리 썸네일">
+                        <div class="card-body">
+                            <h5 class="card-title">부산 맛집 투어</h5>
+                            <p class="card-text">부산에서 만난 진정한 맛집들</p>
+                            <div class="meta">
+                                <span><i class="far fa-heart"></i> 156</span>
+                                <span><i class="far fa-comment"></i> 32</span>
+                                <span><i class="far fa-calendar"></i> 2023.09.22</span>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white border-top-0">
+                            <a href="#" class="btn btn-sm btn-outline-primary w-100">보러가기</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn btn-more mt-4">더 보기</button>
+        </section>
 
+        <!-- Saved Destinations Section -->
+        <section class="mb-5">
+            <div class="section-title">
+                <h2>저장한 여행지</h2>
+            </div>
+            
+            <div class="row row-cols-2 row-cols-md-4 g-4">
+                <!-- Destination Card 1 -->
+                <div class="col">
+                    <div class="card h-100">
+                        <img src="https://via.placeholder.com/200x150" class="card-img-top" alt="여행지 이미지">
+                        <div class="card-body text-center">
+                            <h5 class="card-title mb-1">경복궁</h5>
+                            <p class="card-text text-muted">서울특별시 종로구</p>
+                            <span class="badge bg-light text-dark">#역사</span>
+                            <span class="badge bg-light text-dark">#가족여행</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Destination Card 2 -->
+                <div class="col">
+                    <div class="card h-100">
+                        <img src="https://via.placeholder.com/200x150/4CAF50/FFFFFF" class="card-img-top" alt="여행지 이미지">
+                        <div class="card-body text-center">
+                            <h5 class="card-title mb-1">남산타워</h5>
+                            <p class="card-text text-muted">서울특별시 용산구</p>
+                            <span class="badge bg-light text-dark">#야경</span>
+                            <span class="badge bg-light text-dark">#데이트</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Destination Card 3 -->
+                <div class="col">
+                    <div class="card h-100">
+                        <img src="https://via.placeholder.com/200x150/2196F3/FFFFFF" class="card-img-top" alt="여행지 이미지">
+                        <div class="card-body text-center">
+                            <h5 class="card-title mb-1">광안리 해수욕장</h5>
+                            <p class="card-text text-muted">부산광역시 수영구</p>
+                            <span class="badge bg-light text-dark">#바다</span>
+                            <span class="badge bg-light text-dark">#여름</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Destination Card 4 -->
+                <div class="col">
+                    <div class="card h-100">
+                        <img src="https://via.placeholder.com/200x150/FF9800/FFFFFF" class="card-img-top" alt="여행지 이미지">
+                        <div class="card-body text-center">
+                            <h5 class="card-title mb-1">한옥마을</h5>
+                            <p class="card-text text-muted">전라북도 전주시</p>
+                            <span class="badge bg-light text-dark">#전통</span>
+                            <span class="badge bg-light text-dark">#한복</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn btn-more mt-4">더 보기</button>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://kit.fontawesome.com/your-code.js" crossorigin="anonymous"></script>
 </body>
 </html>

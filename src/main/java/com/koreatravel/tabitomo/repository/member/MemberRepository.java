@@ -8,12 +8,13 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
-public interface MemberRepository extends JpaRepository<MemberEntity, String> {
+public interface MemberRepository extends JpaRepository<MemberEntity, UUID> {
     
     // Basic CRUD operations
     @Override
-    Optional<MemberEntity> findById(String email);
+    Optional<MemberEntity> findById(UUID id);
     
     boolean existsByEmail(String email);
     
@@ -23,6 +24,8 @@ public interface MemberRepository extends JpaRepository<MemberEntity, String> {
     @Query("SELECT m FROM MemberEntity m WHERE m.email = :email AND m.isActive = true")
     Optional<MemberEntity> findActiveByEmail(@Param("email") String email);
     
+    Optional<MemberEntity> findByIdAndIsActiveTrue(UUID id);
+    
     // Find by email (active or inactive)
     Optional<MemberEntity> findByEmail(String email);
     
@@ -31,10 +34,18 @@ public interface MemberRepository extends JpaRepository<MemberEntity, String> {
     
     // Account management
     @Modifying
+    @Query("UPDATE MemberEntity m SET m.isActive = false WHERE m.id = :id")
+    int deactivateById(@Param("id") UUID id);
+    
+    @Modifying
     @Query("UPDATE MemberEntity m SET m.isActive = false WHERE m.email = :email")
     int deactivateByEmail(@Param("email") String email);
     
     // Password update
+    @Modifying
+    @Query("UPDATE MemberEntity m SET m.password = :password WHERE m.id = :id")
+    int updatePasswordById(@Param("id") UUID id, @Param("password") String password);
+    
     @Modifying
     @Query("UPDATE MemberEntity m SET m.password = :password WHERE m.email = :email")
     int updatePassword(@Param("email") String email, @Param("password") String password);
@@ -45,6 +56,10 @@ public interface MemberRepository extends JpaRepository<MemberEntity, String> {
     }
     
     // Profile updates
+    @Modifying
+    @Query("UPDATE MemberEntity m SET m.nickname = :nickname WHERE m.id = :id")
+    int updateNicknameById(@Param("id") UUID id, @Param("nickname") String nickname);
+    
     @Modifying
     @Query("UPDATE MemberEntity m SET m.nickname = :nickname WHERE m.email = :email")
     int updateNickname(@Param("email") String email, @Param("nickname") String nickname);

@@ -3,6 +3,7 @@ package com.koreatravel.tabitomo.domain.entity.trip;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.UUID;
 import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
 
 /**
@@ -22,13 +23,13 @@ public class FavoritePlaceEntity {
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    // 이메일 필드 (member_email과 동기화됨)
-    @Column(name = "email", length = 255)
+    // 멤버 ID (member 테이블과의 조인을 위해 사용)
+    @Column(name = "member_id", columnDefinition = "BINARY(16)", nullable = false)
+    private UUID memberId;
+    
+    // 이메일 필드 (조회용)
+    @Column(name = "email", insertable = false, updatable = false, length = 255)
     private String email;
-
-    // 멤버 이메일 (member 테이블과의 조인을 위해 사용)
-    @Column(name = "member_email", nullable = false, length = 100, insertable = true, updatable = false)
-    private String memberEmail;
 
     // 장소 ID (place 테이블과의 관계를 나타냄)
     @Column(name = "place_id", nullable = false, length = 50, insertable = true, updatable = false)
@@ -36,7 +37,7 @@ public class FavoritePlaceEntity {
 
     // 회원 엔티티와의 연관 관계
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_email", referencedColumnName = "email", insertable = false, updatable = false)
+    @JoinColumn(name = "member_id", referencedColumnName = "id", insertable = false, updatable = false)
     private MemberEntity member;
 
     // 생성 일시
@@ -48,21 +49,17 @@ public class FavoritePlaceEntity {
         if (this.createdAt == null) {
             this.createdAt = LocalDateTime.now();
         }
-        // email과 memberEmail을 동기화
-        if (this.memberEmail != null && this.email == null) {
-            this.email = this.memberEmail;
-        } else if (this.email != null && this.memberEmail == null) {
-            this.memberEmail = this.email;
+        // Set email from member if available
+        if (this.member != null && this.email == null) {
+            this.email = this.member.getEmail();
         }
     }
 
     @PreUpdate
     protected void onUpdate() {
-        // email과 memberEmail을 동기화
-        if (this.memberEmail != null && this.email == null) {
-            this.email = this.memberEmail;
-        } else if (this.email != null && this.memberEmail == null) {
-            this.memberEmail = this.email;
+        // Ensure email is in sync with member if member is loaded
+        if (this.member != null && this.email == null) {
+            this.email = this.member.getEmail();
         }
     }
 }

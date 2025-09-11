@@ -7,9 +7,11 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.UUID;
 
 import com.koreatravel.tabitomo.domain.entity.storybook.StorybookEntity;
 import com.koreatravel.tabitomo.domain.entity.trip.TripEntity;
@@ -29,10 +31,15 @@ import com.koreatravel.tabitomo.domain.entity.trip.TripEntity;
 // Additional getters for compatibility with existing code
 public class MemberEntity {
     @Id
+    @GeneratedValue
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
+    @Column(columnDefinition = "BINARY(16)")
+    private UUID id;
+
     @Email(message = "유효한 이메일 주소를 입력해주세요.")
     @NotBlank(message = "이메일은 필수 입력 항목입니다.")
     @Size(max = 80, message = "이메일은 최대 80자까지 입력 가능합니다.")
-    @Column(name = "email", nullable = false, length = 80)
+    @Column(name = "email", nullable = false, length = 80, unique = true)
     private String email;
 
     @NotBlank(message = "비밀번호는 필수 입력 항목입니다.")
@@ -118,7 +125,7 @@ public class MemberEntity {
     @ManyToMany
     @JoinTable(
         name = "member_add_info",
-        joinColumns = @JoinColumn(name = "email", referencedColumnName = "email"),
+        joinColumns = @JoinColumn(name = "member_id", referencedColumnName = "id"),
         inverseJoinColumns = {
             @JoinColumn(name = "info_high_num", referencedColumnName = "info_high_num"),
             @JoinColumn(name = "info_low_num", referencedColumnName = "info_low_num")
@@ -178,12 +185,14 @@ public class MemberEntity {
     private List<UserSelectedInfoEntity> userSelectedInfos = new ArrayList<>();
     
     @Builder
-    public MemberEntity(String email, String password, String confirmPassword, String nickname, 
+    public MemberEntity(UUID id, String email, String password, String confirmPassword, String nickname, 
                        Integer age, Integer gender, CountryEntity country, LanguageEntity preferredLanguage, 
                        String profileImageUrl, Boolean isActive, Boolean questionnaireCompleted, 
                        Set<AddInfoEntity> additionalInfos, LocalDateTime createdAt, 
-                       LocalDateTime updatedAt, MemberRole role, List<TripEntity> trips, 
-                       List<StorybookEntity> storyBooks, List<UserSelectedInfoEntity> userSelectedInfos) {
+                       LocalDateTime updatedAt, LocalDateTime lastLoginAt, 
+                       List<TripEntity> trips, List<StorybookEntity> storyBooks, 
+                       List<UserSelectedInfoEntity> userSelectedInfos) {
+        this.id = id;
         this.email = email;
         this.password = password;
         this.confirmPassword = confirmPassword;
@@ -223,10 +232,9 @@ public class MemberEntity {
         this.updatedAt = LocalDateTime.now();
     }
     
-    // Additional methods needed for security
-    public Long getId() {
-        // Since email is the ID, we can return a hash of it as a long
-        return (long) this.email.hashCode();
+    // Get the UUID ID
+    public UUID getId() {
+        return id;
     }
     
     public String getStatus() {

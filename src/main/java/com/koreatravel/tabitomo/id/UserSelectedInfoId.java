@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -25,6 +26,6 @@ public class UserSelectedInfoId implements Serializable {
     @Column(name = "info_low_num")
     private Integer infoLowNum;
     
-    @Column(name = "email")
-    private String email;
+    @Column(name = "member_id", columnDefinition = "BINARY(16)")
+    private UUID memberId;
 }

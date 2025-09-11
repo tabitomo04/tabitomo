@@ -8,17 +8,21 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import java.util.UUID;
+import java.util.Optional;
 
 @Repository
 public interface FavoritePlaceRepository extends JpaRepository<FavoritePlaceEntity, Integer> {
-    boolean existsByMemberEmailAndPlaceId(String memberEmail, String placeId);
+    boolean existsByMemberIdAndPlaceId(UUID memberId, String placeId);
     
-    Page<FavoritePlaceEntity> findByMemberEmail(String memberEmail, Pageable pageable);
+    Page<FavoritePlaceEntity> findByMemberId(UUID memberId, Pageable pageable);
+
+    Optional<FavoritePlaceEntity> findByMemberIdAndPlaceId(UUID memberId, String placeId);
 
     @Modifying
-    @Query("DELETE FROM FavoritePlaceEntity f WHERE f.memberEmail = :memberEmail AND f.placeId = :placeId")
-    void deleteByMemberEmailAndPlaceId(
-        @Param("memberEmail") String memberEmail, 
+    @Query("DELETE FROM FavoritePlaceEntity f WHERE f.memberId = :memberId AND f.placeId = :placeId")
+    void deleteByMemberIdAndPlaceId(
+        @Param("memberId") UUID memberId, 
         @Param("placeId") String placeId
     );
 }

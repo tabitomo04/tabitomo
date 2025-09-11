@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -26,11 +27,14 @@ public class TripEntity {
     @Column(name = "trip_id")
     private Long id;
 
-    @Column(name = "member_email", nullable = false, length = 320)
+    @Column(name = "member_id", columnDefinition = "BINARY(16)", nullable = false)
+    private UUID memberId;
+    
+    @Column(name = "member_email", insertable = false, updatable = false, length = 320)
     private String memberEmail;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_email", referencedColumnName = "email", insertable = false, updatable = false)
+    @JoinColumn(name = "member_id", referencedColumnName = "id", insertable = false, updatable = false)
     private MemberEntity member;
 
     @Column(name = "accommodation_id", length = 50)

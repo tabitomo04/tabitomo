@@ -4,6 +4,7 @@ import com.koreatravel.tabitomo.id.UserSelectedInfoId;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.util.UUID;
 
 @Entity
 @Table(name = "user_selected_info")
@@ -23,7 +24,10 @@ public class UserSelectedInfoEntity {
     private Integer infoLowNum;
 
     @Id
-    @Column(name = "email", nullable = false, length = 255, columnDefinition = "VARCHAR(255)")
+    @Column(name = "member_id", columnDefinition = "BINARY(16)", nullable = false)
+    private UUID memberId;
+
+    @Column(name = "email", insertable = false, updatable = false, length = 255)
     private String email;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -34,6 +38,6 @@ public class UserSelectedInfoEntity {
     private AddInfoEntity addInfo;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "email", referencedColumnName = "email", insertable = false, updatable = false)
+    @JoinColumn(name = "member_id", referencedColumnName = "id", insertable = false, updatable = false)
     private MemberEntity member;
 }

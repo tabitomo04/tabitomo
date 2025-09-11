@@ -28,10 +28,10 @@ public class StorybookEntity {
     private Integer bookNum;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "email", referencedColumnName = "email", nullable = false, insertable = false, updatable = false)
+    @JoinColumn(name = "member_id", referencedColumnName = "id", nullable = false)
     private MemberEntity member;
-
-    @Column(name = "email", nullable = false, length = 50)
+    
+    @Column(name = "email", nullable = false, length = 50, insertable = false, updatable = false)
     private String email;
 
     @Builder.Default

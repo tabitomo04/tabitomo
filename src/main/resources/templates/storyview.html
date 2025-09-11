@@ -6,10 +6,14 @@
   <title>스토리북 개별 페이지</title>
   <link rel="stylesheet"th:href="@{/css/storyview.css}">
   <link rel="stylesheet" th:href="@{/css/style.css}">
+  <link rel="stylesheet" th:href="@{/css/modal.css}">
+
 
 
   <script th:src="@{/js/jquery-3.7.1.min.js}"></script>
   <script th:src="@{/js/main.js}"></script>
+  <script th:src="@{/js/modal.js}"></script>
+
 
 
   <script>
@@ -81,7 +85,7 @@ document.addEventListener('click', function(e) {
     <span>정민호</span> · <span th:text="${#temporals.format(post.createDate, 'yy.MM.dd')}"></span>
     </div>
     <div class="actions">
-      <button onclick="clip()">URL 공유</button>
+      <button class="urlbtn" data-tooltip="복사되었습니다!" onclick="clip()">URL 공유</button>
       <button id="likeBtn" onclick="toggleLike()"><span>❤   </span><span id="like-count" th:text="${post.likes}"></span></button>
     </div>
   </div>

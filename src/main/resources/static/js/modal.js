@@ -195,5 +195,26 @@
           });
       }
 
+ // url 공유 모달창 js
+   function clip(){
+       var url = '';
+       var textarea = document.createElement("textarea");
+       document.body.appendChild(textarea);
+       url = window.document.location.href;
+       textarea.value = url;
+       textarea.select();
+       document.execCommand("copy");
+       document.body.removeChild(textarea);
+
+       // 툴팁 표시
+        const btn = document.querySelector(".urlbtn");
+       btn.classList.add("show");
+
+      // 2초 후 툴팁 숨기기
+      setTimeout(() => {
+          btn.classList.remove("show");
+      }, 2000);
+     }
+
 
 

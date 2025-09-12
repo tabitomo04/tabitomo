@@ -33,7 +33,7 @@ public class ReferenceDataServiceImpl implements ReferenceDataService {
     }
 
     @Override
-    public CountryDTO getCountryById(Long countryId) {
+    public CountryDTO getCountryById(Integer countryId) {
         log.debug("Fetching country by ID: {}", countryId);
         return countryRepository.findById(countryId)
                 .map(this::convertToCountryDTO)
@@ -49,7 +49,7 @@ public class ReferenceDataServiceImpl implements ReferenceDataService {
     }
 
     @Override
-    public LanguageDTO getLanguageById(Long languageId) {
+    public LanguageDTO getLanguageById(Integer languageId) {
         log.debug("Fetching language by ID: {}", languageId);
         return languageRepository.findById(languageId)
                 .map(this::convertToLanguageDTO)

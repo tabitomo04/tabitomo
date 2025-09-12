@@ -8,12 +8,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import com.koreatravel.tabitomo.PathConstants;
 
 /**
  * REST controller for managing reference data like countries and languages
  */
 @RestController
-@RequestMapping("/api")
+@RequestMapping(PathConstants.API)
 @RequiredArgsConstructor
 public class ReferenceDataController {
 
@@ -23,7 +24,7 @@ public class ReferenceDataController {
      * Get all countries
      * @return List of all countries
      */
-    @GetMapping("/countries")
+    @GetMapping("/reference/countries")
     public ResponseEntity<List<CountryDTO>> getAllCountries() {
         return ResponseEntity.ok(referenceDataService.getAllCountries());
     }
@@ -33,8 +34,8 @@ public class ReferenceDataController {
      * @param countryId Country ID
      * @return Country details
      */
-    @GetMapping("/countries/{countryId}")
-    public ResponseEntity<CountryDTO> getCountryById(@PathVariable Long countryId) {
+    @GetMapping("/reference/countries/{countryId}")
+    public ResponseEntity<CountryDTO> getCountryById(@PathVariable Integer countryId) {
         return ResponseEntity.ok(referenceDataService.getCountryById(countryId));
     }
 
@@ -42,7 +43,7 @@ public class ReferenceDataController {
      * Get all languages
      * @return List of all languages
      */
-    @GetMapping("/languages")
+    @GetMapping("/reference/languages")
     public ResponseEntity<List<LanguageDTO>> getAllLanguages() {
         return ResponseEntity.ok(referenceDataService.getAllLanguages());
     }
@@ -52,8 +53,8 @@ public class ReferenceDataController {
      * @param languageId Language ID
      * @return Language details
      */
-    @GetMapping("/languages/{languageId}")
-    public ResponseEntity<LanguageDTO> getLanguageById(@PathVariable Long languageId) {
+    @GetMapping("/reference/languages/{languageId}")
+    public ResponseEntity<LanguageDTO> getLanguageById(@PathVariable Integer languageId) {
         return ResponseEntity.ok(referenceDataService.getLanguageById(languageId));
     }
 

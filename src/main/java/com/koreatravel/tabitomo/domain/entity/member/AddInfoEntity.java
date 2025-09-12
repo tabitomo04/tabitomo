@@ -41,5 +41,5 @@ public class AddInfoEntity {
 
     @OneToMany(mappedBy = "addInfo", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private List<UserSelectedInfoEntity> userSelectedInfos = new ArrayList<>();
+    private List<MemberAddInfoEntity> memberAddInfos = new ArrayList<>();
 }

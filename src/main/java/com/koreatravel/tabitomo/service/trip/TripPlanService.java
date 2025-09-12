@@ -91,6 +91,7 @@ public class TripPlanService {
                             .latitude(accDto.getLatitude() != null ? accDto.getLatitude() : 0.0)
                             .longitude(accDto.getLongitude() != null ? accDto.getLongitude() : 0.0)
                             .categoryCode("ACCOMMODATION")
+                            .priceRange(accDto.getPriceRange())
                             .build();
                     return placeRepository.save(newPlace);
                 });
@@ -205,6 +206,27 @@ public class TripPlanService {
                             .build();
                     return placeRepository.save(newPlace);
                 });
+    }
+    
+    @Transactional(readOnly = true)
+    public List<TripEntity> findTripsByUsername(String username) {
+        log.debug("Finding all trips for username: {}", username);
+        MemberEntity member = memberRepository.findByEmail(username)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다: " + username));
+        return tripRepository.findByMember(member);
+    }
+    
+    @Transactional(readOnly = true)
+    public Optional<TripEntity> findTripByIdAndUsername(Long tripId, String username) {
+        log.debug("Finding trip with ID: {} for username: {}", tripId, username);
+        return tripRepository.findById(tripId)
+                .filter(trip -> trip.getMember().getEmail().equals(username));
+    }
+    
+    @Transactional(readOnly = true)
+    public List<ScheduleEntity> findSchedulesByTripIdWithPlace(Long tripId) {
+        log.debug("Finding schedules with place for trip ID: {}", tripId);
+        return scheduleRepository.findByTripIdWithPlace(tripId);
     }
     
     /**

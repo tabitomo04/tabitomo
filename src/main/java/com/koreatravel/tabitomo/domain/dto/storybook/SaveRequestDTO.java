@@ -5,9 +5,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
 @Builder(toBuilder = true)
 public class SaveRequestDTO {
     private Integer booknum;
@@ -16,6 +16,7 @@ public class SaveRequestDTO {
     private String title;
     private String subtitle;
     private String content;
+    private String email;
     
     // Builder pattern implementation
     public static SaveRequestDTOBuilder builder() {

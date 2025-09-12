@@ -21,7 +21,7 @@ public interface ReferenceDataService {
      * @param countryId Country ID
      * @return CountryDTO
      */
-    CountryDTO getCountryById(Long countryId);
+    CountryDTO getCountryById(Integer countryId);
     
     /**
      * Get all languages
@@ -34,7 +34,7 @@ public interface ReferenceDataService {
      * @param languageId Language ID
      * @return LanguageDTO
      */
-    LanguageDTO getLanguageById(Long languageId);
+    LanguageDTO getLanguageById(Integer languageId);
     
     /**
      * Get languages by country code

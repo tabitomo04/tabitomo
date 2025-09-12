@@ -146,7 +146,7 @@
                         <span class="step">2</span>
                     </div>
                     
-                    <form id="signupForm" th:action="@{/auth/signup}" method="post" novalidate>
+                    <form id="signupForm" th:action="@{/auth/signup}" method="post" th:object="${memberForm}" novalidate>
                         <!-- Error message placeholder -->
                         <div th:if="${param.error}" class="alert alert-danger">
                             <span th:text="${param.error}">An error occurred during signup.</span>
@@ -263,6 +263,15 @@
                                     <input type="radio" class="btn-check" name="gender" id="gender-na" value="4" autocomplete="off">
                                     <label class="btn btn-outline-primary" for="gender-na">선택 안함</label>
                                 </div>
+                            </div>
+                            
+                            <!-- Date of Birth -->
+                            <div class="mb-3">
+                                <label for="dateOfBirth" class="form-label">생년월일</label>
+                                <input type="date" class="form-control" id="dateOfBirth" th:field="*{dateOfBirth}" 
+                                       max="" required>
+                                <div class="form-text">YYYY-MM-DD 형식으로 입력해주세요.</div>
+                                <div id="dateOfBirthError" class="text-danger"></div>
                             </div>
                             
                             <!-- Submit and Back Buttons -->
@@ -626,6 +635,66 @@
                         console.error('Error loading data:', error);
                     }
                 }
+                
+                // Set max date for date of birth (today) and add validation
+                const dateOfBirthInput = document.getElementById('dateOfBirth');
+                const dateOfBirthError = document.getElementById('dateOfBirthError');
+                
+                if (dateOfBirthInput) {
+                    const today = new Date();
+                    const minDate = new Date();
+                    minDate.setFullYear(today.getFullYear() - 100); // 100 years ago
+                    
+                    dateOfBirthInput.max = today.toISOString().split('T')[0];
+                    dateOfBirthInput.min = minDate.toISOString().split('T')[0];
+                    
+                    // Add real-time validation
+                    dateOfBirthInput.addEventListener('change', function() {
+                        const selectedDate = new Date(this.value);
+                        const age = today.getFullYear() - selectedDate.getFullYear();
+                        
+                        if (selectedDate > today) {
+                            dateOfBirthError.textContent = '미래 날짜는 선택할 수 없습니다.';
+                            this.setCustomValidity('미래 날짜는 선택할 수 없습니다.');
+                        } else if (age < 14) {
+                            dateOfBirthError.textContent = '만 14세 이상만 가입 가능합니다.';
+                            this.setCustomValidity('만 14세 이상만 가입 가능합니다.');
+                        } else if (age > 100) {
+                            dateOfBirthError.textContent = '유효한 생년월일을 입력해주세요.';
+                            this.setCustomValidity('유효한 생년월일을 입력해주세요.');
+                        } else {
+                            dateOfBirthError.textContent = '';
+                            this.setCustomValidity('');
+                        }
+                    });
+                }
+
+                // Form submission
+                signupForm.addEventListener('submit', function(e) {
+                    if (!isEmailVerified) {
+                        e.preventDefault();
+                        showError('verificationResult', '이메일 인증을 완료해주세요.');
+                        return false;
+                    }
+                    
+                    if (!validatePassword()) {
+                        e.preventDefault();
+                        return false;
+                    }
+                    
+                    // Validate date of birth
+                    if (!dateOfBirthInput.value) {
+                        e.preventDefault();
+                        showError('dateOfBirth', '생년월일을 입력해주세요.');
+                        return false;
+                    }
+                    
+                    // Set hidden field values
+                    document.getElementById('countryIdValue').value = document.getElementById('countryId').value;
+                    document.getElementById('preferredLanguageIdValue').value = document.getElementById('preferredLanguageId').value;
+                    
+                    // If all validations pass, the form will submit
+                });
                 
                 // Initialize the page
                 loadCountriesAndLanguages();

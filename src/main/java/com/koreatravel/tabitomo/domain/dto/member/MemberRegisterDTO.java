@@ -2,6 +2,7 @@ package com.koreatravel.tabitomo.domain.dto.member;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -36,9 +37,17 @@ public class MemberRegisterDTO {
     @Pattern(regexp = "^(MALE|FEMALE|OTHER|PREFER_NOT_TO_SAY|)$", 
              message = "유효하지 않은 성별입니다.")
     private String gender;
+    
+    @NotBlank(message = "생년월일을 입력해주세요.")
+    @Pattern(regexp = "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$", 
+             message = "생년월일은 YYYY-MM-DD 형식으로 입력해주세요.")
+    private String dateOfBirth;
 
-    private Long countryId;
-    private Long preferredLanguageId;
+    @NotNull(message = "국가를 선택해주세요.")
+    private Integer countryId;
+    
+    @NotNull(message = "선호 언어를 선택해주세요.")
+    private Integer preferredLanguageId;
 
     // 비밀번호와 비밀번호 확인이 일치하는지 검증
     public boolean isPasswordMatching() {

@@ -8,7 +8,7 @@ import java.util.Optional;
 /**
  * Country entity에 대한 데이터베이스 작업을 처리하는 Repository 인터페이스
  */
-public interface CountryRepository extends JpaRepository<CountryEntity, Long> {
+public interface CountryRepository extends JpaRepository<CountryEntity, Integer> {
     
     /**
      * ISO 코드로 국가 정보 조회 (예: KOR, USA, JPN 등)

@@ -13,16 +13,27 @@ import java.util.Optional;
 
 @Repository
 public interface FavoritePlaceRepository extends JpaRepository<FavoritePlaceEntity, Integer> {
-    boolean existsByMemberIdAndPlaceId(UUID memberId, String placeId);
+    @Query("SELECT CASE WHEN COUNT(f) > 0 THEN true ELSE false END FROM FavoritePlaceEntity f WHERE f.member.id = :memberId AND f.placeId = :placeId")
+    boolean existsByMemberIdAndPlaceId(@Param("memberId") UUID memberId, @Param("placeId") String placeId);
     
-    Page<FavoritePlaceEntity> findByMemberId(UUID memberId, Pageable pageable);
+    @Query("SELECT f FROM FavoritePlaceEntity f WHERE f.member.id = :memberId")
+    Page<FavoritePlaceEntity> findByMemberId(@Param("memberId") UUID memberId, Pageable pageable);
 
-    Optional<FavoritePlaceEntity> findByMemberIdAndPlaceId(UUID memberId, String placeId);
-
-    @Modifying
-    @Query("DELETE FROM FavoritePlaceEntity f WHERE f.memberId = :memberId AND f.placeId = :placeId")
-    void deleteByMemberIdAndPlaceId(
+    @Query("SELECT f FROM FavoritePlaceEntity f WHERE f.member.id = :memberId AND f.placeId = :placeId")
+    Optional<FavoritePlaceEntity> findByMemberIdAndPlaceId(
         @Param("memberId") UUID memberId, 
         @Param("placeId") String placeId
     );
+
+    @Modifying
+    @Query("DELETE FROM FavoritePlaceEntity f WHERE f.member.id = :memberId AND f.placeId = :placeId")
+    int deleteByMemberIdAndPlaceId(
+        @Param("memberId") UUID memberId, 
+        @Param("placeId") String placeId
+    );
+    
+    // For compatibility with existing code
+    default void removeByMemberIdAndPlaceId(UUID memberId, String placeId) {
+        deleteByMemberIdAndPlaceId(memberId, placeId);
+    }
 }

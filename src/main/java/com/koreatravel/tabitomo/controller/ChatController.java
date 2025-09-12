@@ -18,9 +18,10 @@ import com.koreatravel.tabitomo.service.chat.ChatService;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.koreatravel.tabitomo.PathConstants;
 
 @RestController
-@RequestMapping("/chat")
+@RequestMapping(PathConstants.CHAT)
 @RequiredArgsConstructor
 public class ChatController {
 
@@ -70,7 +71,7 @@ public class ChatController {
         return chatService.processLanguageCode(lang);
     }
 
-    @GetMapping("/qa/{categoryId}")
+    @GetMapping("/category/{categoryId}")
     public ResponseEntity<List<ChatQAEntity>> getQuestionsByCategory(@PathVariable Integer categoryId) {
         try {
             List<ChatQAEntity> questions = chatQARepository.findByCategoryId(categoryId);

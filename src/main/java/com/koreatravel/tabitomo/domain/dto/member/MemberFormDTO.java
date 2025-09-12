@@ -40,11 +40,16 @@ public class MemberFormDTO {
     @Max(value = 4, message = "유효하지 않은 성별 값입니다.")
     private Integer gender;  // 1: Male, 2: Female, 3: Other, 4: Prefer not to say
     
+    @NotBlank(message = "생년월일을 입력해주세요.")
+    @Pattern(regexp = "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$", 
+             message = "생년월일은 YYYY-MM-DD 형식으로 입력해주세요.")
+    private String dateOfBirth;
+    
     @NotNull(message = "국적을 선택해주세요.")
-    private Long countryId;
+    private Integer countryId;
     
     @NotNull(message = "선호 언어를 선택해주세요.")
-    private Long preferredLanguageId;
+    private Integer preferredLanguageId;
     
     // 기존 필드들 (필요시 사용)
     private Integer infohighnum;

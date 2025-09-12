@@ -223,112 +223,62 @@ let editorInstance;
     const titleInput = $('#title');
 
         // 제목 입력란 blur 이벤트
-        titleInput.on('blur', function() {
-            if ($(this).val().trim() === '') {
-                alert('제목은 필수입력입니다');
-            }
-        });
-
-    // 저장 버튼 클릭 이벤트
-    $('.saveButton').on('click', function() {
-        // 클릭 이벤트 시점에 최신 값 가져오기
-        const title = $('#title').val();
-        const subtitle = $('#subtitle').val();
-        const content = editorInstance.getData();
-
-        // 제목 유효성 검사
-        if (title === '') {
-            alert('제목은 필수입력입니다');
-            return false;
+    titleInput.on('blur', function() {
+        if ($(this).val().trim() === '') {
+            console.log('Title is required');
         }
+    });
 
-        // 내용 유효성 검사
-        if (content === '') {
-            alert('내용을 입력해주세요.');
-            return false;
-        }
+    // 좋아요 처리
+    $('.like-btn').on('click', function() {
+        const storyId = $(this).data('story-id');
+        const isLiked = $(this).hasClass('liked');
+        const likeUrl = isLiked 
+            ? `${PathConstants.STORYBOOK.BASE}/unlike/${storyId}`
+            : `${PathConstants.STORYBOOK.BASE}/like/${storyId}`;
 
-        const saveRequestDTO = {
-                booknum: $('#booknum').val() || null,
-                tempId: $('#tempId').val() || null,
-                savetype: $('#savetype').val(),
-                title: $('#title').val(),
-                subtitle: $('#subtitle').val(),
-                content: editorInstance.getData()
-            };
-
-
-        // 모든 유효성 검사 통과 후 AJAX 호출
         $.ajax({
-            url: '/save',
             type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(saveRequestDTO),
+            url: likeUrl,
             success: function(response) {
-                if (response.status === "success" && response.booknum) {
-                    alert('저장되었습니다.');
-                    window.location.href = '/view?booknum=' + response.booknum;
-                } else {
-                    alert('저장 완료. 그러나 게시물번호를 받을 수 없습니다.');
+                if (response.success) {
+                    // Toggle like state
+                    $('.like-btn').toggleClass('liked');
+                    // Update like count
+                    const likeCount = $('.like-count');
+                    likeCount.text(parseInt(likeCount.text()) + (isLiked ? -1 : 1));
                 }
             },
             error: function(xhr, status, error) {
-                alert('저장 실패');
-                console.error(error);
+                console.error('Error:', error);
+                alert('좋아요 처리 중 오류가 발생했습니다.');
             }
         });
     });
 });
 
+// 댓글 삭제
+function deleteComment(commentId) {
+    if (!confirm('댓글을 삭제하시겠습니까?')) return;
 
-    // 임시저장 버튼 클릭
-    $('.tempButton').on('click', function() {
-          const title = $('#title').val();
-          const subtitle = $('#subtitle').val();
-          const content = editorInstance.getData();
-
-    // 제목 유효성 검사
-      if (title === '') {
-          alert('제목은 필수입력입니다');
-          return false;
-      }
-
-      // 내용 유효성 검사
-      if (content === '') {
-          alert('내용을 입력해주세요.');
-          return false;
-      }
-
-        const saveRequestDTO = {
-                booknum: $('#booknum').val() || null,
-                tempId: $('#tempId').val() || null,
-                savetype: $('#savetype').val(),
-                title: $('#title').val(),
-                subtitle: $('#subtitle').val(),
-                content: editorInstance.getData()
-                  };
-
-
-      $.ajax ( {
-          url: '/tempsave',       // 서버 API 주소
-          type: 'POST',
-          contentType: 'application/json',
-          data: JSON.stringify(saveRequestDTO),
-             success: function(response) {
-                if (response.status === "success" && response.tempId) {
-                    alert('임시저장되었습니다.');
-                    window.location.href = '/mypage';
-                } else {
-                    alert('저장 완료. 그러나 게시물번호를 받을 수 없습니다.');
-                        }
-             },
-             error: function(xhr, status, error) {
-                alert('저장 실패');
-                console.error(error);
-             }
-      });
-
+    $.ajax({
+        type: 'DELETE',
+        url: `${PathConstants.API.COMMENTS}/${commentId}`,
+        success: function(response) {
+            if (response.success) {
+                // Remove comment from DOM
+                $(`#comment-${commentId}`).remove();
+                alert('댓글이 삭제되었습니다.');
+            } else {
+                alert('댓글 삭제에 실패했습니다.');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error:', error);
+            alert('댓글 삭제 중 오류가 발생했습니다.');
+        }
     });
+}
 
 
 

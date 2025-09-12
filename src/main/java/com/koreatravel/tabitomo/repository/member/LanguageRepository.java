@@ -8,7 +8,7 @@ import java.util.Optional;
 /**
  * Language entity에 대한 데이터베이스 작업을 처리하는 Repository 인터페이스
  */
-public interface LanguageRepository extends JpaRepository<LanguageEntity, Long> {
+public interface LanguageRepository extends JpaRepository<LanguageEntity, Integer> {
     
     /**
      * 언어 코드로 언어 정보 조회 (예: ko, en, ja 등)

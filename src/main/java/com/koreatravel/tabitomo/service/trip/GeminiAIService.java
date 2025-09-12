@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.koreatravel.tabitomo.client.KakaoLocalApiClient;
 import com.koreatravel.tabitomo.domain.dto.trip.TourRecommendationDTO;
 import com.koreatravel.tabitomo.domain.dto.trip.TourRecommendationDTO.ItineraryItem;
-import com.koreatravel.tabitomo.domain.entity.trip.PlaceEntity;
+import com.koreatravel.tabitomo.domain.dto.trip.AccommodationDTO;
 
 @Service
 public class GeminiAIService {
@@ -69,7 +69,7 @@ public class GeminiAIService {
     private void loadData() {
         try {
             // 관광명소 CSV 로드
-            Resource csvResource = resourceLoader.getResource("classpath:static/data/국내 지역별 관광명소 데이터.csv");
+            Resource csvResource = resourceLoader.getResource("classpath:static/data/국내 지역별 관광명소 데이터.csv");
             try (CSVReader reader = new CSVReader(new InputStreamReader(csvResource.getInputStream(), "UTF-8"))) {
                 List<String[]> allRows = reader.readAll();
                 if (!allRows.isEmpty()) {
@@ -90,7 +90,7 @@ public class GeminiAIService {
             }
 
             // 숙박시설 JSON 로드
-            Resource jsonResource = resourceLoader.getResource("classpath:static/data/전국 숙박시설 가격,부대시설 정보.json");
+            Resource jsonResource = resourceLoader.getResource("classpath:static/data/전국 숙박시설 가격,부대시설 정보.json");
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(jsonResource.getInputStream(), "UTF-8"))) {
                 String jsonString = reader.lines().collect(Collectors.joining("\n"));
                 accommodationData = objectMapper.readValue(jsonString, new com.fasterxml.jackson.core.type.TypeReference<List<Map<String, Object>>>(){});
@@ -297,14 +297,14 @@ public class GeminiAIService {
             if (recommendationNode.has("accommodation")) {
                 try {
                     JsonNode accNode = recommendationNode.get("accommodation");
-                    PlaceEntity place = PlaceEntity.builder()
-                        .name(accNode.path("place").asText())
-                        .description(accNode.path("description").asText(""))
-                        .categoryCode("ACCOMMODATION")
-                        .latitude(accNode.path("latitude").asDouble(0.0))
-                        .longitude(accNode.path("longitude").asDouble(0.0))
-                        .build();
-                    dto.setAccommodation(place);
+                    AccommodationDTO accommodation = new AccommodationDTO();
+                    accommodation.setPlaceName(accNode.path("place").asText());
+                    accommodation.setDescription(accNode.path("description").asText(""));
+                    accommodation.setLatitude(accNode.path("latitude").asDouble(0.0));
+                    accommodation.setLongitude(accNode.path("longitude").asDouble(0.0));
+                    // Set default price range if available
+                    accommodation.setPriceRange("N/A");
+                    dto.setAccommodation(accommodation);
                 } catch (Exception e) {
                     logger.error("Error setting accommodation: {}", e.getMessage(), e);
                 }

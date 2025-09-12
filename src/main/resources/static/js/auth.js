@@ -2,6 +2,8 @@
  * Authentication JavaScript for TabiTomo
  * Handles client-side form validation, API calls, and user interactions
  * for authentication-related pages (login, signup, password reset, etc.)
+ * 
+ * Uses PathConstants for API endpoints to maintain consistency with the backend.
  */
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -109,25 +111,37 @@ function initCountryAndLanguageSelects() {
     
     // Populate country select
     const countrySelect = document.getElementById('country');
-    if (countrySelect) {
+    const languageSelect = document.getElementById('language');
+    
+    // Add loading state
+    if (countrySelect) countrySelect.disabled = true;
+    if (languageSelect) languageSelect.disabled = true;
+    
+    // Fetch countries and languages from the API using PathConstants
+    Promise.all([
+        fetch(PathConstants.API.REFERENCE.COUNTRIES).then(res => res.json()),
+        fetch(PathConstants.API.REFERENCE.LANGUAGES).then(res => res.json())
+    ]).then(([countries, languages]) => {
+        // Populate country select
         countries.forEach(country => {
             const option = document.createElement('option');
             option.value = country.id;
             option.textContent = country.name;
             countrySelect.appendChild(option);
         });
-    }
-    
-    // Populate language select
-    const languageSelect = document.getElementById('language');
-    if (languageSelect) {
+        
+        // Populate language select
         languages.forEach(language => {
             const option = document.createElement('option');
             option.value = language.id;
             option.textContent = language.name;
             languageSelect.appendChild(option);
         });
-    }
+        
+        // Remove loading state
+        if (countrySelect) countrySelect.disabled = false;
+        if (languageSelect) languageSelect.disabled = false;
+    });
 }
 
 /**
@@ -305,14 +319,19 @@ function handleFormSubmit(event, url, onSuccess, onError) {
     const form = event.target;
     const formData = new FormData(form);
     const submitButton = form.querySelector('button[type="submit"]');
-    const originalButtonText = submitButton.innerHTML;
+    const originalButtonText = submitButton ? submitButton.innerHTML : '';
     
     // Show loading state
-    submitButton.disabled = true;
-    submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>처리 중...';
+    if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 처리 중...';
+    }
     
     // Clear previous errors
     clearErrors(form);
+    
+    // Use PathConstants if url is a key in PathConstants
+    const finalUrl = PathConstants[url] || url;
     
     // Convert form data to JSON
     const jsonData = {};
@@ -320,8 +339,8 @@ function handleFormSubmit(event, url, onSuccess, onError) {
         jsonData[key] = value;
     });
     
-    // Send request
-    fetch(url, {
+    // Submit the form data
+    fetch(finalUrl, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

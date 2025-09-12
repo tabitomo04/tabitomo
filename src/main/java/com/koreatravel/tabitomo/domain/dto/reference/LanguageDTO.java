@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LanguageDTO {
-    private Long languageId;
+    private Integer languageId;
     private String languageCode;
     private String nameNative;
     private String nameEn;

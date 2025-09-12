@@ -1,5 +1,7 @@
 package com.koreatravel.tabitomo.domain.entity.storybook;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -9,9 +11,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -19,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 @Getter
 @Setter
 @Table(name = "storybook")
-@ToString
+@ToString(exclude = {"likesList"})
 public class StorybookEntity {
 
     @Id
@@ -47,27 +46,60 @@ public class StorybookEntity {
     @Column(name = "content", columnDefinition = "TEXT")
     private String content;
 
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
-    private LocalDateTime updatedAt;
+    @Column(name = "thumbnail", length = 255)
+    private String thumbnail;
     
     @OneToMany(mappedBy = "storybook", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
     @Builder.Default
     private List<LikeEntity> likesList = new ArrayList<>();
 
+    @CreationTimestamp
+    @Column(name = "create_date", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    private LocalDateTime createDate;
+
+    @UpdateTimestamp
+    @Column(name = "update_date", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
+    private LocalDateTime updateDate;
+    
+    @Column(name = "created_at", insertable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    private LocalDateTime createdAt;
+    
+    @Column(name = "updated_at", insertable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
+    private LocalDateTime updatedAt;
+
+    public void updateTitle(String title) {
+        this.title = title;
+    }
+    
+    /**
+     * Adds a like to this storybook's likes list and sets up the bidirectional relationship.
+     * @param like The like to add
+     */
+    public void addLike(LikeEntity like) {
+        if (like != null) {
+            like.setStorybook(this);
+            this.likesList.add(like);
+            // Update the likes count
+            this.likes = this.likesList.size();
+        }
+    }
+
     @PrePersist
     protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.createDate = LocalDateTime.now();
+        this.updateDate = LocalDateTime.now();
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
+        if (this.updatedAt == null) {
+            this.updatedAt = LocalDateTime.now();
+        }
     }
 
     @PreUpdate
     protected void onUpdate() {
+        this.updateDate = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
     

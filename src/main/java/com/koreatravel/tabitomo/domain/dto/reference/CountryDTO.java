@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CountryDTO {
-    private Long countryId;
+    private Integer countryId;
     private String countryName;
     private String countryCode;
     private String isoCode;

@@ -9,7 +9,9 @@ import lombok.*;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.util.*;
 import java.util.UUID;
 
@@ -27,7 +29,7 @@ import com.koreatravel.tabitomo.domain.entity.trip.TripEntity;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = {"password", "trips", "storyBooks", "additionalInfos"})
+@ToString(exclude = {"password", "trips", "storyBooks", "additionalInfos", "likes"})
 // Additional getters for compatibility with existing code
 public class MemberEntity {
     @Id
@@ -58,18 +60,30 @@ public class MemberEntity {
     @Column(name = "nickname", nullable = false, length = 45, columnDefinition = "VARCHAR(45) NOT NULL")
     private String nickname;
 
-    @Column(name = "age", columnDefinition = "INT")
-    private Integer age;
+    @Column(name = "date_of_birth", columnDefinition = "DATE")
+    private LocalDate dateOfBirth;
 
     @Column(name = "gender", columnDefinition = "INT", nullable = false)
     private Integer gender;  // 1: Male, 2: Female, 3: Other, 4: Prefer not to say
+    
+    /**
+     * Calculate and return the member's age based on date of birth
+     * @return Age in years, or null if date of birth is not set
+     */
+    @Transient
+    public Integer getAge() {
+        if (dateOfBirth == null) {
+            return null;
+        }
+        return Period.between(dateOfBirth, LocalDate.now()).getYears();
+    }
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "country_id", nullable = false)
+    @JoinColumn(name = "country_id", nullable = false, referencedColumnName = "country_id")
     private CountryEntity country;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "preferred_language_id", nullable = false)
+    @JoinColumn(name = "preferred_language_id", nullable = false, referencedColumnName = "id")
     private LanguageEntity preferredLanguage;
     
     @Column(name = "profile_image_url", length = 255, columnDefinition = "VARCHAR(255)")
@@ -167,8 +181,6 @@ public class MemberEntity {
     @Builder.Default
     private MemberRole role = MemberRole.ROLE_USER;
     
-    @Column(name = "last_login_time", columnDefinition = "DATETIME(6)")
-    private LocalDateTime lastLoginTime;
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
@@ -182,22 +194,37 @@ public class MemberEntity {
     
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private List<UserSelectedInfoEntity> userSelectedInfos = new ArrayList<>();
+    private List<MemberAddInfoEntity> memberAddInfos = new ArrayList<>();
+    
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<com.koreatravel.tabitomo.domain.entity.storybook.LikeEntity> likes = new ArrayList<>();
+    
+    /**
+     * Adds a like to this member's likes list and sets up the bidirectional relationship.
+     * @param like The like to add
+     */
+    public void addLike(com.koreatravel.tabitomo.domain.entity.storybook.LikeEntity like) {
+        if (like != null) {
+            like.setMember(this);
+            this.likes.add(like);
+        }
+    }
     
     @Builder
     public MemberEntity(UUID id, String email, String password, String confirmPassword, String nickname, 
-                       Integer age, Integer gender, CountryEntity country, LanguageEntity preferredLanguage, 
+                       LocalDate dateOfBirth, Integer gender, CountryEntity country, LanguageEntity preferredLanguage, 
                        String profileImageUrl, Boolean isActive, Boolean questionnaireCompleted, 
                        Set<AddInfoEntity> additionalInfos, LocalDateTime createdAt, 
-                       LocalDateTime updatedAt, LocalDateTime lastLoginAt, 
-                       List<TripEntity> trips, List<StorybookEntity> storyBooks, 
-                       List<UserSelectedInfoEntity> userSelectedInfos) {
+                       LocalDateTime updatedAt, List<TripEntity> trips, 
+                       List<StorybookEntity> storyBooks, List<MemberAddInfoEntity> memberAddInfos,
+                       List<com.koreatravel.tabitomo.domain.entity.storybook.LikeEntity> likes) {
         this.id = id;
         this.email = email;
         this.password = password;
         this.confirmPassword = confirmPassword;
         this.nickname = nickname;
-        this.age = age;
+        this.dateOfBirth = dateOfBirth;
         this.gender = gender;
         this.country = country;
         this.preferredLanguage = preferredLanguage;
@@ -207,10 +234,10 @@ public class MemberEntity {
         this.additionalInfos = additionalInfos != null ? additionalInfos : new HashSet<>();
         this.createdAt = createdAt;
         this.updatedAt = updatedAt != null ? updatedAt : LocalDateTime.now();
-        this.role = role != null ? role : MemberRole.ROLE_USER;
         this.trips = trips != null ? trips : new ArrayList<>();
         this.storyBooks = storyBooks != null ? storyBooks : new ArrayList<>();
-        this.userSelectedInfos = userSelectedInfos != null ? userSelectedInfos : new ArrayList<>();
+        this.memberAddInfos = memberAddInfos != null ? memberAddInfos : new ArrayList<>();
+        this.likes = likes != null ? likes : new ArrayList<>();
     }
     
     public enum MemberRole {
@@ -241,11 +268,13 @@ public class MemberEntity {
         return this.isActive ? "ACTIVE" : "INACTIVE";
     }
     
-    public Long getCountryId() {
+    @Transient
+    public Integer getCountryId() {
         return this.country != null ? this.country.getCountryId() : null;
     }
     
-    public Long getPreferredLanguageId() {
+    @Transient
+    public Integer getPreferredLanguageId() {
         return this.preferredLanguage != null ? this.preferredLanguage.getLanguageId() : null;
     }
     
@@ -265,14 +294,6 @@ public class MemberEntity {
             case 4 -> "PREFER_NOT_TO_SAY";
             default -> null;
         };
-    }
-    
-    public LocalDateTime getLastLoginTime() {
-        return lastLoginTime;
-    }
-    
-    public void setLastLoginTime(LocalDateTime lastLoginTime) {
-        this.lastLoginTime = lastLoginTime;
     }
 
     public void updatePassword(String newPassword) {

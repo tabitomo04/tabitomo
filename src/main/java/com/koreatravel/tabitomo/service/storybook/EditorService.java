@@ -14,7 +14,6 @@ import com.koreatravel.tabitomo.repository.storybook.LikeRepository;
 import com.koreatravel.tabitomo.repository.storybook.MediaRepository;
 import com.koreatravel.tabitomo.repository.storybook.StorybookRepository;
 import com.koreatravel.tabitomo.repository.storybook.TempsaveRepository;
-import com.koreatravel.tabitomo.service.StorybookService;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;

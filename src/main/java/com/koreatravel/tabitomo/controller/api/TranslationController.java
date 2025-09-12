@@ -6,9 +6,10 @@ import com.google.cloud.translate.Translation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.koreatravel.tabitomo.PathConstants;
 
 @RestController
-@RequestMapping("/api/translate")
+@RequestMapping(PathConstants.API_TRANSLATE)
 public class TranslationController {
 
     @Value("${app.google.cloud.translation.api-key}")

@@ -68,8 +68,8 @@ public class MemberDetails implements UserDetails {
                 .updatedAt(member.getUpdatedAt())
                 .status(member.getStatus())
                 .role(member.getRole().name())
-                .countryId(member.getCountryId())
-                .preferredLanguageId(member.getPreferredLanguageId())
+                .countryId(member.getCountryId() != null ? member.getCountryId().intValue() : null)
+                .preferredLanguageId(member.getPreferredLanguageId() != null ? member.getPreferredLanguageId().intValue() : null)
                 .build();
         }
         return profile;

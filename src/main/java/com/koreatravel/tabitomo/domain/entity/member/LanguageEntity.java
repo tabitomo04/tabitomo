@@ -20,8 +20,8 @@ public class LanguageEntity {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "language_id")
-    private Long languageId;
+    @Column(name = "id", columnDefinition = "INT")
+    private Integer languageId;
     
     @Column(name = "language_code", length = 5, unique = true, nullable = false)
     private String languageCode;  // ISO 639-1 (e.g., ko, en, ja, zh)
@@ -45,7 +45,7 @@ public class LanguageEntity {
     private List<MemberEntity> members = new ArrayList<>();
     
     // For DTO conversion
-    public Long getLanguageId() {
+    public Integer getLanguageId() {
         return languageId;
     }
     

@@ -1,4 +1,4 @@
-package com.koreatravel.tabitomo.domain.dto.member.member;
+package com.koreatravel.tabitomo.domain.dto.member;
 
 import lombok.Data;
 

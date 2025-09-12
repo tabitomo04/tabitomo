@@ -1,7 +1,7 @@
 package com.koreatravel.tabitomo.controller.trip;
 
 import com.koreatravel.tabitomo.domain.dto.trip.*;
-import com.koreatravel.tabitomo.domain.entity.trip.PlaceEntity;
+import com.koreatravel.tabitomo.domain.dto.trip.AccommodationDTO;
 import com.koreatravel.tabitomo.service.trip.GeminiAIService;
 import com.koreatravel.tabitomo.service.trip.TripPlanService;
 import lombok.RequiredArgsConstructor;
@@ -92,17 +92,16 @@ public class TripRecommendationController {
         // Process the recommendation and update the trip plan
         if (tourRecommendation != null && tourRecommendation.getAccommodation() != null) {
             TripPlanDTO.Accommodation accommodation = new TripPlanDTO.Accommodation();
-            PlaceEntity place = tourRecommendation.getAccommodation();
+            AccommodationDTO accDTO = tourRecommendation.getAccommodation();
             
-            // Map fields from PlaceEntity to TripPlanDTO.Accommodation
-            accommodation.setPlaceName(place.getName());
-            accommodation.setDescription(place.getDescription());
-            // Since PlaceEntity doesn't have priceRange, we'll set it to null or a default value
-            accommodation.setPriceRange(null);
-            accommodation.setImageUrl(place.getImageUrl());
-            accommodation.setLatitude(place.getLatitude());
-            accommodation.setLongitude(place.getLongitude());
-            accommodation.setAddress(place.getAddress());
+            // Map fields from AccommodationDTO to TripPlanDTO.Accommodation
+            accommodation.setPlaceName(accDTO.getPlaceName());
+            accommodation.setDescription(accDTO.getDescription());
+            accommodation.setPriceRange(accDTO.getPriceRange());
+            accommodation.setImageUrl(accDTO.getImageUrl());
+            accommodation.setLatitude(accDTO.getLatitude());
+            accommodation.setLongitude(accDTO.getLongitude());
+            accommodation.setAddress(accDTO.getAddress());
             
             tripPlan.setAccommodation(accommodation);
         }

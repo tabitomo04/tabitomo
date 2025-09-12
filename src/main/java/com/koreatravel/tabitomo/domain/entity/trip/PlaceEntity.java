@@ -28,6 +28,9 @@ public class PlaceEntity {
     @Column(name = "category_code", length = 50)
     private String categoryCode; // 예: ATTRACTION, RESTAURANT, ACCOMMODATION
 
+    @Column(name = "price_range", length = 50)
+    private String priceRange; // 가격대 정보 (예: "10000-20000")
+
     @Column(length = 200)
     private String address;
 

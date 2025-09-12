@@ -154,8 +154,6 @@ public class AuthServiceImpl implements AuthService {
                 throw new LockedException("error.auth.account.inactive");
             }
 
-            // Update last login time
-            member.setLastLoginTime(LocalDateTime.now());
             memberRepository.save(member);
             
             log.info("User logged in successfully: {}", email);

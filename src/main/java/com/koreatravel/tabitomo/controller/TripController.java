@@ -79,10 +79,10 @@ public class TripController {
                            @AuthenticationPrincipal UserDetails userDetails) {
         String email = userDetails.getUsername();
         tripPlanService.deleteTripPlan(tripId, email);
-        return "redirect:/mypage";
+        return "redirect:/member/mypage";
     }
 
-    @GetMapping
+    @GetMapping("/list")
     public String listTrips(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         String email = userDetails.getUsername();
         List<TripEntity> trips = tripPlanService.findTripsByMemberEmail(email);
@@ -90,14 +90,4 @@ public class TripController {
         return "trip-list";
     }
 
-    // Helper method to convert TripEntity to TripPlanDTO
-    private TripPlanDTO convertToDTO(TripEntity trip) {
-        // This is a simplified conversion. You should map all necessary fields.
-        TripPlanDTO dto = new TripPlanDTO();
-        dto.setPlanName(trip.getTitle());
-        dto.setStartDate(trip.getStartDate());
-        dto.setEndDate(trip.getEndDate());
-        // Add other fields and handle schedules if needed
-        return dto;
-    }
 }

@@ -1,53 +1,123 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/main}">
 <head>
-  <meta charset="utf-8">
-  <title>스토리북 작성</title>
-
-  <!--ckeditor css-->
-  <link rel="stylesheet" th:href="@{/css/editor.css}">
-  <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/46.0.1/ckeditor5.css" crossorigin>
-
-  <script th:src="@{/js/jquery-3.7.1.min.js}"></script>
-  <link rel="stylesheet" th:href="@{/css/modal.css}">
+    <meta charset="utf-8">
+    <title>스토리북 <span th:text="${bookNum ? '수정' : '작성'}"></span>하기</title>
+    
+    <!-- CKEditor CSS -->
+    <link rel="stylesheet" th:href="@{/css/editor.css}">
+    <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/46.0.1/ckeditor5.css" crossorigin>
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <!-- Custom CSS -->
+    <style>
+        .editor-header {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem 0.5rem 0 0;
+            padding: 1.5rem;
+            margin-bottom: 0;
+        }
+        
+        .title-input, .subtitle-input {
+            width: 100%;
+            border: none;
+            outline: none;
+            padding: 0.5rem 1rem;
+            font-size: 1.25rem;
+            font-weight: 500;
+            background-color: transparent;
+        }
+        
+        .title-input {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle-input {
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        .editor-container {
+            border: 1px solid #dee2e6;
+            border-top: none;
+            border-radius: 0 0 0.5rem 0.5rem;
+            min-height: 500px;
+        }
+        
+        .editor-actions {
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+        }
+        
+        .btn-save {
+            min-width: 100px;
+        }
+        
+        .spinner-border {
+            margin-right: 0.5rem;
+        }
+        
+        .character-count {
+            color: #6c757d;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            text-align: right;
+        }
+    </style>
 </head>
 
-
-    <body>
+<body>
 <div layout:fragment="content">
-    <div class="container mt-4">
-      <h2>스토리북 작성하기</h2>
-        <table style="border: 2px solid #333; border-collapse: separate; width: 100%; margin-bottom:30px">
-          <thead>
-          <tr>
-            <td colspan="5">
-              <input type="text" id="title" class="title-input" placeholder="제목을 입력해주세요" name="title" maxlength="100">
-            </td>
-          </tr>
-          <tr>
-            <td colspan="5">
-              <input type="text" id="subtitle" class="subtitle-input" placeholder="부제목을 입력해주세요" name="subtitle" maxlength="100">
-            </td>
-          </tr>
-          </thead>
-        </table>
-
-        <table style="width: 100%;">
-          <tbody>
-          <tr>
-            <td colspan="5">
-              <div class="main-container">
-                <div class="editor-container editor-container_classic-editor" id="editor-container">
-                  <div class="editor-container__editor">
-                    <textarea id="input-contents"></textarea> <!-- contents -->
-                  </div>
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>스토리북 <span th:text="${bookNum ? '수정' : '작성'}"></span>하기</h2>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-secondary tempButton">
+                    <i class="bi bi-save"></i> 임시저장
+                </button>
+                <button type="button" class="btn btn-primary saveButton">
+                    <i class="bi bi-check-lg"></i> 저장하기
+                </button>
+            </div>
+        </div>
+        
+        <!-- Hidden inputs for edit mode -->
+        <input type="hidden" id="bookNum" th:value="${bookNum}">
+        
+        <div class="card shadow-sm mb-4">
+            <div class="card-body p-0">
+                <div class="editor-header">
+                    <input type="text" id="title" class="title-input" 
+                           placeholder="제목을 입력해주세요" name="title" maxlength="100"
+                           th:value="${storybook?.title}">
+                    <div class="character-count"><span id="title-count">0</span>/100</div>
+                    
+                    <input type="text" id="subtitle" class="subtitle-input" 
+                           placeholder="부제목을 입력해주세요 (선택사항)" name="subtitle" maxlength="200"
+                           th:value="${storybook?.subtitle}">
+                    <div class="character-count"><span id="subtitle-count">0</span>/200</div>
                 </div>
-              </div>
-            </td>
-          </tr>
-          </tbody>
+                
+                <div class="editor-container">
+                    <div id="editor"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="alert alert-info" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i>
+            <strong>작성 팁:</strong> 이미지는 드래그 앤 드롭으로 쉽게 추가할 수 있습니다.
+            <span th:if="${bookNum == null}">작성 중인 내용은 자동으로 임시저장됩니다.</span>
+        </div>
         </table>
         <div style="text-align:right">
           <button class="tempButton btn btn-dark" type="submit">임시저장</button>

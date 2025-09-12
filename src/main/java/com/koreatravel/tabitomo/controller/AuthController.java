@@ -14,7 +14,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -88,6 +87,7 @@ public class AuthController {
                     .confirmPassword(formDTO.getPasswordConfirm())
                     .nickname(formDTO.getNickname())
                     .gender(formDTO.getGender())
+                    .dateOfBirth(formDTO.getDateOfBirth())
                     .countryId(formDTO.getCountryId())
                     .preferredLanguageId(formDTO.getPreferredLanguageId())
                     .build();
@@ -118,7 +118,7 @@ public class AuthController {
      * @deprecated 토큰 기반 비밀번호 재설정은 더 이상 지원되지 않습니다.
      */
     @Deprecated
-    @PostMapping(REQUEST_PASSWORD_RESET)
+    @PostMapping(PathConstants.REQUEST_PASSWORD_RESET)
     @ResponseBody
     public ResponseEntity<?> requestPasswordReset(@Valid @RequestBody PasswordResetRequestDTO request, BindingResult bindingResult) {
         log.warn("Password reset via email verification is deprecated");
@@ -131,7 +131,7 @@ public class AuthController {
      * @deprecated 토큰 기반 인증은 더 이상 지원되지 않습니다.
      */
     @Deprecated
-    @PostMapping(RESET_PASSWORD + "/verify")
+    @PostMapping(PathConstants.API_EMAIL_VERIFY)
     @ResponseBody
     public ResponseEntity<?> verifyResetCode(@Valid @RequestBody PasswordResetRequestDTO request, BindingResult bindingResult) {
         log.warn("Token-based password reset verification is deprecated");
@@ -145,7 +145,7 @@ public class AuthController {
     /**
      * 비밀번호 재설정 (토큰 없이 이메일 기반으로만 처리)
      */
-    @PostMapping(RESET_PASSWORD + "/confirm")
+    @PostMapping(PathConstants.RESET_PASSWORD)
     @ResponseBody
     public ResponseEntity<?> resetPassword(@Valid @RequestBody PasswordResetRequestDTO request, BindingResult bindingResult) {
         try {
@@ -231,7 +231,7 @@ public class AuthController {
     /**
      * 비밀번호 재설정 페이지 (토큰 파라미터 제거)
      */
-    @GetMapping(RESET_PASSWORD)
+    @GetMapping(PathConstants.RESET_PASSWORD)
     public String resetPasswordPage() {
         return "auth/reset-password";
     }

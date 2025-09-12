@@ -60,12 +60,23 @@ public class MemberService {
                 .email(member.getEmail())
                 .nickname(member.getNickname())
                 .gender(gender)
-                .profileImageUrl(member.getProfileImageUrl());
+                .dateOfBirth(member.getDateOfBirth() != null ? member.getDateOfBirth().toString() : null)
+                .profileImageUrl(member.getProfileImageUrl())
+                .createdAt(member.getCreatedAt())
+                .updatedAt(member.getUpdatedAt())
+                .status(member.isActive() ? "ACTIVE" : "INACTIVE")
+                .role(member.getRole() != null ? member.getRole().name() : "ROLE_USER");
                 
         // Add country information if available
         if (member.getCountry() != null) {
             builder.countryId(member.getCountry().getCountryId());
             builder.countryName(member.getCountry().getCountryName());
+        }
+        
+        // Add preferred language information if available
+        if (member.getPreferredLanguage() != null) {
+            builder.preferredLanguageId(member.getPreferredLanguage().getLanguageId());
+            builder.preferredLanguageName(member.getPreferredLanguage().getNameEn()); // Using nameEn field
         }
         
         return builder.build();
@@ -95,6 +106,16 @@ public class MemberService {
                 throw new DuplicateResourceException("Nickname already in use");
             }
             member.setNickname(updateDTO.getNickname());
+        }
+        
+        // 생년월일 업데이트
+        if (updateDTO.getDateOfBirth() != null && !updateDTO.getDateOfBirth().isEmpty()) {
+            try {
+                member.setDateOfBirth(java.time.LocalDate.parse(updateDTO.getDateOfBirth()));
+            } catch (Exception e) {
+                log.error("Invalid date format for dateOfBirth: " + updateDTO.getDateOfBirth(), e);
+                throw new ValidationException("유효하지 않은 날짜 형식입니다. YYYY-MM-DD 형식으로 입력해주세요.");
+            }
         }
         
         // 비밀번호 변경
@@ -201,6 +222,8 @@ public class MemberService {
             .password(passwordEncoder.encode(registerDTO.getPassword()))
             .nickname(registerDTO.getNickname())
             .gender(registerDTO.getGender())
+            .dateOfBirth(registerDTO.getDateOfBirth() != null && !registerDTO.getDateOfBirth().isEmpty() ? 
+                java.time.LocalDate.parse(registerDTO.getDateOfBirth()) : null)
             .isActive(true) // Active immediately since we'll verify via session/redis if needed
             .questionnaireCompleted(false)
             .build();
@@ -219,8 +242,23 @@ public class MemberService {
     /**
      * 이메일로 회원 조회
      */
+    /**
+     * 이메일로 회원 조회
+     */
     public MemberEntity findByEmail(String email) {
         return memberRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+    }
+    
+    /**
+     * 이메일로 회원 ID 조회
+     * @param email 조회할 회원 이메일
+     * @return 회원 ID (UUID)
+     * @throws ResourceNotFoundException 해당 이메일의 회원이 없을 경우
+     */
+    public UUID getMemberIdByEmail(String email) {
+        return memberRepository.findByEmail(email)
+                .map(MemberEntity::getId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
     }
     

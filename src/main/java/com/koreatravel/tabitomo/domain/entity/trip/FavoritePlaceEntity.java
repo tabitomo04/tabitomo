@@ -23,22 +23,23 @@ public class FavoritePlaceEntity {
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    // 멤버 ID (member 테이블과의 조인을 위해 사용)
-    @Column(name = "member_id", columnDefinition = "BINARY(16)", nullable = false)
-    private UUID memberId;
+    // 회원 엔티티와의 연관 관계
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", referencedColumnName = "id", nullable = false)
+    private MemberEntity member;
     
     // 이메일 필드 (조회용)
-    @Column(name = "email", insertable = false, updatable = false, length = 255)
+    @Transient
     private String email;
 
     // 장소 ID (place 테이블과의 관계를 나타냄)
     @Column(name = "place_id", nullable = false, length = 50, insertable = true, updatable = false)
     private String placeId;
-
-    // 회원 엔티티와의 연관 관계
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", referencedColumnName = "id", insertable = false, updatable = false)
-    private MemberEntity member;
+    
+    // memberId getter for compatibility
+    public UUID getMemberId() {
+        return member != null ? member.getId() : null;
+    }
 
     // 생성 일시
     @Column(name = "created_at")

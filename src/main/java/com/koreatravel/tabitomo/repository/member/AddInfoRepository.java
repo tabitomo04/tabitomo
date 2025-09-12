@@ -37,7 +37,7 @@ public interface AddInfoRepository extends JpaRepository<AddInfoEntity, AddInfoI
      * @param infoLowNum 조회할 infoLowNum
      * @return 조회된 추가 정보 (Optional)
      */
-    Optional<AddInfoEntity> findByInfoHighNumAndInfoLowNum(Integer infoHighNum, Long infoLowNum);
+    Optional<AddInfoEntity> findByInfoHighNumAndInfoLowNum(Integer infoHighNum, Integer infoLowNum);
     
     /**
      * infoHighNum과 content로 추가 정보를 조회합니다.

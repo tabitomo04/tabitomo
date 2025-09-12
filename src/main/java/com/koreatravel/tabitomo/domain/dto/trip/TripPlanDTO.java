@@ -7,6 +7,7 @@ import java.util.Map;
 
 @Data
 public class TripPlanDTO {
+    private Long id; // 여행 계획 ID
     private String planName; // 여행 계획 이름
     private String destination;
     private LocalDate startDate;

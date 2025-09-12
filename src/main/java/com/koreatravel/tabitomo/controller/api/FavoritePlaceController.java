@@ -7,16 +7,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import com.koreatravel.tabitomo.config.security.MemberDetails;
-import com.koreatravel.tabitomo.dto.trip.FavoritePlaceDetailDTO;
+import com.koreatravel.tabitomo.domain.dto.trip.FavoritePlaceDetailDTO;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
+import com.koreatravel.tabitomo.PathConstants;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/favorites")
+@RequestMapping(PathConstants.API_FAVORITES)
 public class FavoritePlaceController {
 
     private final FavoritePlaceService favoritePlaceService;

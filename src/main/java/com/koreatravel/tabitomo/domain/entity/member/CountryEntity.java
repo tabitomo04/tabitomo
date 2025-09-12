@@ -20,8 +20,8 @@ public class CountryEntity {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "country_id")
-    private Long countryId;
+    @Column(name = "country_id", columnDefinition = "INT")
+    private Integer countryId;
     
     @Column(name = "country_code", length = 2, unique = true, nullable = false)
     private String countryCode;  // ISO 3166-1 alpha-2 (e.g., KR, US, JP)
@@ -48,7 +48,7 @@ public class CountryEntity {
     private List<MemberEntity> members = new ArrayList<>();
     
     // For DTO conversion
-    public Long getCountryId() {
+    public Integer getCountryId() {
         return countryId;
     }
     

@@ -1,9 +1,7 @@
 package com.koreatravel.tabitomo.service.trip;
 
 import com.koreatravel.tabitomo.domain.entity.trip.FavoritePlaceEntity;
-import com.koreatravel.tabitomo.domain.entity.trip.PlaceEntity;
-import com.koreatravel.tabitomo.dto.trip.FavoritePlaceDetailDTO;
-import com.koreatravel.tabitomo.repository.trip.PlaceRepository;
+import com.koreatravel.tabitomo.domain.dto.trip.FavoritePlaceDetailDTO;
 import com.koreatravel.tabitomo.repository.trip.FavoritePlaceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -11,7 +9,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
 import com.koreatravel.tabitomo.repository.member.MemberRepository;
@@ -21,7 +18,6 @@ import com.koreatravel.tabitomo.repository.member.MemberRepository;
 public class FavoritePlaceService {
 
     private final FavoritePlaceRepository favoritePlaceRepository;
-    private final PlaceRepository placeRepository;
     private final MemberRepository memberRepository;
 
     /**
@@ -38,20 +34,14 @@ public class FavoritePlaceService {
             throw new IllegalStateException("이미 즐겨찾기에 추가된 장소입니다.");
         }
 
-        // 장소 정보 조회
-        PlaceEntity place = placeRepository.findById(placeId).orElseThrow(
-            () -> new IllegalArgumentException("존재하지 않는 장소입니다.")
-        );
-
         FavoritePlaceEntity favorite = FavoritePlaceEntity.builder()
-                .memberId(memberId)
-                .email(member.getEmail()) // 이메일은 조회용으로만 사용
+                .member(member)
                 .placeId(placeId)
-                .createdAt(LocalDateTime.now())
                 .build();
+        favorite.setEmail(member.getEmail()); // 이메일은 조회용으로만 사용
 
         FavoritePlaceEntity saved = favoritePlaceRepository.save(favorite);
-        return FavoritePlaceDetailDTO.fromEntity(saved, place);
+        return FavoritePlaceDetailDTO.fromEntity(saved);
     }
 
     /**
@@ -59,7 +49,7 @@ public class FavoritePlaceService {
      */
     @Transactional
     public void removeFavorite(UUID memberId, String placeId) {
-        favoritePlaceRepository.deleteByMemberIdAndPlaceId(memberId, placeId);
+        favoritePlaceRepository.removeByMemberIdAndPlaceId(memberId, placeId);
     }
 
     /**
@@ -67,12 +57,8 @@ public class FavoritePlaceService {
      */
     @Transactional(readOnly = true)
     public Page<FavoritePlaceDetailDTO> getFavorites(UUID memberId, Pageable pageable) {
-        return favoritePlaceRepository.findByMemberId(memberId, pageable)
-                .map(favorite -> {
-                    PlaceEntity place = placeRepository.findById(favorite.getPlaceId())
-                            .orElseThrow(() -> new IllegalStateException("장소 정보를 찾을 수 없습니다."));
-                    return FavoritePlaceDetailDTO.fromEntity(favorite, place);
-                });
+        Page<FavoritePlaceEntity> favorites = favoritePlaceRepository.findByMemberId(memberId, pageable);
+        return favorites.map(FavoritePlaceDetailDTO::fromEntity);
     }
 
     /**

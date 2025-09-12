@@ -7,9 +7,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import com.koreatravel.tabitomo.PathConstants;
 
 @RestController
-@RequestMapping("/api/email")
+@RequestMapping(PathConstants.API_EMAIL)
 @RequiredArgsConstructor
 public class EmailVerificationController {
 

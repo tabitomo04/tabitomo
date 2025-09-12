@@ -1,14 +1,17 @@
 package com.koreatravel.tabitomo.controller;
 
 import com.koreatravel.tabitomo.PathConstants;
-import com.koreatravel.tabitomo.domain.dto.member.member.QuestionnaireRequest;
+import com.koreatravel.tabitomo.domain.dto.member.QuestionAnswersDTO;
 import com.koreatravel.tabitomo.domain.entity.member.AddInfoEntity;
+import com.koreatravel.tabitomo.domain.entity.member.MemberAddInfoEntity;
 import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
-import com.koreatravel.tabitomo.domain.entity.member.UserSelectedInfoEntity;
+import com.koreatravel.tabitomo.id.MemberAddInfoId;
+import java.util.Optional;
+import java.util.UUID;
 import com.koreatravel.tabitomo.exception.ResourceNotFoundException;
 import com.koreatravel.tabitomo.repository.member.AddInfoRepository;
-import com.koreatravel.tabitomo.repository.member.UserSelectedInfoRepository;
 import com.koreatravel.tabitomo.service.member.MemberService;
+import com.koreatravel.tabitomo.repository.member.MemberAddInfoRepository;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +21,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -28,8 +32,9 @@ import java.util.Map;
 @RequestMapping(PathConstants.QUESTION)
 public class QuestionController {
 
-    private final MemberService memberService;
+    private final MemberAddInfoRepository memberAddInfoRepository;
     private final AddInfoRepository addInfoRepository;
+    private final MemberService memberService;
 
     @GetMapping(PathConstants.QUESTION_START)
     public String showStartPage(HttpSession session, RedirectAttributes redirectAttributes) {
@@ -78,12 +83,10 @@ public class QuestionController {
         return "question/form";
     }
 
-    private final UserSelectedInfoRepository userSelectedInfoRepository;
-
     @PostMapping(PathConstants.QUESTION_SUBMIT)
     @Transactional
     public String submitAnswers(
-            @ModelAttribute QuestionnaireRequest request,
+            @ModelAttribute QuestionAnswersDTO request,
             HttpSession session,
             RedirectAttributes redirectAttributes) {
         
@@ -97,53 +100,55 @@ public class QuestionController {
         
         try {
             // 1. Validate and process each question
-            List<UserSelectedInfoEntity> userSelections = new ArrayList<>();
+            List<MemberAddInfoEntity> memberAddInfos = new ArrayList<>();
             
             // Process hobbies (single selection)
             if (request.getHobbies() != null) {
-                processSingleSelection(email, 1, request.getHobbies(), userSelections, "hobby");
+                processMultipleSelections(email, 1, request.getHobbies(), memberAddInfos, "hobby");
             }
             
             // Process MBTI (single selection)
             if (request.getMbti() != null) {
-                processMbtiSelection(email, request.getMbti(), userSelections);
+                processMbtiSelection(email, request.getMbti(), memberAddInfos);
             }
             
-            // Process travel styles (multiple selection)
+            // Process travel style (multiple selection)
             if (request.getTravelStyles() != null && !request.getTravelStyles().isEmpty()) {
-                processMultipleSelections(email, 3, request.getTravelStyles(), userSelections, "travel style");
+                processMultipleSelections(email, 3, request.getTravelStyles(), memberAddInfos, "travel style");
             }
             
-            // Process companions (multiple selection)
+            // Process companion (multiple selection)
             if (request.getCompanions() != null && !request.getCompanions().isEmpty()) {
-                processMultipleSelections(email, 4, request.getCompanions(), userSelections, "companion");
+                processMultipleSelections(email, 4, request.getCompanions(), memberAddInfos, "companion");
             }
             
-            // Process food preferences (multiple selection)
+            // Process food preference (multiple selection)
             if (request.getFoodPreferences() != null && !request.getFoodPreferences().isEmpty()) {
-                processMultipleSelections(email, 5, request.getFoodPreferences(), userSelections, "food preference");
+                processMultipleSelections(email, 5, request.getFoodPreferences(), memberAddInfos, "food preference");
             }
             
-            // 2. Delete existing selections for this user
-            log.debug("Deleting existing selections for user: {}", email);
-            userSelectedInfoRepository.deleteByEmail(email);
+            // 2. Delete existing user selections by member ID
+            UUID memberId = memberService.getMemberIdByEmail(email);
+            memberAddInfoRepository.deleteByMemberId(memberId);
             
-            // 3. Save all new selections if there are any
-            if (!userSelections.isEmpty()) {
-                log.debug("Saving {} new selections for user: {}", userSelections.size(), email);
-                userSelectedInfoRepository.saveAll(userSelections);
-            } else {
-                log.warn("No valid selections found for user: {}", email);
+            // 3. Save new selections if any
+            if (!memberAddInfos.isEmpty()) {
+                memberAddInfoRepository.saveAll(memberAddInfos);
             }
             
             // 4. Mark questionnaire as completed
             memberService.markQuestionnaireCompleted(email);
             log.info("Successfully completed questionnaire for user: {}", email);
             
-            // 5. Clear the authenticated email from session
-            session.removeAttribute("authenticatedEmail");
+            // Save all selected items
+            memberAddInfoRepository.saveAll(memberAddInfos);
+        
+            // Add user's email to the session to mark as completed
+            session.setAttribute("questionnaireCompleted", true);
+            session.setAttribute("userEmail", email);
             
-            return "redirect:" + PathConstants.QUESTION_COMPLETE;
+            // Redirect to completion page
+            return "redirect:" + PathConstants.QUESTION + PathConstants.QUESTION_COMPLETE;
             
         } catch (ResourceNotFoundException e) {
             log.error("Resource not found while processing questionnaire: {}", e.getMessage(), e);
@@ -156,38 +161,77 @@ public class QuestionController {
         }
     }
     
-    private void processSingleSelection(String email, int infoHighNum, Long infoLowNum, 
-                                      List<UserSelectedInfoEntity> selections, String selectionType) {
-        AddInfoEntity item = addInfoRepository.findByInfoHighNumAndInfoLowNum(infoHighNum, infoLowNum)
-            .orElseThrow(() -> new ResourceNotFoundException("Invalid " + selectionType + " selection"));
+    private void processMbtiSelection(String email, String mbti, List<MemberAddInfoEntity> selections) {
+        // MBTI is stored with infoHighNum = 2
+        int mbtiInfoHighNum = 2;
         
-        selections.add(createUserSelectedInfo(email, item));
-    }
-    
-    private void processMbtiSelection(String email, String mbti, List<UserSelectedInfoEntity> selections) {
-        AddInfoEntity mbtiItem = addInfoRepository.findByInfoHighNumAndContent(2, mbti)
-            .orElseThrow(() -> new ResourceNotFoundException("Invalid MBTI selection"));
+        // Find the AddInfoEntity for the MBTI type
+        Optional<AddInfoEntity> addInfoOpt = addInfoRepository.findByInfoHighNumAndContent(mbtiInfoHighNum, mbti);
         
-        selections.add(createUserSelectedInfo(email, mbtiItem));
+        if (addInfoOpt.isEmpty()) {
+            log.warn("MBTI type not found: {}", mbti);
+            return;
+        }
+        
+        AddInfoEntity addInfo = addInfoOpt.get();
+        
+        // Create a new MemberAddInfoEntity
+        UUID memberId = memberService.getMemberIdByEmail(email);
+        MemberEntity member = memberService.findByEmail(email);
+        
+        // Create the composite ID
+        MemberAddInfoId id = new MemberAddInfoId(memberId, addInfo.getInfoHighNum(), addInfo.getInfoLowNum());
+        
+        // Create and set up the entity
+        MemberAddInfoEntity memberAddInfo = MemberAddInfoEntity.builder()
+            .id(id)
+            .member(member)
+            .addInfo(addInfo)
+            .createdAt(LocalDateTime.now())
+            .build();
+            
+        selections.add(memberAddInfo);
     }
     
     private void processMultipleSelections(String email, int infoHighNum, List<Long> infoLowNums, 
-                                         List<UserSelectedInfoEntity> selections, String selectionType) {
+                                         List<MemberAddInfoEntity> selections, String selectionType) {
+        // Get member ID and member entity
+        UUID memberId = memberService.getMemberIdByEmail(email);
+        MemberEntity member = memberService.findByEmail(email);
+        
+        // Find all items with the given infoHighNum and infoLowNums
         for (Long infoLowNum : infoLowNums) {
-            AddInfoEntity item = addInfoRepository.findByInfoHighNumAndInfoLowNum(infoHighNum, infoLowNum)
+            // Convert Long to Integer for infoLowNum
+            final int lowNum = infoLowNum.intValue();
+            
+            // Find the item with matching infoHighNum and infoLowNum
+            AddInfoEntity item = addInfoRepository.findByInfoHighNumAndInfoLowNum(infoHighNum, lowNum)
                 .orElseThrow(() -> new ResourceNotFoundException("Invalid " + selectionType + " selection: " + infoLowNum));
             
-            selections.add(createUserSelectedInfo(email, item));
+            // Check if the member already has this info
+            List<MemberAddInfoEntity> existingInfos = memberAddInfoRepository.findByMemberIdAndAddInfoInfoHighNumAndAddInfoInfoLowNum(
+                memberId, infoHighNum, lowNum);
+                
+            if (existingInfos.isEmpty()) {
+                // Create the composite ID
+                MemberAddInfoId id = new MemberAddInfoId(memberId, item.getInfoHighNum(), item.getInfoLowNum());
+                
+                // Create and set up the entity
+                MemberAddInfoEntity memberAddInfo = MemberAddInfoEntity.builder()
+                    .id(id)
+                    .member(member)
+                    .addInfo(item)
+                    .createdAt(LocalDateTime.now())
+                    .build();
+                
+                selections.add(memberAddInfo);
+            } else {
+                // Add existing info to selections
+                selections.addAll(existingInfos);
+            }
         }
     }
     
-    private UserSelectedInfoEntity createUserSelectedInfo(String email, AddInfoEntity item) {
-        return UserSelectedInfoEntity.builder()
-            .email(email)
-            .infoHighNum(item.getInfoHighNum())
-            .infoLowNum(item.getInfoLowNum())
-            .build();
-    }
 
     @GetMapping(PathConstants.QUESTION_COMPLETE)
     public String showCompletionPage() {

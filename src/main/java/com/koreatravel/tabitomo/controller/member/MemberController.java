@@ -6,7 +6,6 @@ import com.koreatravel.tabitomo.service.member.MemberService;
 import com.koreatravel.tabitomo.service.reference.ReferenceDataService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import java.util.UUID;
@@ -16,11 +15,12 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import com.koreatravel.tabitomo.PathConstants;
 
 @Slf4j
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/member")
+@RequestMapping(PathConstants.MEMBER)
 public class MemberController {
 
     private final MemberService memberService;
@@ -29,7 +29,7 @@ public class MemberController {
     /**
      * 회원 프로필 조회
      */
-    @GetMapping("/profile")
+    @GetMapping(PathConstants.MEMBER_PROFILE)
     public String viewProfile(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         String email = userDetails.getUsername();
         MemberProfileDTO profile = memberService.getMemberProfile(email);
@@ -37,7 +37,7 @@ public class MemberController {
         return "member/profile";
     }
     
-    @GetMapping("/profile/{id}")
+    @GetMapping(PathConstants.MEMBER_PROFILE + "/{id}")
     public String viewProfileById(@PathVariable UUID id, Model model) {
         MemberProfileDTO profile = memberService.getMemberProfileById(id);
         model.addAttribute("profile", profile);
@@ -47,7 +47,7 @@ public class MemberController {
     /**
      * 회원 정보 수정 폼
      */
-    @GetMapping("/edit")
+    @GetMapping(PathConstants.MEMBER_UPDATE)
     public String editProfileForm(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         String email = userDetails.getUsername();
         MemberProfileDTO profile = memberService.getMemberProfile(email);
@@ -63,7 +63,7 @@ public class MemberController {
     /**
      * 회원 정보 수정 처리
      */
-    @PostMapping("/update")
+    @PostMapping(PathConstants.MEMBER_UPDATE)
     public String updateProfile(@Validated @ModelAttribute("updateForm") MemberUpdateDTO updateDTO,
                               BindingResult bindingResult,
                               @AuthenticationPrincipal UserDetails userDetails,
@@ -107,7 +107,7 @@ public class MemberController {
     /**
      * 회원 탈퇴
      */
-    @PostMapping("/withdraw")
+    @PostMapping(PathConstants.MEMBER + "/withdraw")
     public String withdrawMember(
             @AuthenticationPrincipal UserDetails userDetails,
             RedirectAttributes redirectAttributes) {
@@ -120,11 +120,16 @@ public class MemberController {
         } catch (Exception e) {
             log.error("Error withdrawing member: {}", e.getMessage(), e);
             redirectAttributes.addFlashAttribute("errorMessage", "회원 탈퇴 중 오류가 발생했습니다. 다시 시도해주세요.");
-            return "redirect:/member/profile";
+            return "redirect:" + PathConstants.MEMBER_PROFILE;
         }
     }
     
-    @PostMapping("/change-password")
+    @GetMapping(PathConstants.MEMBER_CHANGE_PASSWORD)
+    public String changePasswordForm() {
+        return "member/change-password";
+    }
+    
+    @PostMapping(PathConstants.MEMBER_CHANGE_PASSWORD)
     public String changePassword(@RequestParam String currentPassword,
                                @RequestParam String newPassword,
                                @AuthenticationPrincipal UserDetails userDetails,

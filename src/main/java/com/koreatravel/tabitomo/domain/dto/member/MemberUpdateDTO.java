@@ -22,6 +22,10 @@ public class MemberUpdateDTO {
              message = "유효하지 않은 성별입니다. MALE, FEMALE, OTHER, PREFER_NOT_TO_SAY 중 하나를 선택해주세요.")
     private String gender;
     
+    @Pattern(regexp = "^$|^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$", 
+             message = "생년월일은 YYYY-MM-DD 형식으로 입력해주세요.")
+    private String dateOfBirth;
+    
     private String profileImageUrl;
     
     @NotBlank(message = "현재 비밀번호를 입력해주세요.")
@@ -32,9 +36,9 @@ public class MemberUpdateDTO {
     
     private String newPasswordConfirm;
     
-    private Long countryId;
+    private Integer countryId;
     
-    private Long preferredLanguageId;
+    private Integer preferredLanguageId;
     
     public boolean isPasswordChangeRequested() {
         return newPassword != null && !newPassword.trim().isEmpty();

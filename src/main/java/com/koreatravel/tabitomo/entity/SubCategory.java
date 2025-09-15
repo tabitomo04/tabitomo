@@ -19,15 +19,20 @@ public class SubCategory {
     @Column(name = "sub_category_id")
     private Integer id;
 
-    @Column(name = "name", nullable = false)
-    private String name;
+    @Column(name = "name_ko", nullable = false)
+    private String nameKo;
+
+    @Column(name = "name_en", nullable = false)
+    private String nameEn;
+
+    @Column(name = "name_ja", nullable = false)
+    private String nameJa;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "main_category_id")
     @JsonBackReference
     private MainCategory mainCategory;
 
-    // SubCategory와 ChatQA 사이의 순환 참조를 끊기 위해 추가
     @OneToMany(mappedBy = "subCategory", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<ChatQA> chatQAs;

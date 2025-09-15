@@ -20,9 +20,21 @@ public class ChatQA {
     @JsonBackReference // 순환 참조를 끊기 위해 추가
     private SubCategory subCategory;
 
-    @Column(name = "question", nullable = false)
-    private String question;
+    @Column(name = "question_ko", nullable = false)
+    private String questionKo;
 
-    @Column(name = "answer", nullable = false, columnDefinition = "TEXT")
-    private String answer;
+    @Column(name = "question_en", nullable = false)
+    private String questionEn;
+
+    @Column(name = "question_ja", nullable = false)
+    private String questionJa;
+
+    @Column(name = "answer_ko", nullable = false, columnDefinition = "TEXT")
+    private String answerKo;
+
+    @Column(name = "answer_en", nullable = false, columnDefinition = "TEXT")
+    private String answerEn;
+
+    @Column(name = "answer_ja", nullable = false, columnDefinition = "TEXT")
+    private String answerJa;
 }

@@ -2,11 +2,7 @@ package com.koreatravel.tabitomo.service;
 
 import com.koreatravel.tabitomo.dto.ChatRequest;
 import com.koreatravel.tabitomo.dto.ChatResponse;
-import com.koreatravel.tabitomo.entity.ChatKeyword;
-import com.koreatravel.tabitomo.entity.ChatQA;
-import com.koreatravel.tabitomo.entity.ForbiddenWord;
-import com.koreatravel.tabitomo.entity.MainCategory;
-import com.koreatravel.tabitomo.entity.SubCategory;
+import com.koreatravel.tabitomo.entity.*;
 import com.koreatravel.tabitomo.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -50,6 +46,46 @@ public class ChatService {
         return "ko-KR";
     }
 
+    // 언어에 따라 동적으로 ChatQA 질문을 가져오는 헬퍼 메서드
+    private String getQaQuestion(ChatQA qa, String lang) {
+        if ("en".equalsIgnoreCase(lang)) {
+            return qa.getQuestionEn();
+        } else if ("ja".equalsIgnoreCase(lang)) {
+            return qa.getQuestionJa();
+        }
+        return qa.getQuestionKo();
+    }
+
+    // 언어에 따라 동적으로 ChatQA 답변을 가져오는 헬퍼 메서드
+    private String getQaAnswer(ChatQA qa, String lang) {
+        if ("en".equalsIgnoreCase(lang)) {
+            return qa.getAnswerEn();
+        } else if ("ja".equalsIgnoreCase(lang)) {
+            return qa.getAnswerJa();
+        }
+        return qa.getAnswerKo();
+    }
+
+    // 언어에 따라 키워드를 처리하는 헬퍼 메서드
+    private String getKeyword(ChatKeyword keyword, String lang) {
+        if ("en".equalsIgnoreCase(lang)) {
+            return keyword.getKeywordEn();
+        } else if ("ja".equalsIgnoreCase(lang)) {
+            return keyword.getKeywordJa();
+        }
+        return keyword.getKeywordKo();
+    }
+
+    // 언어에 따라 동의어를 처리하는 헬퍼 메서드
+    private String getSynonymKeyword(Synonym synonym, String lang) {
+        if ("en".equalsIgnoreCase(lang)) {
+            return synonym.getSynonymKeywordEn();
+        } else if ("ja".equalsIgnoreCase(lang)) {
+            return synonym.getSynonymKeywordJa();
+        }
+        return synonym.getSynonymKeywordKo();
+    }
+
     // 메인 카테고리 목록을 가져옵니다.
     public List<MainCategory> getCategories() {
         return mainCategoryRepo.findAll();
@@ -66,8 +102,8 @@ public class ChatService {
     }
 
     // 기존 getAnswerByKeyword 메서드 확장 (점수 기반)
-    public String getAnswerByKeywordWithScore(String input, int threshold) {
-        String processedInput = processSynonyms(input);
+    public String getAnswerByKeywordWithScore(String input, int threshold, String lang) {
+        String processedInput = processSynonyms(input, lang);
         List<ChatKeyword> keywords = keywordRepo.findByKeywordInInput(processedInput);
         Map<Integer, Integer> qaScores = new HashMap<>();
 
@@ -82,30 +118,30 @@ public class ChatService {
                 .map(Map.Entry::getKey);
 
         if (bestQaId.isPresent()) {
-            return qaRepo.findById(bestQaId.get()).map(ChatQA::getAnswer).orElse(null);
+            return qaRepo.findById(bestQaId.get()).map(qa -> getQaAnswer(qa, lang)).orElse(null);
         }
 
         return null;
     }
 
     // 이전에 삭제했던 메서드를 다시 추가합니다.
-    public String getAnswerByKeyword(String input) {
-        String processedInput = processSynonyms(input);
+    public String getAnswerByKeyword(String input, String lang) {
+        String processedInput = processSynonyms(input, lang);
         List<ChatKeyword> keywords = keywordRepo.findByKeywordInInput(processedInput);
         if (!keywords.isEmpty()) {
-            return keywords.get(0).getChatQA().getAnswer();
+            return getQaAnswer(keywords.get(0).getChatQA(), lang);
         }
         return "죄송합니다. 정확한 답변을 찾지 못했습니다.";
     }
 
     // 질문 ID를 기반으로 답변을 반환합니다.
-    public String getAnswerByQaId(Integer qaId) {
-        return qaRepo.findById(qaId).map(ChatQA::getAnswer).orElse("답변이 없습니다.");
+    public String getAnswerByQaId(Integer qaId, String lang) {
+        return qaRepo.findById(qaId).map(qa -> getQaAnswer(qa, lang)).orElse("답변이 없습니다.");
     }
 
     // 1. 키워드 점수 합산 방식으로 DB에서 ChatQA 객체 검색
-    public Optional<ChatQA> getChatQAByKeywordWithScore(String input, int threshold) {
-        String processedInput = processSynonyms(input);
+    public Optional<ChatQA> getChatQAByKeywordWithScore(String input, int threshold, String lang) {
+        String processedInput = processSynonyms(input, lang);
         List<ChatKeyword> keywords = keywordRepo.findByKeywordInInput(processedInput);
         Map<Integer, Integer> qaScores = new HashMap<>();
 
@@ -147,11 +183,11 @@ public class ChatService {
     // ⭐️ 새로 추가된 핵심 메서드: 전체 채팅 기록을 기반으로 답변을 처리합니다.
     public ChatResponse handleChatRequest(ChatRequest request) {
         // 1. 먼저 DB에서 키워드 기반 답변을 찾습니다. (임계값 3으로 설정)
-        Optional<ChatQA> dbAnswer = getChatQAByKeywordWithScore(request.getMessage(), 3);
+        Optional<ChatQA> dbAnswer = getChatQAByKeywordWithScore(request.getMessage(), 3, request.getLanguage());
 
         if (dbAnswer.isPresent()) {
             // 2. DB에서 답변을 찾았다면, AI를 사용해 답변을 다듬고 반환합니다.
-            String refinedAnswer = refineAnswerWithAI(dbAnswer.get().getQuestion(), dbAnswer.get().getAnswer(), request.getLanguage()); // 언어 정보 전달
+            String refinedAnswer = refineAnswerWithAI(getQaQuestion(dbAnswer.get(), request.getLanguage()), getQaAnswer(dbAnswer.get(), request.getLanguage()), request.getLanguage()); // 언어 정보 전달
             ChatResponse response = new ChatResponse();
             response.setReply(refinedAnswer);
             response.setAnswerSource("DB");
@@ -205,14 +241,18 @@ public class ChatService {
         }
     }
 
-    // 동의어 처리 로직 (임의로 구현)
-    private String processSynonyms(String input) {
-        Optional<String> processedKeyword = synonymRepo.findAll().stream()
-                .filter(synonym -> input.equals(synonym.getSynonymKeyword()) || input.contains(synonym.getSynonymKeyword()))
-                .findFirst()
-                .map(synonym -> synonym.getChatKeyword().getKeyword());
+    // 동의어 처리 로직
+    private String processSynonyms(String input, String lang) {
+        Optional<Synonym> synonym = synonymRepo.findBySynonymKeyword(input);
 
-        return processedKeyword.orElse(input);
+        return synonym.map(s -> {
+            if ("en".equalsIgnoreCase(lang)) {
+                return s.getChatKeyword().getKeywordEn();
+            } else if ("ja".equalsIgnoreCase(lang)) {
+                return s.getChatKeyword().getKeywordJa();
+            }
+            return s.getChatKeyword().getKeywordKo();
+        }).orElse(input);
     }
 
     public boolean containsForbiddenWord(String input) {

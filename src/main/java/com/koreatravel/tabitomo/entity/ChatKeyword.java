@@ -1,4 +1,5 @@
 package com.koreatravel.tabitomo.entity;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,20 +12,26 @@ public class ChatKeyword {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "Keyword_id")
+    @Column(name = "keyword_id")
     private Integer keywordId;
 
     @Column(name = "qa_id")
-    private Integer qaId; // getQaId()가 이 필드에 대해 생성됩니다.
+    private Integer qaId;
 
-    @Column(name = "keyword", length = 100)
-    private String keyword;
+    @Column(name = "keyword_ko", length = 100, nullable = false)
+    private String keywordKo;
+
+    @Column(name = "keyword_en", length = 100, nullable = false)
+    private String keywordEn;
+
+    @Column(name = "keyword_ja", length = 100, nullable = false)
+    private String keywordJa;
 
     @Column(name = "weight")
-    private Integer weight; // getWeight()가 이 필드에 대해 생성됩니다.
+    private Integer weight;
 
-    // ChatQA와의 관계를 위한 ManyToOne 매핑 추가
     @ManyToOne
     @JoinColumn(name = "qa_id", insertable = false, updatable = false)
+    @JsonBackReference
     private ChatQA chatQA;
 }

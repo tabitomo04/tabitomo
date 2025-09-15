@@ -18,8 +18,14 @@ public class Synonym {
     @JoinColumn(name = "keyword_id", nullable = false)
     private ChatKeyword chatKeyword;
 
-    @Column(name = "synonym_keyword", nullable = false)
-    private String synonymKeyword;
+    @Column(name = "synonym_keyword_ko", nullable = false)
+    private String synonymKeywordKo;
+
+    @Column(name = "synonym_keyword_en", nullable = false)
+    private String synonymKeywordEn;
+
+    @Column(name = "synonym_keyword_ja", nullable = false)
+    private String synonymKeywordJa;
 
     public ChatKeyword getChatKeyword() {
         return this.chatKeyword;

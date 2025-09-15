@@ -483,8 +483,7 @@
             </div>
         </div>
     </div>
-</div>
-<script>
+</div><script>
     let currentRating = 0;
 let backHistory = [];
 const API_URL = 'http://localhost:9999/api/chat'; // 백엔드 API URL
@@ -589,6 +588,17 @@ function updateUITexts(lang) {
     document.getElementById("back-one-step").textContent = t.goBack;
 }
 
+// ✅ 언어에 따라 올바른 속성 이름을 가져오는 헬퍼 함수 추가
+function getLocalizedName(item, type, lang) {
+    if (type === 'question') {
+        const langMap = { 'ko': 'questionKo', 'en': 'questionEn', 'ja': 'questionJa' };
+        return item[langMap[lang]] || item.questionKo; // 기본값으로 questionKo 사용
+    } else {
+        const langMap = { 'ko': 'nameKo', 'en': 'nameEn', 'ja': 'nameJa' };
+        return item[langMap[lang]] || item.nameKo; // 기본값으로 nameKo 사용
+    }
+}
+
 // ✅ 카테고리/질문 버튼 업데이트 함수
 function updateCategoryButtons(container, data, type) {
     const lang = document.getElementById("language-select").value;
@@ -617,14 +627,14 @@ function updateCategoryButtons(container, data, type) {
         if (type === 'question') {
              data.forEach(item => {
                 const div = document.createElement("div");
-                div.textContent = item.question;
+                div.textContent = getLocalizedName(item, 'question', lang); // 수정된 부분
                 div.dataset.id = item.qaId;
                 buttonList.appendChild(div);
             });
         } else {
             data.forEach(item => {
                 const button = document.createElement("button");
-                button.textContent = item.name;
+                button.textContent = getLocalizedName(item, type, lang); // 수정된 부분
                 button.dataset.id = item.id;
                 button.dataset.type = type;
                 buttonList.appendChild(button);
@@ -634,7 +644,6 @@ function updateCategoryButtons(container, data, type) {
         buttonList.innerHTML = `<div style="text-align: center; color: #fff;">${t.noData}</div>`;
     }
 }
-
 // ✅ 메인 카테고리 로딩 함수 (언어 파라미터 포함)
 async function loadMainCategories() {
     const section = document.getElementById("category-section");
@@ -1052,8 +1061,6 @@ document.addEventListener("DOMContentLoaded", () => {
     loadChatHistory();
     checkFeedbackSubmitted();
 });
-
 </script>
-
 </body>
 </html>

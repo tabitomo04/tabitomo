@@ -9,5 +9,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class CategoryDto {
     private Integer id;
-    private String name;
+    private String nameKo;
+    private String nameEn;
+    private String nameJa;
 }

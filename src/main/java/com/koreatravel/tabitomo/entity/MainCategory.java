@@ -18,10 +18,16 @@ public class MainCategory {
     @Column(name = "main_category_id")
     private Integer id;
 
-    @Column(name = "name", nullable = false)
-    private String name;
+    @Column(name = "name_ko", nullable = false)
+    private String nameKo;
+
+    @Column(name = "name_en", nullable = false)
+    private String nameEn;
+
+    @Column(name = "name_ja", nullable = false)
+    private String nameJa;
 
     @OneToMany(mappedBy = "mainCategory", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference // 순환 참조를 끊기 위해 추가
+    @JsonManagedReference
     private List<SubCategory> subCategories;
 }

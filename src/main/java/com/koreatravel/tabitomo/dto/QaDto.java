@@ -9,5 +9,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class QaDto {
     private Integer qaId;
-    private String question;
+    private String questionKo;
+    private String questionEn;
+    private String questionJa;
 }

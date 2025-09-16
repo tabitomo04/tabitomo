@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>스토리북 개별 페이지</title>
+  <link rel="stylesheet"th:href="@{/css/storyview.css}">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <link rel="stylesheet" th:href="@{/css/modal.css}">
+
+
+
+  <script th:src="@{/js/jquery-3.7.1.min.js}"></script>
+  <script th:src="@{/js/main.js}"></script>
+  <script th:src="@{/js/modal.js}"></script>
+
+
+
+  <script>
+    // 유튜브 출력 코드
+    $(document).ready(function() {
+        document.querySelectorAll('oembed[url]').forEach(element => {
+            var url = element.getAttribute('url');
+            var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#\&\?]*).*/;
+            var matchs = url.match(regExp);
+            if(matchs && matchs[7]){
+                element.parentElement.outerHTML = `
+                <div style="position: relative; height: 0; padding-bottom: 56.25%;">
+                    <iframe src="https://www.youtube.com/embed/${matchs[7]}?rel=0"
+                            style="position: absolute; width: 100%; height: 100%; top: 0; left: 0;"
+                            frameborder="0" allow="autoplay; encrypted-media" allowfullscreen>
+                    </iframe>
+                </div>`;
+            }
+        });
+    });
+
+    // 메뉴 클릭 시 토글메뉴 열고 닫기
+    function toggleDropdown(el) {
+    const menu = el.nextElementSibling;
+    if (menu.style.display === 'block') {
+        menu.style.display = 'none';
+    } else {
+        // 다른 열려 있는 메뉴 닫기
+        //document.querySelectorAll('.dropdown-content').forEach(m => m.style.display = 'none');
+        menu.style.display = 'block';
+    }
+}
+
+// 다른 부분 클릭 시 토글메뉴 닫기
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.more-btn')) {
+        document.querySelectorAll('.dropdown-content').forEach(m => m.style.display = 'none');
+    }
+});
+  </script>
+</head>
+<body>
+<div class="container">
+  <!-- 태그 -->
+  <div class="tags">
+    <span>#힐링</span>
+    <span>#제주도</span>
+    <span>#풀꽃</span>
+  </div>
+
+  <!-- 제목 & 부제목 -->
+
+  <div class="header">
+    <span class="title" th:text="${post.title}"></span>
+    <div class="dropdown">
+      <a class="more-btn" onclick="toggleDropdown(this)">⋮</a>
+      <div class="dropdown-content">
+        <a th:href="@{'/storybook/update?booknum=' + ${post.booknum}}">수정</a>
+        <a th:href="@{'/storybook/delete?booknum=' + ${post.booknum}}"
+           onclick="return confirm('정말 삭제하시겠습니까?');">삭제</a>
+      </div>
+    </div>
+  </div>
+  <div th:text="${post.subtitle}" class="subtitle"></div>
+
+  <!-- 메타 정보 -->
+  <div class="meta">
+    <div>
+    <span>정민호</span> · <span th:text="${#temporals.format(post.createDate, 'yy.MM.dd')}"></span>
+    </div>
+    <div class="actions">
+      <button class="urlbtn" data-tooltip="복사되었습니다!" onclick="clip()">URL 공유</button>
+      <button id="likeBtn" onclick="toggleLike()"><span>❤   </span><span id="like-count" th:text="${post.likes}"></span></button>
+    </div>
+  </div>
+  <hr class="line">
+  <!-- 본문 -->
+  <div>
+    <div th:utext="${post.content}" class="content-block" id="postContent">
+    </div>
+  </div>
+</div>
+<script>
+  let liked = false;
+
+// 좋아요 버튼 클릭 시
+function toggleLike() {
+    const booknum = $("#booknum").val();
+    const email = $("#email").val();
+    const btn = $("#likeBtn");
+
+    $.ajax({
+        url: liked ? "/unlike" : "/like",
+        method: "POST",
+        data: { booknum, email },
+        success: function(res) {
+            // 서버가 반환한 좋아요 수로 화면 업데이트
+            $("#like-count").text(res.likes);
+
+            // 서버가 알려준 현재 좋아요 상태를 반영
+            liked = res.liked;
+
+            // 버튼 색을 liked 상태에 따라 변경
+            btn.css("color", liked ? "red" : "black");
+        },
+        error: function(err) {
+            console.error("좋아요 요청 실패:", err);
+        }
+    });
+}
+
+// 페이지 로드 시 현재 사용자가 이미 좋아요 눌렀는지 확인
+$(document).ready(function() {
+    const booknum = $("#booknum").val();
+    const email = $("#email").val();
+
+    $.ajax({
+        url: "/isLiked", // 서버에서 좋아요 상태 확인
+        method: "GET",
+        data: { booknum, email },
+        success: function(res) {
+            // 서버가 알려준 liked 상태 반영
+            liked = res.liked;
+
+            // 버튼 색 초기화
+            $("#likeBtn").css("color", liked ? "red" : "black");
+        },
+        error: function(err) {
+            console.error("좋아요 상태 확인 실패:", err);
+        }
+    });
+});
+</script>
+</body>
+</html>

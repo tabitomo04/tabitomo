@@ -1,0 +1,53 @@
+/* 페이징 컨테이너 중앙 정렬 */
+.pagination-container {
+    text-align: center;
+    margin: 20px 0;
+    font-family: 'Arial', sans-serif;
+}
+
+/* ul 기본 스타일 제거 */
+.pagination {
+    list-style: none;
+    padding: 0;
+    display: inline-flex;
+    gap: 5px;
+}
+
+/* 페이지 버튼 공통 스타일 */
+.page-btn {
+    display: inline-block;
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    text-decoration: none;
+    color: #333;
+    transition: all 0.2s;
+}
+
+/* 호버 시 버튼 색상 변화 */
+.page-btn:hover {
+    background-color: #f0f0f0;
+    border-color: #999;
+}
+
+/* 현재 페이지 강조 */
+.page-btn.current {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+    pointer-events: none; /* 클릭 불가 */
+}
+
+.pre-btn,
+.next-btn {
+    display: inline-block;
+    text-decoration: none;
+    margin: 5px;
+    color: #333;
+}
+
+.pre-btn:hover,
+.next-btn:hover{
+    text-decoration: underline;
+}
+

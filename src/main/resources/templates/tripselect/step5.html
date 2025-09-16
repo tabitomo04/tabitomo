@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>여행 계획 편집</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/css/tripselect.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="progress mb-4">
+            <div class="progress-bar" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">100%</div>
+        </div>
+        
+        <div class="text-center">
+            <h2 class="mb-4">여행 계획 편집</h2>
+            <p class="lead mb-4">아래에서 계획을 수정하고 저장하세요.</p>
+        </div>
+        
+        <div id="trip-plan-editor">
+            <!-- Itinerary will be rendered here by JS -->
+        </div>
+
+        <div class="d-flex justify-content-between mt-4">
+            <a href="/trip/step4" class="btn btn-outline-secondary">이전 단계로</a>
+            <button type="button" class="btn btn-primary" id="saveChangesBtn">변경사항 저장</button>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function () {
+            const tripPlan = /*[[${tripPlan}]]*/ null;
+            const editor = document.getElementById('trip-plan-editor');
+
+            // This function will be called by the popup window
+            window.updateSchedulePlace = function(placeData, dayIndex, scheduleIndex) {
+                const schedule = tripPlan.dailySchedules[dayIndex].schedules[scheduleIndex];
+                schedule.place = placeData.name;
+                schedule.address = placeData.address;
+                schedule.latitude = placeData.latitude;
+                schedule.longitude = placeData.longitude;
+                renderEditor(); // Re-render the UI to show changes
+            }
+
+            if (!tripPlan) {
+                editor.innerHTML = '<p class="alert alert-danger">여행 계획을 불러올 수 없습니다.</p>';
+                return;
+            }
+
+            function renderEditor() {
+                let html = '';
+
+                // Plan Name Input
+                html += `
+                    <div class="mb-4">
+                        <label for="planName" class="form-label"><h4>여행 계획 이름</h4></label>
+                        <input type="text" class="form-control" id="planName" value="${tripPlan.planName || (tripPlan.destination + ' 여행')}">
+                    </div>`;
+
+                // Daily Schedules
+                if (tripPlan.dailySchedules) {
+                    tripPlan.dailySchedules.forEach((daily, dayIndex) => {
+                        html += `
+                        <div class="card mb-4" data-day-index="${dayIndex}">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Day ${daily.day}</h5>
+                                <button class="btn btn-sm btn-outline-success add-schedule-btn">일정 추가</button>
+                            </div>
+                            <div class="card-body schedule-list">
+                                ${(daily.schedules || []).map((schedule, scheduleIndex) => renderScheduleItem(dayIndex, scheduleIndex, schedule)).join('')}
+                            </div>
+                        </div>`;
+                    });
+                }
+
+                editor.innerHTML = html;
+                attachEventListeners();
+            }
+
+            function renderScheduleItem(dayIndex, scheduleIndex, schedule) {
+                return `
+                    <div class="row g-3 mb-3 align-items-center schedule-item" data-day-index="${dayIndex}" data-schedule-index="${scheduleIndex}">
+                        <div class="col-md-2">
+                            <label class="form-label">시작 시간</label>
+                            <input type="time" class="form-control" name="startTime" value="${schedule.startTime || ''}">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">종료 시간</label>
+                            <input type="time" class="form-control" name="endTime" value="${schedule.endTime || ''}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">장소</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="place" value="${schedule.place || ''}" readonly>
+                                <button class="btn btn-outline-secondary search-place-btn" type="button">검색</button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button class="btn btn-sm btn-outline-danger delete-schedule-btn">삭제</button>
+                        </div>
+                         <div class="col-md-12">
+                            <label class="form-label">주소</label>
+                            <input type="text" class="form-control" name="address" value="${schedule.address || ''}" readonly>
+                        </div>
+                    </div>`;
+            }
+
+            function attachEventListeners() {
+                editor.addEventListener('click', function(e) {
+                    if (e.target.classList.contains('add-schedule-btn')) {
+                        const card = e.target.closest('.card');
+                        const dayIndex = parseInt(card.dataset.dayIndex);
+                        if (!tripPlan.dailySchedules[dayIndex].schedules) {
+                            tripPlan.dailySchedules[dayIndex].schedules = [];
+                        }
+                        const newSchedule = { place: '', startTime: '', endTime: '', description: '', latitude: 0, longitude: 0, address: '' };
+                        tripPlan.dailySchedules[dayIndex].schedules.push(newSchedule);
+                        renderEditor();
+                    }
+
+                    if (e.target.classList.contains('delete-schedule-btn')) {
+                        const item = e.target.closest('.schedule-item');
+                        const card = e.target.closest('.card');
+                        const dayIndex = parseInt(card.dataset.dayIndex);
+                        const scheduleIndex = parseInt(item.dataset.scheduleIndex);
+                        tripPlan.dailySchedules[dayIndex].schedules.splice(scheduleIndex, 1);
+                        renderEditor();
+                    }
+
+                    if (e.target.classList.contains('search-place-btn')) {
+                        const card = e.target.closest('.card');
+                        const item = e.target.closest('.schedule-item');
+                        const dayIndex = parseInt(card.dataset.dayIndex);
+                        const scheduleIndex = parseInt(item.dataset.scheduleIndex);
+                        
+                        const destination = tripPlan.destination || '';
+                        const url = `/trip/place-search-popup?destination=${encodeURIComponent(destination)}&day=${dayIndex}&schedule=${scheduleIndex}`;
+                        window.open(url, 'placeSearchPopup', 'width=600,height=700');
+                    }
+                });
+            }
+            
+            document.getElementById('saveChangesBtn').addEventListener('click', function() {
+                tripPlan.planName = document.getElementById('planName').value;
+
+                document.querySelectorAll('.schedule-item').forEach(item => {
+                    const card = item.closest('.card');
+                    const dayIndex = parseInt(card.dataset.dayIndex);
+                    const scheduleIndex = parseInt(item.dataset.scheduleIndex);
+                    const schedule = tripPlan.dailySchedules[dayIndex].schedules[scheduleIndex];
+
+                    schedule.startTime = item.querySelector('input[name="startTime"]').value;
+                    schedule.endTime = item.querySelector('input[name="endTime"]').value;
+                    schedule.place = item.querySelector('input[name="place"]').value;
+                });
+
+                console.log('Saving plan:', JSON.stringify(tripPlan, null, 2));
+
+                fetch('/trip/save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(tripPlan)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if(data.status === 'success'){
+                        alert('성공적으로 저장되었습니다.');
+                        window.location.href = '/mypage';
+                    } else {
+                        alert('오류: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('저장 중 오류가 발생했습니다.');
+                });
+            });
+
+            renderEditor();
+        });
+    </script>
+</body>
+</html>

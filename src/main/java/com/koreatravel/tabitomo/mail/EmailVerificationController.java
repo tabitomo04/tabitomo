@@ -1,4 +1,4 @@
-package com.koreatravel.tabitomo.mail;
+package com.koreatravel.tabitomo.controller;
 
 import lombok.RequiredArgsConstructor;
 

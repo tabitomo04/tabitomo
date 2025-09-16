@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TabiTomo Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #e5e7eb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 640px;
+            height: 90vh;
+            border-radius: 1rem;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            position: relative;
+            font-size: 1rem;
+        }
+
+        .chat-header {
+            background: #2563eb;
+            color: white;
+            padding: 1rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header .header-title {
+            flex-grow: 0;
+            text-align: left;
+            font-size: 1.25rem;
+            margin-right: auto;
+        }
+
+        .language-select-container {
+            margin-right: 10px;
+        }
+
+        #language-select {
+            padding: 4px 8px;
+            border-radius: 9999px;
+            border: 1px solid white;
+            background-color: transparent;
+            color: white;
+            font-size: 0.9em;
+            cursor: pointer;
+            outline: none;
+        }
+
+        #language-select option {
+            color: black;
+        }
+
+        .feedback-area.top-header {
+            position: relative;
+            bottom: initial;
+            border-top: none;
+            padding: 10px;
+            background-color: #f1f5f9;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            font-size: 0.9em;
+            border-bottom: 1px solid #ddd;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .feedback-area.top-header p {
+            margin: 0;
+            margin-right: 10px;
+            white-space: nowrap;
+        }
+
+        .feedback-area.top-header .feedback-buttons button {
+            background-color: transparent;
+            color: #4b5563;
+            border: 1px solid #d1d5db;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 0.8em;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .feedback-area.top-header .feedback-buttons button:hover {
+            background-color: #f3f4f6;
+            border-color: #9ca3af;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1rem;
+            padding-left: 0.3rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            font-size: 0.95rem;
+        }
+
+        .message {
+            margin: 0;
+        }
+
+        .bot-message-wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: 5px;
+            margin: 0;
+        }
+
+        .bot-message-content {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin: 0;
+        }
+
+        .profile-img {
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .profile-name {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #6b7280;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+
+        .message.bot {
+            background: #f1f1f1;
+            align-self: flex-start;
+            border-top-left-radius: 0;
+        }
+
+        .message.user {
+            background: #2563eb;
+            color: white;
+            align-self: flex-end;
+            border-top-right-radius: 0;
+        }
+
+        .chat-input {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            background: #f1f1f1;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 9999px;
+            outline: none;
+            margin-right: 0.5rem;
+        }
+
+        .chat-input button.send-btn {
+            background-color: #2563eb;
+            border-radius: 9999px;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border: none;
+        }
+
+        .chat-input button.send-btn:hover {
+            background-color: #1d4ed8;
+        }
+
+        #toggle-categories {
+            background: #9ca3af;
+            border-radius: 9999px;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.3s ease;
+            border: none;
+            margin-right: 0.5rem;
+        }
+
+        #toggle-categories.rotated {
+            transform: rotate(45deg);
+        }
+
+        #toggle-categories:hover {
+            background-color: #6b7280;
+        }
+
+        .feedback-area.hidden {
+            display: none;
+        }
+
+        /* Modal Overlay Style */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
+        /* Modal Box Modern Style */
+        #feedback-modal {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+            transform: translateY(-20px) scale(0.95);
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+            opacity: 0;
+        }
+
+        .modal-overlay.visible {
+            display: flex;
+        }
+
+        .modal-overlay.visible #feedback-modal {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+
+        #feedback-modal h3 {
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            font-size: 1.25rem;
+            color: #333;
+        }
+
+        #feedback-modal .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1.2rem;
+            font-size: 2rem;
+            color: #9ca3af;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        #feedback-modal .close-btn:hover {
+            color: #6b7280;
+        }
+
+        .rating-stars {
+            font-size: 2.2em;
+            color: #ccc;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* 별점 스타일 */
+        .rating-stars .star {
+            cursor: pointer;
+            transition: color 0.2s ease-in-out;
+        }
+        .rating-stars .star-empty {
+            color: #d1d5db;
+        }
+        .rating-stars .star-filled {
+            color: #fcd34d;
+        }
+
+        .feedback-form textarea {
+            width: 100%;
+            height: 100px;
+            border-radius: 0.75rem;
+            border: 1px solid #d1d5db;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            resize: none;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .feedback-form textarea:focus {
+            border-color: #2563eb;
+        }
+
+        .feedback-form button {
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 9999px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: background 0.2s;
+        }
+
+        .feedback-form button:hover {
+            background: #1e40af;
+        }
+
+        /* 카테고리/질문 컨테이너 스타일 */
+        .category-container {
+            display: none;
+            flex-direction: column;
+            padding: 10px;
+            background-color: #60a5fa;
+            text-align: center;
+        }
+
+        .category-container.visible {
+            display: flex;
+        }
+
+        /* 뒤로가기 버튼 영역 스타일 */
+        .category-navigation {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 10px;
+            width: 100%;
+            gap: 10px;
+        }
+
+        .category-navigation button {
+            background-color: transparent;
+            color: white;
+            padding: 5px 8px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            transition: background 0.3s;
+            border: 1px solid white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .category-navigation button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .category-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .category-buttons button {
+            margin: 5px;
+            padding: 8px 15px;
+            border: none;
+            background: #1e40af;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 20px;
+            transition: background 0.3s;
+        }
+
+        .category-buttons button:hover {
+            background: #1e3a8a;
+        }
+
+        .question-list {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            width: 100%;
+        }
+
+        .question-list div {
+            padding: 10px 15px;
+            cursor: pointer;
+            background: #dbeafe;
+            border-radius: 8px;
+            width: 100%;
+            text-align: left;
+            transition: background 0.2s;
+        }
+
+        .question-list div:hover {
+            background: #a5c3ed;
+        }
+    </style>
+</head>
+<body>
+<div class="chat-container">
+    <div class="chat-header">
+        <span class="header-title">TabiTomo</span>
+        <div class="language-select-container">
+            <select id="language-select">
+                <option value="ko">한국어</option>
+                <option value="en">English</option>
+                <option value="ja">日本語</option>
+            </select>
+        </div>
+        <div class="header-buttons">
+            <button id="new-chat" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-1 px-3 rounded-full text-sm transition-colors">새 채팅</button>
+        </div>
+    </div>
+
+    <div id="feedback-area" class="feedback-area top-header hidden">
+        <p>챗봇 상담이 도움이 됐나요?</p>
+        <div class="feedback-buttons">
+            <button id="feedback-yes-btn">예</button>
+            <button id="feedback-no-btn">아니오</button>
+        </div>
+    </div>
+
+    <div class="chat-messages" id="chat-box">
+    </div>
+
+    <div id="category-section" class="category-container"></div>
+
+    <div class="chat-input">
+        <button id="toggle-categories">+</button>
+        <input type="text" id="message" placeholder="메시지를 입력하세요">
+        <button id="send-btn" class="send-btn">
+            <svg viewBox="0 0 24 24" fill="white" width="24px" height="24px">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+            </svg>
+        </button>
+    </div>
+
+    <div class="modal-overlay" id="feedback-overlay">
+        <div id="feedback-modal">
+            <span class="close-btn">&times;</span>
+            <h3>답변이 마음에 드셨나요?</h3>
+            <div class="feedback-form">
+                <div id="star-rating" class="rating-stars">
+                    <span class="star" data-rating="1">★</span>
+                    <span class="star" data-rating="2">★</span>
+                    <span class="star" data-rating="3">★</span>
+                    <span class="star" data-rating="4">★</span>
+                    <span class="star" data-rating="5">★</span>
+                </div>
+                <textarea id="feedback-text" placeholder="자유로운 의견을 남겨주세요." class="w-full h-20 rounded-md border p-2 mb-2 resize-none"></textarea>
+                <button id="submit-feedback-btn">피드백 제출</button>
+            </div>
+        </div>
+    </div>
+</div><script>
+    let currentRating = 0;
+let backHistory = [];
+const API_URL = 'http://localhost:9999/api/chat'; // 백엔드 API URL
+const chatBox = document.getElementById("chat-box");
+const messageInput = document.getElementById("message");
+const sendBtn = document.getElementById("send-btn");
+const newChatBtn = document.getElementById("new-chat");
+const langSelect = document.getElementById("language-select");
+
+// ✅ UI 텍스트를 위한 다국어 데이터
+const translations = {
+    'ko': {
+        headerTitle: 'TabiTomo',
+        newChatButton: '새 채팅',
+        feedbackPrompt: '챗봇 상담이 도움이 됐나요?',
+        feedbackYes: '예',
+        feedbackNo: '아니오',
+        inputPlaceholder: '메시지를 입력하세요',
+        feedbackModalTitle: '답변이 마음에 드셨나요?',
+        feedbackTextPlaceholder: '자유로운 의견을 남겨주세요.',
+        feedbackSubmitButton: '피드백 제출',
+        initialMessage: '안녕하세요 토모에요! 무엇을 도와드릴까요?',
+        loadError: '데이터를 불러오는 중 오류가 발생했습니다.',
+        alertForbiddenWord: '욕설이나 부적절한 단어는 입력할 수 없습니다.',
+        alertFeedbackForbiddenWord: '욕설이나 부적절한 단어는 피드백에 포함할 수 없습니다.',
+        alertNoHistory: '피드백을 남길 채팅 기록이 없습니다. 대화를 시작해주세요.',
+        alertFeedbackSubmitted: '이미 피드백을 제출했습니다. 새 채팅을 시작해주세요.',
+        alertSubmissionFailed: '피드백 제출에 실패했습니다. 이미 제출했거나 서버 오류일 수 있습니다.',
+        alertSubmissionSuccess: '피드백이 제출되었습니다. 감사합니다!',
+        apiError: '답변을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.',
+        communicationError: '통신 에러:',
+        goHome: '처음',
+        goBack: '뒤로',
+        noData: '데이터를 불러오는 중 오류가 발생했습니다.',
+        languageChanged: '언어가 한국어로 변경되었습니다. 새로운 대화를 시작해주세요.'
+    },
+    'en': {
+        headerTitle: 'TabiTomo',
+        newChatButton: 'New Chat',
+        feedbackPrompt: 'Was the chatbot consultation helpful?',
+        feedbackYes: 'Yes',
+        feedbackNo: 'No',
+        inputPlaceholder: 'Enter a message',
+        feedbackModalTitle: 'Did you like the response?',
+        feedbackTextPlaceholder: 'Please leave your feedback.',
+        feedbackSubmitButton: 'Submit Feedback',
+        initialMessage: 'Hello, I\'m Tomo! How can I help you?',
+        loadError: 'An error occurred while loading data.',
+        alertForbiddenWord: 'You cannot enter profanity or inappropriate words.',
+        alertFeedbackForbiddenWord: 'Profanity or inappropriate words cannot be included in feedback.',
+        alertNoHistory: 'No chat history to leave feedback. Please start a conversation.',
+        alertFeedbackSubmitted: 'Feedback has already been submitted. Please start a new chat.',
+        alertSubmissionFailed: 'Feedback submission failed. You may have already submitted or a server error occurred.',
+        alertSubmissionSuccess: 'Feedback submitted successfully. Thank you!',
+        apiError: 'Could not retrieve a response. Please try again later.',
+        communicationError: 'Communication error:',
+        goHome: 'Home',
+        goBack: 'Back',
+        noData: 'An error occurred while loading data.',
+        languageChanged: 'Language has been changed to English. Please start a new conversation.'
+    },
+    'ja': {
+        headerTitle: 'タビトモ',
+        newChatButton: '新しいチャット',
+        feedbackPrompt: 'チャットボットの相談は役に立ちましたか？',
+        feedbackYes: 'はい',
+        feedbackNo: 'いいえ',
+        inputPlaceholder: 'メッセージを入力してください',
+        feedbackModalTitle: '回答は気に入りましたか？',
+        feedbackTextPlaceholder: 'ご意見を自由にお聞かせください。',
+        feedbackSubmitButton: 'フィードバックを送信',
+        initialMessage: 'こんにちは、トモです！何かお手伝いできることはありますか？',
+        loadError: 'データの読み込み中にエラーが発生しました。',
+        alertForbiddenWord: '不適切な言葉や卑猥な言葉は入力できません。',
+        alertFeedbackForbiddenWord: '不適切な言葉や卑猥な言葉はフィードバックに含めることはできません。',
+        alertNoHistory: 'フィードバックを残すチャット履歴がありません。会話を開始してください。',
+        alertFeedbackSubmitted: 'フィードバックはすでに送信されました。新しいチャットを開始してください。',
+        alertSubmissionFailed: 'フィードバックの送信に失敗しました。すでに送信されたか、サーバーエラーが発生した可能性があります。',
+        alertSubmissionSuccess: 'フィードバックが正常に送信されました。ありがとうございます！',
+        apiError: '回答を取得できませんでした。後でもう一度お試しください。',
+        communicationError: '通信エラー:',
+        goHome: '最初へ',
+        goBack: '戻る',
+        noData: 'データの読み込み中にエラーが発生しました。',
+        languageChanged: '言語が日本語に変更されました。新しい会話を始めてください。'
+    }
+};
+
+// ✅ UI 텍스트를 업데이트하는 함수
+function updateUITexts(lang) {
+    const t = translations[lang];
+    document.querySelector('.header-title').textContent = t.headerTitle;
+    document.getElementById('new-chat').textContent = t.newChatButton;
+    document.querySelector('#feedback-area p').textContent = t.feedbackPrompt;
+    document.getElementById('feedback-yes-btn').textContent = t.feedbackYes;
+    document.getElementById('feedback-no-btn').textContent = t.feedbackNo;
+    document.getElementById('message').placeholder = t.inputPlaceholder;
+    document.querySelector('#feedback-modal h3').textContent = t.feedbackModalTitle;
+    document.getElementById('feedback-text').placeholder = t.feedbackTextPlaceholder;
+    document.getElementById('submit-feedback-btn').textContent = t.feedbackSubmitButton;
+    document.getElementById("go-home").textContent = t.goHome;
+    document.getElementById("back-one-step").textContent = t.goBack;
+}
+
+// ✅ 언어에 따라 올바른 속성 이름을 가져오는 헬퍼 함수 추가
+function getLocalizedName(item, type, lang) {
+    if (type === 'question') {
+        const langMap = { 'ko': 'questionKo', 'en': 'questionEn', 'ja': 'questionJa' };
+        return item[langMap[lang]] || item.questionKo; // 기본값으로 questionKo 사용
+    } else {
+        const langMap = { 'ko': 'nameKo', 'en': 'nameEn', 'ja': 'nameJa' };
+        return item[langMap[lang]] || item.nameKo; // 기본값으로 nameKo 사용
+    }
+}
+
+// ✅ 카테고리/질문 버튼 업데이트 함수
+function updateCategoryButtons(container, data, type) {
+    const lang = document.getElementById("language-select").value;
+    const t = translations[lang];
+    container.innerHTML = `
+        <div class="category-navigation">
+            <button id="go-home">${t.goHome}</button>
+            <button id="back-one-step" class="hidden">${t.goBack}</button>
+        </div>
+        <div class="${type === 'question' ? 'question-list' : 'category-buttons'}"></div>
+    `;
+    const buttonList = container.querySelector('.category-buttons') || container.querySelector('.question-list');
+    const backBtn = container.querySelector('#back-one-step');
+    const homeBtn = container.querySelector('#go-home');
+
+    if (backHistory.length > 0) {
+        backBtn.classList.remove('hidden');
+    } else {
+        backBtn.classList.add('hidden');
+    }
+
+    homeBtn.onclick = loadMainCategories;
+    backBtn.onclick = goBackOneStep;
+
+    if (data && data.length > 0) {
+        if (type === 'question') {
+             data.forEach(item => {
+                const div = document.createElement("div");
+                div.textContent = getLocalizedName(item, 'question', lang); // 수정된 부분
+                div.dataset.id = item.qaId;
+                buttonList.appendChild(div);
+            });
+        } else {
+            data.forEach(item => {
+                const button = document.createElement("button");
+                button.textContent = getLocalizedName(item, type, lang); // 수정된 부분
+                button.dataset.id = item.id;
+                button.dataset.type = type;
+                buttonList.appendChild(button);
+            });
+        }
+    } else {
+        buttonList.innerHTML = `<div style="text-align: center; color: #fff;">${t.noData}</div>`;
+    }
+}
+// ✅ 메인 카테고리 로딩 함수 (언어 파라미터 포함)
+async function loadMainCategories() {
+    const section = document.getElementById("category-section");
+    section.classList.add('visible');
+    document.getElementById("toggle-categories").classList.remove('rotated');
+    backHistory = [];
+    const lang = document.getElementById("language-select").value;
+
+    try {
+        const response = await fetch(`/api/main-categories?lang=${lang}`);
+        if (!response.ok) throw new Error('Network response was not ok.');
+        const categories = await response.json();
+        updateCategoryButtons(section, categories, 'main');
+    } catch (error) {
+        console.error("메인 카테고리 로드 실패:", error);
+        const t = translations[lang];
+        section.innerHTML = `<div class="category-container visible"><div style="text-align: center; color: #fff; padding: 10px;">${t.loadError}</div></div>`;
+    }
+}
+
+// ✅ 서브 카테고리 로딩 함수 (언어 파라미터 포함)
+async function loadSubCategories(mainCategoryId) {
+    backHistory.push({ type: 'main', id: mainCategoryId });
+    const section = document.getElementById("category-section");
+    const lang = document.getElementById("language-select").value;
+
+    try {
+        const response = await fetch(`/api/sub-categories/${mainCategoryId}?lang=${lang}`);
+        if (!response.ok) throw new Error('Network response was not ok.');
+        const subCategories = await response.json();
+        updateCategoryButtons(section, subCategories, 'sub');
+    } catch (error) {
+        console.error("서브 카테고리 로드 실패:", error);
+        const t = translations[lang];
+        section.innerHTML = `<div class="category-container visible"><div style="text-align: center; color: #fff; padding: 10px;">${t.loadError}</div></div>`;
+    }
+}
+
+// ✅ 질문 리스트 로딩 함수 (언어 파라미터 포함)
+async function loadQuestions(subCategoryId) {
+    backHistory.push({ type: 'sub', id: subCategoryId });
+    const section = document.getElementById("category-section");
+    const lang = document.getElementById("language-select").value;
+
+    try {
+        const response = await fetch(`/api/sub-categories/${subCategoryId}/qas?lang=${lang}`);
+        if (!response.ok) throw new Error('Network response was not ok.');
+        const questions = await response.json();
+        updateCategoryButtons(section, questions, 'question');
+    } catch (error) {
+        console.error("질문 로드 실패:", error);
+        const t = translations[lang];
+        section.innerHTML = `<div style="text-align: center; color: #fff;">${t.noData}</div>`;
+    }
+}
+
+// ✅ 답변 로딩 함수 (언어 파라미터 포함)
+async function getAnswer(qaId) {
+    const lang = document.getElementById("language-select").value;
+    const t = translations[lang];
+    try {
+        const response = await fetch(`/api/answer/${qaId}?lang=${lang}`);
+        if (!response.ok) throw new Error('Network response was not ok.');
+        const answer = await response.text();
+        displayBotMessage(answer);
+    } catch (error) {
+        console.error("답변 로드 실패:", error);
+        displayBotMessage(t.apiError);
+    }
+}
+
+// ✅ 뒤로가기 버튼 함수
+async function goBackOneStep() {
+    if (backHistory.length > 0) {
+        const previousStep = backHistory.pop();
+        if (previousStep.type === 'main') {
+            await loadMainCategories();
+        } else if (previousStep.type === 'sub') {
+            const mainCategory = backHistory[backHistory.length-1].id;
+            await loadSubCategories(mainCategory);
+        }
+    }
+}
+
+// ✅ 채팅 메시지를 HTML에 추가하는 함수
+function addMessageToChat(message, sender) {
+    const formattedMessage = message.replace(/\n/g, '<br>');
+    if (sender === 'bot') {
+        chatBox.innerHTML += `
+            <div class='bot-message-wrapper'>
+                <img src='/img/tomo.png' alt='토모 프로필' class='profile-img'>
+                <div class='bot-message-content'>
+                    <span class='profile-name'>토모</span>
+                    <div class='message bot'>${formattedMessage}</div>
+                </div>
+            </div>
+        `;
+    } else {
+        chatBox.innerHTML += `<div class='message user'>${formattedMessage}</div>`;
+    }
+    saveToSessionStorage(sender, message);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+
+// ✅ 채팅 기록 로딩 함수
+function loadChatHistory() {
+    const chatHistory = JSON.parse(sessionStorage.getItem("chatHistory"));
+    const lang = document.getElementById("language-select").value;
+    const t = translations[lang];
+
+    chatBox.innerHTML = ''; // 기존 채팅 기록을 삭제하는 코드 추가
+
+    if (!chatHistory || chatHistory.length === 0) {
+        const initialMessage = { sender: "bot", message: t.initialMessage };
+        addMessageToChat(initialMessage.message, initialMessage.sender);
+    } else {
+        chatHistory.forEach(chat => {
+            addMessageToChat(chat.message, chat.sender);
+        });
+    }
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// ✅ 세션 스토리지에 메시지 저장
+function saveToSessionStorage(sender, message) {
+    let chatHistory = JSON.parse(sessionStorage.getItem("chatHistory")) || [];
+    chatHistory.push({ sender: sender, message: message });
+    sessionStorage.setItem("chatHistory", JSON.stringify(chatHistory));
+}
+
+// ✅ 금지어 검사 함수
+async function containsForbiddenWord(text) {
+    try {
+        const response = await fetch('/chat/check-word', {
+            method: 'POST',
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ word: text })
+        });
+        const data = await response.json();
+        return data.isForbidden;
+    } catch (error) {
+        console.error("금지어 검사 API 호출 실패. 에러:", error);
+        return false;
+    }
+}
+
+// ✅ 봇 메시지 표시 함수
+function displayBotMessage(message) {
+    const formattedMessage = message.replace(/\n/g, '<br>');
+    chatBox.innerHTML += `
+        <div class='bot-message-wrapper'>
+            <img src='/img/tomo.png' alt='토모 프로필' class='profile-img'>
+            <div class='bot-message-content'>
+                <span class='profile-name'>토모</span>
+                <div class='message bot'>${formattedMessage}</div>
+            </div>
+        </div>
+    `;
+    saveToSessionStorage("bot", message);
+    chatBox.scrollTop = chatBox.scrollHeight;
+    document.getElementById("feedback-area").classList.remove('hidden');
+}
+
+// ✅ 메시지 전송 함수 (언어 파라미터 포함)
+async function sendMessage() {
+    const userMessage = messageInput.value.trim();
+    const lang = langSelect.value;
+    const t = translations[lang];
+
+    if (!userMessage) return;
+
+    const isForbidden = await containsForbiddenWord(userMessage);
+    if (isForbidden) {
+        alert(t.alertForbiddenWord);
+        return;
+    }
+
+    addMessageToChat(userMessage, 'user');
+    messageInput.value = "";
+    document.getElementById("feedback-area").classList.add('hidden');
+
+    try {
+        const chatHistory = JSON.parse(sessionStorage.getItem("chatHistory")) || [];
+
+        const aiResponse = await fetch("/api/send", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: userMessage, chatHistory: chatHistory, language: lang })
+        });
+
+        const aiData = await aiResponse.json();
+
+        if (aiData && aiData.reply) {
+            displayBotMessage(aiData.reply);
+        } else {
+            displayBotMessage(t.apiError);
+        }
+
+    } catch (error) {
+        const errorMessage = `${t.communicationError} ${error.message}`;
+        displayBotMessage(errorMessage);
+        console.error("Fetch error:", error);
+    }
+}
+
+// ✅ 피드백 제출 여부 확인 함수
+function checkFeedbackSubmitted() {
+    const isSubmitted = sessionStorage.getItem("feedbackSubmitted");
+    const feedbackArea = document.getElementById("feedback-area");
+    if (isSubmitted === "true") {
+        feedbackArea.classList.add("hidden");
+    }
+}
+
+// ✅ 피드백 모달 열기 함수
+function openFeedbackModal() {
+    const chatHistory = JSON.parse(sessionStorage.getItem("chatHistory"));
+    const lang = document.getElementById("language-select").value;
+    const t = translations[lang];
+
+    if (!chatHistory || chatHistory.length <= 1) {
+        alert(t.alertNoHistory);
+        return;
+    }
+    if (sessionStorage.getItem("feedbackSubmitted") === "true") {
+        alert(t.alertFeedbackSubmitted);
+        return;
+    }
+    const overlay = document.getElementById("feedback-overlay");
+    overlay.style.display = "flex";
+    const stars = document.querySelectorAll('#star-rating .star');
+    stars.forEach(star => star.classList.remove('star-filled'));
+    currentRating = 0;
+    setTimeout(() => {
+        overlay.classList.add("visible");
+    }, 10);
+}
+
+// ✅ 별점 채우기 함수
+function fillStars(count) {
+    const stars = document.querySelectorAll('#star-rating .star');
+    stars.forEach((star, index) => {
+        if (index < count) {
+            star.classList.remove('star-empty');
+            star.classList.add('star-filled');
+        } else {
+            star.classList.remove('star-filled');
+            star.classList.add('star-empty');
+        }
+    });
+}
+
+// ✅ 피드백 제출 함수
+async function submitFeedback() {
+    const lang = document.getElementById("language-select").value;
+    const t = translations[lang];
+    const rating = currentRating;
+    const feedbackText = document.getElementById("feedback-text").value;
+    const chatHistory = JSON.parse(sessionStorage.getItem("chatHistory"));
+
+    if (!chatHistory || chatHistory.length < 2) {
+        alert(t.alertNoHistory);
+        return;
+    }
+
+    const isForbidden = await containsForbiddenWord(feedbackText);
+    if (isForbidden) {
+        alert(t.alertFeedbackForbiddenWord);
+        return;
+    }
+
+    const feedbackData = {
+        rating: parseInt(rating),
+        feedbackText: feedbackText,
+        chatHistory: chatHistory,
+        language: lang
+    };
+
+    try {
+        const response = await fetch("/api/feedback", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(feedbackData)
+        });
+
+        if (response.ok) {
+            alert(t.alertSubmissionSuccess);
+            sessionStorage.setItem("feedbackSubmitted", "true");
+            checkFeedbackSubmitted();
+        } else {
+            const errorText = await response.text();
+            throw new Error("서버 에러: " + errorText);
+        }
+    } catch (error) {
+        alert(t.alertSubmissionFailed);
+        console.error("Feedback submission error:", error);
+    } finally {
+        const overlay = document.getElementById("feedback-overlay");
+        overlay.classList.remove("visible");
+        setTimeout(() => {
+            overlay.style.display = "none";
+        }, 300);
+        document.getElementById("feedback-text").value = "";
+        currentRating = 0;
+    }
+}
+
+// ✅ 이벤트 리스너 통합 및 정리
+sendBtn.addEventListener("click", sendMessage);
+messageInput.addEventListener("keypress", (event) => {
+    if (event.key === "Enter") {
+        sendMessage();
+    }
+});
+
+newChatBtn.addEventListener("click", () => {
+    sessionStorage.removeItem("chatHistory");
+    sessionStorage.removeItem("feedbackSubmitted");
+    document.getElementById("feedback-area").classList.add('hidden');
+    backHistory = [];
+    loadChatHistory();
+    checkFeedbackSubmitted();
+    updateUITexts(langSelect.value);
+});
+
+document.getElementById("feedback-yes-btn").addEventListener("click", openFeedbackModal);
+document.getElementById("feedback-no-btn").addEventListener("click", openFeedbackModal);
+
+document.querySelector("#feedback-modal .close-btn").addEventListener("click", () => {
+    const overlay = document.getElementById("feedback-overlay");
+    overlay.classList.remove("visible");
+    setTimeout(() => {
+        overlay.style.display = "none";
+    }, 300);
+});
+
+const starContainer = document.getElementById('star-rating');
+starContainer.addEventListener('mouseover', (e) => {
+    const star = e.target.closest('.star');
+    if (star) {
+        const rating = parseInt(star.dataset.rating, 10);
+        fillStars(rating);
+    }
+});
+
+starContainer.addEventListener('mouseout', () => {
+    fillStars(currentRating);
+});
+
+starContainer.addEventListener('click', (e) => {
+    const star = e.target.closest('.star');
+    if (star) {
+        currentRating = parseInt(star.dataset.rating, 10);
+        fillStars(currentRating);
+    }
+});
+
+document.getElementById("submit-feedback-btn").addEventListener("click", submitFeedback);
+
+document.getElementById("toggle-categories").addEventListener("click", async () => {
+    const section = document.getElementById("category-section");
+    const toggleBtn = document.getElementById("toggle-categories");
+
+    toggleBtn.classList.toggle('rotated');
+
+    if (section.classList.contains('visible')) {
+        section.classList.remove('visible');
+        backHistory = [];
+    } else {
+        await loadMainCategories();
+    }
+});
+
+document.getElementById("category-section").addEventListener("click", async (event) => {
+    const section = document.getElementById("category-section");
+    const target = event.target.closest('button, div');
+
+    if (target && target.tagName === 'BUTTON') {
+        const buttonType = target.dataset.type;
+        const id = target.dataset.id;
+        if (buttonType === 'main') {
+            await loadSubCategories(id);
+        } else if (buttonType === 'sub') {
+            await loadQuestions(id);
+        }
+    } else if (target && target.tagName === 'DIV' && target.closest('.question-list')) {
+        const qaId = target.dataset.id;
+        const questionText = target.textContent;
+
+        addMessageToChat(questionText, 'user');
+
+        section.classList.remove('visible');
+        document.getElementById("toggle-categories").classList.remove('rotated');
+        document.getElementById("feedback-area").classList.add('hidden');
+
+        await getAnswer(qaId);
+    }
+});
+
+document.getElementById("language-select").addEventListener("change", (event) => {
+    const selectedLang = event.target.value;
+    updateUITexts(selectedLang);
+    sessionStorage.removeItem("chatHistory"); // 채팅 기록 초기화 추가
+    if (document.getElementById("category-section").classList.contains('visible')) {
+        loadMainCategories();
+    }
+    loadChatHistory();
+    checkFeedbackSubmitted();
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+    const initialLang = document.getElementById("language-select").value;
+    updateUITexts(initialLang);
+    loadChatHistory();
+    checkFeedbackSubmitted();
+});
+</script>
+</body>
+</html>

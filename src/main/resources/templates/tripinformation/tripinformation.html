@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>국내 여행 정보</title>
+    <style>
+        body { font-family: sans-serif; }
+        .container { width: 80%; margin: 0 auto; }
+        .filters-container { background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; padding: 20px; margin-bottom: 20px; }
+        .filters-form { display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; }
+        .filter-group { display: flex; flex-direction: column; }
+        .filter-group label { font-weight: bold; margin-bottom: 5px; }
+        .filter-group select, .filter-group input { padding: 8px; border-radius: 4px; border: 1px solid #ced4da; }
+        .search-button { padding: 8px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .place-list { list-style: none; padding: 0; }
+        .place-item { border: 1px solid #ccc; border-radius: 5px; padding: 15px; margin-bottom: 15px; }
+        .place-item h3 { margin-top: 0; }
+        .pagination { display: flex; justify-content: center; align-items: center; list-style: none; padding: 0; }
+        .pagination li { margin: 0 2px; }
+        .pagination a { display: block; padding: 8px 12px; text-decoration: none; color: #007bff; border: 1px solid #dee2e6; border-radius: 4px; }
+        .pagination li.active a { font-weight: bold; color: white; background-color: #007bff; border-color: #007bff; }
+        .pagination li.disabled a { color: #6c757d; pointer-events: none; background-color: #fff; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>국내 여행 정보</h1>
+
+    <!-- Filters -->
+    <div class="filters-container">
+        <form th:action="@{/tripinformation}" method="get" class="filters-form">
+            <div class="filter-group">
+                <label for="region-select">지역</label>
+                <select id="region-select" name="region">
+                    <option value="all">전체</option>
+                    <option th:each="r : ${regions}" th:value="${r}" th:text="${r}" th:selected="${r == selectedRegion}"></option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="category-select">카테고리</label>
+                <select id="category-select" name="categoryCode">
+                    <option value="all">전체</option>
+                    <option th:each="cat : ${categories}" th:value="${cat}" th:text="${cat}" th:selected="${cat == selectedCategoryCode}"></option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="keyword-input">검색어</label>
+                <input id="keyword-input" type="text" name="keyword" placeholder="장소, 주소, 설명 등" th:value="${keyword}">
+            </div>
+            <button type="submit" class="search-button">검색</button>
+        </form>
+    </div>
+
+    <!-- Place List -->
+    <ul class="place-list">
+        <li class="place-item" th:each="place : ${placesPage.content}">
+            <h3 th:text="${place.name}">장소 이름</h3>
+            <p><strong>주소:</strong> <span th:text="${place.address}">주소</span></p>
+            <p><strong>카테고리:</strong> <span th:text="${place.categoryCode}">카테고리</span></p>
+            <p th:text="${place.description}">설명</p>
+            <img th:if="${place.imageUrl != null}" th:src="${place.imageUrl}" alt="장소 이미지" width="200">
+        </li>
+    </ul>
+
+    <!-- Improved Pagination -->
+    <nav th:if="${placesPage.totalPages > 1}" th:with="windowSize=5">
+        <ul class="pagination">
+            <!-- First and Previous -->
+            <li th:class="${placesPage.first} ? 'disabled'">
+                <a th:href="@{/tripinformation(page=0, region=${selectedRegion}, categoryCode=${selectedCategoryCode}, keyword=${keyword})}">처음</a>
+            </li>
+            <li th:class="${placesPage.first} ? 'disabled'">
+                <a th:href="@{/tripinformation(page=${placesPage.number - 1}, region=${selectedRegion}, categoryCode=${selectedCategoryCode}, keyword=${keyword})}">이전</a>
+            </li>
+
+            <!-- Page Numbers -->
+            <li th:each="pageNumber : ${#numbers.sequence(T(java.lang.Math).max(0, placesPage.number - windowSize/2), T(java.lang.Math).min(placesPage.totalPages - 1, placesPage.number + windowSize/2))}"
+                th:class="${pageNumber == placesPage.number} ? 'active'">
+                <a th:href="@{/tripinformation(page=${pageNumber}, region=${selectedRegion}, categoryCode=${selectedCategoryCode}, keyword=${keyword})}" th:text="${pageNumber + 1}"></a>
+            </li>
+
+            <!-- Next and Last -->
+            <li th:class="${placesPage.last} ? 'disabled'">
+                <a th:href="@{/tripinformation(page=${placesPage.number + 1}, region=${selectedRegion}, categoryCode=${selectedCategoryCode}, keyword=${keyword})}">다음</a>
+            </li>
+            <li th:class="${placesPage.last} ? 'disabled'">
+                <a th:href="@{/tripinformation(page=${placesPage.totalPages - 1}, region=${selectedRegion}, categoryCode=${selectedCategoryCode}, keyword=${keyword})}">마지막</a>
+            </li>
+        </ul>
+    </nav>
+
+</div>
+</body>
+</html>

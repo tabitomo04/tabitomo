@@ -1,0 +1,163 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+
+
+@media print {
+	body {
+		margin: 0 ;
+	}
+}
+
+:root {
+	--ck-content-font-family: 'Jua','Lato';
+}
+
+.main-container {
+	font-family: var(--ck-content-font-family);
+	width: fit-content;
+	margin-left: auto;
+	margin-right: auto;
+
+}
+
+.editor-container_classic-editor .editor-container__editor {
+	min-width: 795px;
+	max-width: 795px;
+
+.ck-editor__editable {
+    min-height: 500px;
+    }
+
+.ck-editor__editable p {margin: 0}
+
+
+}
+
+table td{
+      padding:  1px;
+      height: auto;
+      border: none;
+      }
+
+    .center-div {
+      width: 800px;
+      margin: 50px auto;
+    }
+
+    .title-input {
+      border: none;
+      outline: none;
+      background: transparent;
+      width: 100%;
+      font-size: 30px;
+      margin : 20px auto 10px 10px;
+      font-weight: bold;
+      height:36px;
+  }
+    .title-input::placeholder {
+      color: #444444;
+      font-weight: bold;
+
+  }
+     .subtitle-input {
+      border: none;
+      outline: none;
+      background: transparent;
+      width: 100%;
+      font-size: 15px;
+      height:24px;
+      margin : 0 auto 100px 20px;
+  }
+    .subtitle-input::placeholder {
+      color: #aaa;
+  }
+
+  .title {
+        width: 100%;
+        font-size: 30px;
+        margin : 20px auto 10px 10px !important;
+        font-weight: bold;
+        height:36px;
+    }
+
+       .subtitle {
+        width: 100%;
+        font-size: 15px;
+        height:24px;
+        margin : 0 auto 100px 20px !important;
+    }
+
+
+  /* 출력 페이지 스토리북 css */
+
+  /* CKEditor figure 기본 */
+  #postContent figure {
+    display: block;
+    margin: 1em auto;
+    text-align: center;
+  }
+
+  /* CKEditor가 붙이는 image_resized 지원 */
+  #postContent figure.image.image_resized {
+    display: inline-block;
+    margin: auto;
+    max-width: 100%;  /* 화면 넘어가지 않게 */
+  }
+
+  /* figure 안의 이미지 */
+  #postContent figure img {
+    height: auto;
+    max-width: 100%;
+    display: block;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  /* 유튜브 iframe도 크기 조정 */
+  #postContent iframe {
+    max-width: 100%;
+    height: 100% !important;
+    display: block;
+    margin: 1em auto;
+  }
+
+  #postContent figure.media {
+    height: auto;
+  }
+
+  #postContent figure.image:not([class*="image-style-align"]) {
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: center;
+  }
+
+  /* 왼쪽 정렬 */
+  #postContent .image-style-align-left {
+    float: left;
+    margin: 0 1em 1em 0;
+  }
+
+  /* 가운데 정렬 */
+  #postContent .image-style-align-center {
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+    text-align: center;
+  }
+
+  /* 오른쪽 정렬 */
+  #postContent .image-style-align-right {
+    float: right;
+    margin: 0 0 1em 1em;
+  }
+
+  /* 체크박스 리스트 불릿 없애기 */
+  #postContent ul.todo-list {
+    list-style: none;
+    padding-left: 0;
+    margin-left: 0;
+  }
+
+
+

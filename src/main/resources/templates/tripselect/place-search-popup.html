@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>장소 검색</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { padding: 1rem; }
+        #results-container .list-group-item {
+            cursor: pointer;
+        }
+        #results-container .list-group-item:hover {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <h4 class="mb-3">장소 검색</h4>
+        <div class="input-group mb-3">
+            <input type="text" id="search-keyword" class="form-control" placeholder="장소, 주소, 키워드 입력">
+            <button id="search-btn" class="btn btn-primary">검색</button>
+        </div>
+        <div id="results-container"></div>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchBtn = document.getElementById('search-btn');
+            const searchInput = document.getElementById('search-keyword');
+            const resultsContainer = document.getElementById('results-container');
+            
+            // Get parameters from the popup's own URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const destination = urlParams.get('destination') || '';
+            const dayIndex = parseInt(urlParams.get('day'));
+            const scheduleIndex = parseInt(urlParams.get('schedule'));
+
+            function search() {
+                const keyword = searchInput.value.trim();
+                if (!keyword) {
+                    alert("검색어를 입력해주세요.");
+                    return;
+                }
+
+                const fullKeyword = destination ? destination + ' ' + keyword : keyword;
+
+                fetch(`/trip/api/search-google-places?query=${encodeURIComponent(fullKeyword)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data && data.length > 0) {
+                            displayResults(data);
+                        } else {
+                            resultsContainer.innerHTML = '<p class="text-muted">검색 결과가 없습니다.</p>';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching search results:', error);
+                        resultsContainer.innerHTML = '<p class="text-danger">검색 중 오류가 발생했습니다.</p>';
+                    });
+            }
+
+            function displayResults(places) {
+                let listHtml = '<ul class="list-group">';
+                places.forEach(place => {
+                    listHtml += `
+                        <li class="list-group-item" 
+                            data-place-name="${place.name}" 
+                            data-address="${place.address}" 
+                            data-lat="${place.latitude}" 
+                            data-lng="${place.longitude}">
+                            <h6>${place.name}</h6>
+                            <small class="text-muted">${place.address}</small>
+                        </li>`;
+                });
+                listHtml += '</ul>';
+                resultsContainer.innerHTML = listHtml;
+            }
+
+            resultsContainer.addEventListener('click', function(e) {
+                const targetItem = e.target.closest('.list-group-item');
+                if (targetItem) {
+                    const placeData = {
+                        name: targetItem.dataset.placeName,
+                        address: targetItem.dataset.address,
+                        latitude: parseFloat(targetItem.dataset.lat),
+                        longitude: parseFloat(targetItem.dataset.lng)
+                    };
+                    
+                    if (window.opener && window.opener.updateSchedulePlace) {
+                        // Pass all required arguments back to the parent window
+                        window.opener.updateSchedulePlace(placeData, dayIndex, scheduleIndex);
+                        window.close();
+                    } else {
+                        alert("부모 창과 통신할 수 없습니다.");
+                    }
+                }
+            });
+
+            searchBtn.addEventListener('click', search);
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    search();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,86 +1,108 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.5.4'
-	id 'io.spring.dependency-management' version '1.1.7'
-	id 'org.asciidoctor.jvm.convert' version '3.3.2'
+    id 'java'
+    id 'org.springframework.boot' version '3.5.4'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.asciidoctor.jvm.convert' version '3.3.2'
 }
 
 group = 'com.koreatravel'
 version = '0.0.1-SNAPSHOT'
-description = 'Demo project for Spring Boot'
+description = 'Tabitomo Travel Platform'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
-	}
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
 }
 
 configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
+    maven { url 'https://repo.spring.io/milestone' }
 }
 
 ext {
-	set('snippetsDir', file("build/generated-snippets"))
-	set('springAiVersion', "1.0.1")
+    set('snippetsDir', file("build/generated-snippets"))
+    set('springAiVersion', "1.0.1")
 }
 
 dependencies {
-	// Spring Boot Starters
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-data-rest'
-	implementation 'org.springframework.boot:spring-boot-starter-mail'
-	implementation 'org.springframework.boot:spring-boot-starter-security'
-	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.boot:spring-boot-starter-web-services'
+    // Spring Boot Starters
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-data-rest'
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-web-services'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
-	// MySQL Driver (compile 시점에도 필요하므로 implementation 으로 수정)
-	implementation 'com.mysql:mysql-connector-j:8.4.0'
+    // Database
+    implementation 'com.mysql:mysql-connector-j:8.4.0'
+    runtimeOnly 'com.h2database:h2' // For testing
 
-	// Spring AI (Vertex AI Gemini)
-	// implementation 'org.springframework.ai:spring-ai-starter-model-vertex-ai-gemini'
+    // Spring AI (Vertex AI Gemini)
+    implementation 'org.springframework.ai:spring-ai-starter-model-vertex-ai-gemini'
 
-	// JDBC Session (DB 세션 관리 필요 없으면 제거 가능)
-	// implementation 'org.springframework.session:spring-session-jdbc'
+    // Session Management
+    implementation 'org.springframework.session:spring-session-jdbc'
 
-	// Thymeleaf + Security
-	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+    // Thymeleaf + Security
+    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
 
-	// MapStruct
-	implementation 'org.mapstruct:mapstruct:1.5.5.Final'
-	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+    // MapStruct
+    implementation 'org.mapstruct:mapstruct:1.6.0'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.0'
 
-	// OpenCSV
-	implementation 'com.opencsv:opencsv:5.8'
+    // Utilities
+    implementation 'com.opencsv:opencsv:5.8' // CSV processing
+    implementation 'org.jsoup:jsoup:1.17.2' // HTML parsing
+    implementation 'net.coobird:thumbnailator:0.4.19' // Image processing
 
-	// Lombok
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+    // Google Cloud Services
+    implementation 'com.google.cloud:google-cloud-translate:2.38.0'
+    
+    // DeepL API
+    implementation 'com.deepl.api:deepl-java:1.7.0'
 
-	// Jakarta Mail API
-	implementation 'com.sun.mail:jakarta.mail:2.0.1'
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 
-	// Jakarta Validation
-	implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
-	implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
+    // Jakarta Mail API
+    implementation 'com.sun.mail:jakarta.mail:2.0.1'
 
-	// DevTools
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    // Validation
+    implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
+    implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
 
-	// Test Dependencies
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.springframework.security:spring-security-test'
-	testImplementation 'com.h2database:h2'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // Development
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    // Testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-// Spring Cloud Function 제거 (필요하다면 다시 추가 가능)
-// implementation 'org.springframework.cloud:spring-cloud-function-context:4.1.1'
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.ai:spring-ai-bom:${springAiVersion}"
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+tasks.named('compileJava') {
+    options.compilerArgs << "-parameters"
+}

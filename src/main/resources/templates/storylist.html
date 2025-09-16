@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>여행 스토리 검색 페이지</title>
+
+  <link rel="stylesheet" th:href= "@{/css/storylist.css}">
+</head>
+<body>
+<div class="container">
+  <h1>당신의 여행 이야기를 들려주세요</h1>
+
+  <div class="search-box">
+    <input type="text" placeholder="검색어를 입력하세요" />
+    <button>검색</button>
+  </div>
+
+  <div class="filters">
+    <button th:onclick="|location.href='@{/storybook/list(sort = hot)}'|">HOT</button>
+    <button th:onclick="|location.href='@{/storybook/list(sort = new)}'|">NEW</button>
+  </div>
+
+  <div class="grid" th:if="${storylist != null}">
+    <div th:if="${storylist}" th:each="storylist, status: ${storylist}">
+      <a class="link" th:href="@{'/storybook/detail?booknum=' + ${storylist.booknum}}">
+        <div class="card">
+          <div class="likes">❤ <span th:text="${storylist.likes}"></span></div>
+          <div class="thumbnail">
+            <img th:src="@{${storylist.thumbnail}}" alt="썸네일">
+          </div>
+          <h3 th:text="${storylist.title}"></h3>
+          <p th:text="${storylist.subtitle}"></p>
+          <div class="meta">
+            <span th:text="${storylist.booknum}"></span>
+            <span th:text="${#temporals.format(storylist.createDate, 'yy.MM.dd')}"></span>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <div class="grid" th:if="${pagelist != null}">
+    <div th:if="${pagelist}" th:each="pagelist, status: ${pagelist}">
+      <a class="link" th:href="@{'/storybook/detail?booknum=' + ${pagelist.booknum}}">
+        <div class="card">
+          <div class="likes">❤ <span th:text="${pagelist.likes}"></span></div>
+          <div class="thumbnail">
+            <img th:src="@{${pagelist.thumbnail}}" alt="썸네일">
+          </div>
+          <h3 th:text="${pagelist.title}"></h3>
+          <p th:text="${pagelist.subtitle}"></p>
+          <div class="meta">
+            <span th:text="${pagelist.booknum}"></span>
+            <span th:text="${#temporals.format(pagelist.createDate, 'yy.MM.dd')}"></span>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<!-- 페이징 네비게이션 -->
+<div class="pagination-container" th:if="${pagelist != null}">
+  <ul class="pagination">
+    <!-- 이전 페이지 버튼 -->
+    <li>
+      <a th:if="${hasPrevious}" th:href="@{/storybook/list(sort=${sort},page=${currentPage - 1}, size=${size})}" class="pre-btn">이전</a>
+    </li>
+
+    <!-- 페이지 번호들 -->
+    <li th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}">
+      <a th:href="@{/storybook/list(sort=${sort},page=${pageNum}, size=${size})}" th:text="${pageNum + 1}" th:classappend="${pageNum == currentPage} ? 'current'" class="page-btn"></a>
+    </li>
+
+    <!-- 다음 페이지 버튼 -->
+    <li>
+      <a th:if="${hasNext}" th:href="@{/storybook/list(sort=${sort},page=${currentPage + 1}, size=${size})}" class="next-btn">다음</a>
+    </li>
+  </ul>
+</div>
+</body>
+</html>

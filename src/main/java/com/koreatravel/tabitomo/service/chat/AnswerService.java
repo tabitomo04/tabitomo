@@ -1,7 +1,7 @@
-package com.koreatravel.tabitomo.service;
+package com.koreatravel.tabitomo.service.chat;
 
-import com.koreatravel.tabitomo.dto.chat.ChatRequest;
-import com.koreatravel.tabitomo.dto.chat.ChatResponse;
+import com.koreatravel.tabitomo.domain.dto.chat.ChatRequest;
+import com.koreatravel.tabitomo.domain.dto.chat.ChatResponse;
 import com.koreatravel.tabitomo.repository.chat.SynonymRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;

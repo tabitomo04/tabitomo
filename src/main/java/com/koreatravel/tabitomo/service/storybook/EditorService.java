@@ -1,13 +1,13 @@
-package com.koreatravel.tabitomo.service;
+package com.koreatravel.tabitomo.service.storybook;
 
 
-import com.koreatravel.tabitomo.domain.dto.SaveRequestDTO;
-import com.koreatravel.tabitomo.domain.dto.StorybookDTO;
+import com.koreatravel.tabitomo.domain.dto.storybook.SaveRequestDTO;
+import com.koreatravel.tabitomo.domain.dto.storybook.StorybookDTO;
 
-import com.koreatravel.tabitomo.domain.dto.StorybookListDTO;
-import com.koreatravel.tabitomo.domain.dto.TempsaveDTO;
-import com.koreatravel.tabitomo.domain.entity.*;
-import com.koreatravel.tabitomo.repository.*;
+import com.koreatravel.tabitomo.domain.dto.storybook.StorybookListDTO;
+import com.koreatravel.tabitomo.domain.dto.storybook.TempsaveDTO;
+import com.koreatravel.tabitomo.domain.entity.storybook.*;
+import com.koreatravel.tabitomo.repository.storybook.*;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 

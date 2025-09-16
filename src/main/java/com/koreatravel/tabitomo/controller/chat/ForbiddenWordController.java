@@ -1,4 +1,4 @@
-package com.koreatravel.tabitomo.controller;
+package com.koreatravel.tabitomo.controller.chat;
 
 import com.koreatravel.tabitomo.service.chat.ForbiddenWordService;
 import org.springframework.web.bind.annotation.PostMapping;

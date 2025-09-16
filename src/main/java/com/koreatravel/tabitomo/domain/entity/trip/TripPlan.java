@@ -1,4 +1,4 @@
-package vio.tabitomo.domain.entity;
+package com.koreatravel.tabitomo.domain.entity.trip;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+
+import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
 
 import java.time.LocalDateTime;
 
@@ -20,7 +22,7 @@ public class TripPlan {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
-    private Member member;
+    private MemberEntity member;
 
     @Column(nullable = false)
     private String planName;
@@ -34,7 +36,7 @@ public class TripPlan {
     private LocalDateTime createdAt;
 
     @Builder
-    public TripPlan(Member member, String planName, String planDetails) {
+    public TripPlan(MemberEntity member, String planName, String planDetails) {
         this.member = member;
         this.planName = planName;
         this.planDetails = planDetails;

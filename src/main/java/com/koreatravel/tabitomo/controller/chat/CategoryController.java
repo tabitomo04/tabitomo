@@ -1,14 +1,15 @@
-package com.koreatravel.tabitomo.controller;
+package com.koreatravel.tabitomo.controller.chat;
 
-import com.koreatravel.tabitomo.dto.chat.CategoryDto;
-import com.koreatravel.tabitomo.dto.chat.QaDto;
-import com.koreatravel.tabitomo.entity.chat.ChatQA;
-import com.koreatravel.tabitomo.service.chat.CategoryService;
+import com.koreatravel.tabitomo.domain.dto.chat.CategoryDto;
+import com.koreatravel.tabitomo.domain.dto.chat.QaDto;
+import com.koreatravel.tabitomo.domain.entity.chat.ChatQA;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
+import com.koreatravel.tabitomo.service.chat.CategoryService;
 
 @RestController
 @RequiredArgsConstructor

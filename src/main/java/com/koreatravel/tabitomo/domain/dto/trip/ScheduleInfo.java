@@ -1,9 +1,9 @@
-package vio.tabitomo.domain.dto.trip;
+package com.koreatravel.tabitomo.domain.dto.trip;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import vio.tabitomo.domain.entity.Place;
+import com.koreatravel.tabitomo.domain.entity.trip.Place;
 
 @Data
 @NoArgsConstructor

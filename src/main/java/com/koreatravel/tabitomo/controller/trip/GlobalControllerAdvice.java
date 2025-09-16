@@ -1,4 +1,4 @@
-package vio.tabitomo.controller;
+package com.koreatravel.tabitomo.controller.trip;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.ControllerAdvice;

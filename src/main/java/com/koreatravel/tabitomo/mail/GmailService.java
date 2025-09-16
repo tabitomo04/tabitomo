@@ -1,4 +1,4 @@
-package com.koreatravel.tabitomo.service;
+package com.koreatravel.tabitomo.mail;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;

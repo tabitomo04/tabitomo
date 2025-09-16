@@ -1,4 +1,4 @@
-package vio.tabitomo.controller;
+package com.koreatravel.tabitomo.controller.trip;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;

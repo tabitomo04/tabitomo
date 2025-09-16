@@ -1,4 +1,4 @@
-package vio.tabitomo.service;
+package com.koreatravel.tabitomo.service.trip;
 
 import java.io.IOException;
 import java.io.InputStreamReader;

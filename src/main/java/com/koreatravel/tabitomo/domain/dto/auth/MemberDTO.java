@@ -1,4 +1,4 @@
-package com.koreatravel.tabitomo.domain.dto;
+package com.koreatravel.tabitomo.domain.dto.auth;
 
 import com.koreatravel.tabitomo.domain.entity.MemberEntity;
 import lombok.Data;

@@ -1,7 +1,7 @@
 package com.koreatravel.tabitomo.repository.storybook;
 
-import com.koreatravel.tabitomo.domain.dto.StorybookListDTO;
-import com.koreatravel.tabitomo.domain.entity.StorybookEntity;
+import com.koreatravel.tabitomo.domain.dto.storybook.StorybookListDTO;
+import com.koreatravel.tabitomo.domain.entity.storybook.StorybookEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;

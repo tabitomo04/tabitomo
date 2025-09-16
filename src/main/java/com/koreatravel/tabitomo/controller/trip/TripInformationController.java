@@ -1,4 +1,4 @@
-package vio.tabitomo.controller;
+package com.koreatravel.tabitomo.controller.trip;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -7,8 +7,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import vio.tabitomo.domain.entity.Place;
-import vio.tabitomo.repository.PlaceRepository;
+import com.koreatravel.tabitomo.domain.entity.trip.Place;
+import com.koreatravel.tabitomo.repository.trip.PlaceRepository;
 
 import java.util.Arrays;
 import java.util.List;

@@ -1,9 +1,9 @@
-package vio.tabitomo.repository;
+package com.koreatravel.tabitomo.repository.trip;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import vio.tabitomo.domain.entity.TripPlan;
+import com.koreatravel.tabitomo.domain.entity.trip.TripPlan;
 
 import java.util.List;
 import java.util.Optional;

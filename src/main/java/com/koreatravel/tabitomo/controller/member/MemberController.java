@@ -5,6 +5,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import com.koreatravel.tabitomo.service.member.MemberService;
+import com.koreatravel.tabitomo.service.trip.TripPlanService;
+import com.koreatravel.tabitomo.service.storybook.EditorService;
+
 @Controller
 public class MemberController {
 
@@ -12,10 +16,10 @@ public class MemberController {
     private MemberService memberService;
 
     @Autowired
-    private TripService tripService;
+    private TripPlanService tripService;
 
     @Autowired
-    private StorybookService storybookService;
+    private EditorService storybookService;
 
     // 멤버 프로필(정보) -> 다른 사람도 표기되어야 함
     @GetMapping("/member/info/{memberId}")

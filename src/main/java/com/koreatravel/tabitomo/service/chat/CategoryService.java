@@ -1,10 +1,10 @@
-package com.koreatravel.tabitomo.service;
+package com.koreatravel.tabitomo.service.chat;
 
-import com.koreatravel.tabitomo.dto.chat.CategoryDto;
-import com.koreatravel.tabitomo.dto.chat.QaDto;
-import com.koreatravel.tabitomo.entity.chat.ChatQA;
-import com.koreatravel.tabitomo.entity.chat.MainCategory;
-import com.koreatravel.tabitomo.entity.chat.SubCategory;
+import com.koreatravel.tabitomo.domain.dto.chat.CategoryDto;
+import com.koreatravel.tabitomo.domain.dto.chat.QaDto;
+import com.koreatravel.tabitomo.domain.entity.chat.ChatQA;
+import com.koreatravel.tabitomo.domain.entity.chat.MainCategory;
+import com.koreatravel.tabitomo.domain.entity.chat.SubCategory;
 import com.koreatravel.tabitomo.repository.chat.ChatQARepository;
 import com.koreatravel.tabitomo.repository.chat.MainCategoryRepository;
 import com.koreatravel.tabitomo.repository.chat.SubCategoryRepository;

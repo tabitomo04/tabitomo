@@ -1,4 +1,4 @@
-package com.koreatravel.tabitomo.service;
+package com.koreatravel.tabitomo.service.chat;
 
 import com.koreatravel.tabitomo.repository.chat.ForbiddenWordRepository;
 import org.springframework.stereotype.Service;

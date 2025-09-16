@@ -1,4 +1,4 @@
-package vio.tabitomo.controller;
+package com.koreatravel.tabitomo.controller.trip;
 
 import com.google.cloud.translate.Translate;
 import com.google.cloud.translate.TranslateOptions;

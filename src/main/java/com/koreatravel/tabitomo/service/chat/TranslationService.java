@@ -1,4 +1,4 @@
-package com.koreatravel.tabitomo.service;
+package com.koreatravel.tabitomo.service.chat;
 
 import com.deepl.api.TextResult;
 import com.deepl.api.Translator;

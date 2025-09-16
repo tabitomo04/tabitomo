@@ -1,6 +1,6 @@
 package com.koreatravel.tabitomo.repository.storybook;
 
-import com.koreatravel.tabitomo.domain.entity.MediaEntity;
+import com.koreatravel.tabitomo.domain.entity.storybook.MediaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

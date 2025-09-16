@@ -2,12 +2,14 @@ package com.koreatravel.tabitomo.domain.entity.member;
 
 import jakarta.persistence.*;
 import lombok.*;
-import jakarta.validation.constraints.UniqueConstraint  ;
 import org.hibernate.annotations.UuidGenerator;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.Past;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "member",
@@ -64,7 +66,8 @@ public class MemberEntity {
     @Column(name = "questionnaire_completed")
     private boolean questionnaireCompleted = false;
 
-    private Enum role {ROLE_USER, ROLE_ADMIN};
+    @Column(name = "role")
+    private String role = "ROLE_USER";
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "country_id", referencedColumnName = "country_id")

@@ -1,4 +1,4 @@
-package vio.tabitomo.controller;
+package com.koreatravel.tabitomo.controller.trip;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -7,13 +7,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import vio.tabitomo.domain.dto.trip.ScheduleInfo;
-import vio.tabitomo.domain.dto.trip.TripPlan;
-import vio.tabitomo.domain.dto.trip.TourRecommendation;
-import vio.tabitomo.domain.entity.Place;
-import vio.tabitomo.service.GeminiAIService;
-import vio.tabitomo.service.LocationService;
-import vio.tabitomo.service.TripPlanService;
+import com.koreatravel.tabitomo.domain.dto.trip.ScheduleInfo;
+import com.koreatravel.tabitomo.domain.dto.trip.TripPlan;
+import com.koreatravel.tabitomo.domain.dto.trip.TourRecommendation;
+import com.koreatravel.tabitomo.domain.entity.trip.Place;
+import com.koreatravel.tabitomo.service.trip.GeminiAIService;
+import com.koreatravel.tabitomo.service.trip.LocationService;
+import com.koreatravel.tabitomo.service.trip.TripPlanService;
 
 import java.security.Principal;
 import java.time.LocalDate;

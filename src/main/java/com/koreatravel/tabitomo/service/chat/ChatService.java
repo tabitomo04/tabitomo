@@ -1,8 +1,8 @@
-package com.koreatravel.tabitomo.service;
+package com.koreatravel.tabitomo.service.chat;
 
-import com.koreatravel.tabitomo.dto.chat.ChatRequest;
-import com.koreatravel.tabitomo.dto.chat.ChatResponse;
-import com.koreatravel.tabitomo.entity.chat.*;
+import com.koreatravel.tabitomo.domain.dto.chat.ChatRequest;
+import com.koreatravel.tabitomo.domain.dto.chat.ChatResponse;
+import com.koreatravel.tabitomo.domain.entity.chat.*;
 import com.koreatravel.tabitomo.repository.chat.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

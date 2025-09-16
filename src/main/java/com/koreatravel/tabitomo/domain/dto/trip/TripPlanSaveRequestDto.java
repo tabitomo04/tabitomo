@@ -1,4 +1,4 @@
-package vio.tabitomo.domain.dto.trip;
+package com.koreatravel.tabitomo.domain.dto.trip;
 
 import lombok.Getter;
 import lombok.Setter;

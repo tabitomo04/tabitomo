@@ -1,4 +1,4 @@
-package com.koreatravel.tabitomo.domain.dto;
+package com.koreatravel.tabitomo.domain.dto.storybook;
 
 import lombok.Data; 
 

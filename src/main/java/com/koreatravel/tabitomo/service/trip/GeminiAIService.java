@@ -1,4 +1,4 @@
-package vio.tabitomo.service;
+package com.koreatravel.tabitomo.service.trip;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -12,11 +12,11 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestTemplate;
-import vio.tabitomo.client.GoogleMapsApiClient;
-import vio.tabitomo.client.KakaoLocalApiClient;
-import vio.tabitomo.domain.dto.trip.ScheduleInfo;
-import vio.tabitomo.domain.dto.trip.TourRecommendation;
-import vio.tabitomo.domain.entity.Place;
+import com.koreatravel.tabitomo.client.GoogleMapsApiClient;
+import com.koreatravel.tabitomo.client.KakaoLocalApiClient;
+import com.koreatravel.tabitomo.domain.dto.trip.ScheduleInfo;
+import com.koreatravel.tabitomo.domain.dto.trip.TourRecommendation;
+import com.koreatravel.tabitomo.domain.entity.trip.Place;
 
 import java.io.IOException;
 import java.io.InputStream;

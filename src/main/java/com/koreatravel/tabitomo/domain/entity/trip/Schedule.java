@@ -1,4 +1,4 @@
-package vio.tabitomo.domain.entity;
+package com.koreatravel.tabitomo.domain.entity.trip;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;

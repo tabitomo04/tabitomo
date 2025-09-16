@@ -1,18 +1,18 @@
-package vio.tabitomo.service;
+package com.koreatravel.tabitomo.service.trip;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import vio.tabitomo.domain.dto.trip.TripPlan;
-import vio.tabitomo.domain.entity.Member;
-import vio.tabitomo.domain.entity.Place;
-import vio.tabitomo.domain.entity.Schedule;
-import vio.tabitomo.domain.entity.Trip;
-import vio.tabitomo.repository.MemberRepository;
-import vio.tabitomo.repository.PlaceRepository;
-import vio.tabitomo.repository.ScheduleRepository;
-import vio.tabitomo.repository.TripRepository;
+import com.koreatravel.tabitomo.domain.dto.trip.TripPlan;
+import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
+import com.koreatravel.tabitomo.domain.entity.trip.Place;
+import com.koreatravel.tabitomo.domain.entity.trip.Schedule;
+import com.koreatravel.tabitomo.domain.entity.trip.Trip;
+import com.koreatravel.tabitomo.repository.member.MemberRepository;
+import com.koreatravel.tabitomo.repository.trip.PlaceRepository;
+import com.koreatravel.tabitomo.repository.trip.ScheduleRepository;
+import com.koreatravel.tabitomo.repository.trip.TripRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,7 +30,7 @@ public class TripPlanService {
 
     @Transactional
     public Long saveTripPlan(TripPlan tripPlan, String username) {
-        Member member = memberRepository.findByUsername(username)
+        MemberEntity member = memberRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다: " + username));
 
         Place accommodationPlace = null;
@@ -140,7 +140,7 @@ public class TripPlanService {
 
     @Transactional(readOnly = true)
     public List<Trip> findTripsByUsername(String username) {
-        Member member = memberRepository.findByUsername(username)
+        MemberEntity member = memberRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다: " + username));
         return tripRepository.findByMemberId(member.getId());
     }

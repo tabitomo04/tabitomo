@@ -1,18 +1,23 @@
-package com.koreatravel.tabitomo.controller;
+package com.koreatravel.tabitomo.controller.member;
 
-import com.koreatravel.tabitomo.domain.dto.MemberDTO;
-import com.koreatravel.tabitomo.domain.entity.MemberEntity;
-import com.koreatravel.tabitomo.service.MemberService;
+import com.koreatravel.tabitomo.domain.dto.member.CountryDTO;
+import com.koreatravel.tabitomo.domain.dto.member.LanguageDTO;
+import com.koreatravel.tabitomo.domain.dto.auth.MemberDTO;
+import com.koreatravel.tabitomo.service.member.MemberService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.koreatravel.tabitomo.PathConstants;
+import java.util.List;
+import org.springframework.validation.BindingResult;
+import javax.validation.Valid;
 
 @Controller
+@RequestMapping("/auth")
 public class AuthController {
     private final MemberService memberService;
 
@@ -22,32 +27,44 @@ public class AuthController {
     }
 
     // 로그인 페이지 이동
-    @GetMapping(PathConstants.LOGIN)
+    @GetMapping("/login")
     public String loginPage() {
         return "loginform"; // templates/login.html
     }
 
-    // 회원가입 페이지 이동
-    @GetMapping(PathConstants.SIGNUP)
-    public String signupPage() {
-        return "signupform"; // templates/signup.html
+    @GetMapping("/signup")
+    public String signupPage(Model model) {
+        List<CountryDTO> countries = memberService.getAllCountries();
+        List<LanguageDTO> languages = memberService.getAllActiveLanguages();
+        
+        model.addAttribute("countries", countries);
+        model.addAttribute("languages", languages);
+        return "signupform";
     }
 
     // 회원가입 처리
-    @PostMapping(PathConstants.SIGNUP)
-    public String signup(@ModelAttribute MemberDTO member, Model model) {
-        // DTO → Entity 변환
-        MemberEntity memberEntity = MemberDTO.setEntity(member);
+    @PostMapping("/signup")
+    public String signup(@Valid @ModelAttribute("member") MemberDTO memberDTO, 
+                        BindingResult result, 
+                        Model model) {
+        if (result.hasErrors()) {
+            model.addAttribute("countries", memberService.getAllCountries());
+            model.addAttribute("languages", memberService.getAllActiveLanguages());
+            return "signupform";
+        }
+        
+        // Process the signup with country and language
+        memberService.register(memberDTO);
+        return "redirect:/auth/signup_success";
+    }
 
-        // DB 저장
-        memberService.register(memberEntity);
-
-        model.addAttribute("message", "회원가입이 완료되었습니다!");
-        return "loginform"; // 회원가입 후 로그인 페이지로 이동
+    @GetMapping("/signup_success")
+    public String signupSuccess() {
+        return "signup_success";
     }
 
     // 로그인 처리
-    @PostMapping(PathConstants.LOGIN)
+    @PostMapping("/login")
     public String login(Model model) {
         // TODO: 로그인 검증 (서비스 호출 → 세션 저장)
         model.addAttribute("message", "로그인 성공!");

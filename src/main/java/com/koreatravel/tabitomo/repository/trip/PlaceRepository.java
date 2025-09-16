@@ -1,11 +1,11 @@
-package vio.tabitomo.repository;
+package com.koreatravel.tabitomo.repository.trip;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import vio.tabitomo.domain.entity.Place;
+import com.koreatravel.tabitomo.domain.entity.trip.Place;
 
 import java.util.Optional;
 

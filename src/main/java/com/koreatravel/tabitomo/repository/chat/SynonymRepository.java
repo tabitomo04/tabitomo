@@ -1,6 +1,6 @@
 package com.koreatravel.tabitomo.repository.chat;
 
-import com.koreatravel.tabitomo.entity.Synonym;
+import com.koreatravel.tabitomo.domain.entity.chat.Synonym;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

@@ -1,6 +1,6 @@
 package com.koreatravel.tabitomo.repository.chat;
 
-import com.koreatravel.tabitomo.entity.ChatQA;
+import com.koreatravel.tabitomo.domain.entity.chat.ChatQA;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

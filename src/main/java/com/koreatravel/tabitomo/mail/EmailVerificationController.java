@@ -1,4 +1,4 @@
-package com.koreatravel.tabitomo.controller;
+package com.koreatravel.tabitomo.mail;
 
 import lombok.RequiredArgsConstructor;
 
@@ -7,7 +7,7 @@ import java.util.HashMap;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.koreatravel.tabitomo.domain.dto.MemberDTO;
+import com.koreatravel.tabitomo.domain.dto.auth.MemberDTO;
 
 @RestController
 @RequestMapping("/api/email")

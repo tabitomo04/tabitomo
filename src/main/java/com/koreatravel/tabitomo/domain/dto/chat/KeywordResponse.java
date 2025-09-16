@@ -1,4 +1,4 @@
-package com.koreatravel.tabitomo.dto.chat;
+package com.koreatravel.tabitomo.domain.dto.chat;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

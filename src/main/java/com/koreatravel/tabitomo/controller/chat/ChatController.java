@@ -1,7 +1,9 @@
-package com.koreatravel.tabitomo.controller;
+package com.koreatravel.tabitomo.controller.chat;
 
-import com.koreatravel.tabitomo.dto.chat.ChatRequest;
-import com.koreatravel.tabitomo.dto.chat.ChatResponse;
+import com.koreatravel.tabitomo.domain.dto.chat.ChatRequest;
+import com.koreatravel.tabitomo.domain.dto.chat.ChatResponse;
+import com.koreatravel.tabitomo.domain.entity.chat.ForbiddenWord;
+import com.koreatravel.tabitomo.repository.chat.ForbiddenWordRepository;
 import com.koreatravel.tabitomo.service.chat.ChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -9,8 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
-import com.koreatravel.tabitomo.entity.ForbiddenWord;
-import com.koreatravel.tabitomo.repository.ForbiddenWordRepository;
 
 @RestController
 @RequestMapping("/api")

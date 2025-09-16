@@ -1,8 +1,8 @@
-package com.koreatravel.tabitomo.service;
+package com.koreatravel.tabitomo.service.chat;
 
-import com.koreatravel.tabitomo.dto.chat.FeedbackRequest;
-import com.koreatravel.tabitomo.entity.chat.Feedback;
-import com.koreatravel.tabitomo.entity.chat.LearningData;
+import com.koreatravel.tabitomo.domain.dto.chat.FeedbackRequest;
+import com.koreatravel.tabitomo.domain.entity.chat.Feedback;
+import com.koreatravel.tabitomo.domain.entity.chat.LearningData;
 import com.koreatravel.tabitomo.repository.chat.FeedbackRepository;
 import com.koreatravel.tabitomo.repository.chat.LearningDataRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;

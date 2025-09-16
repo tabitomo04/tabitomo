@@ -1,4 +1,4 @@
-package com.koreatravel.tabitomo.entity.chat;
+package com.koreatravel.tabitomo.domain.entity.chat;
 
 import jakarta.persistence.*;
 import lombok.Getter;

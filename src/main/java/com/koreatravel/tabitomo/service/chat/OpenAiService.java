@@ -1,7 +1,7 @@
-package com.koreatravel.tabitomo.service;
+package com.koreatravel.tabitomo.service.chat;
 
-import com.koreatravel.tabitomo.dto.chat.ChatRequest;
-import com.koreatravel.tabitomo.dto.chat.ChatResponse;
+import com.koreatravel.tabitomo.domain.dto.chat.ChatRequest;
+import com.koreatravel.tabitomo.domain.dto.chat.ChatResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;

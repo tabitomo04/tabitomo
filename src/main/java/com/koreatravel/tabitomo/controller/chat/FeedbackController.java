@@ -1,6 +1,6 @@
-package com.koreatravel.tabitomo.controller;
+package com.koreatravel.tabitomo.controller.chat;
 
-import com.koreatravel.tabitomo.dto.chat.FeedbackRequest;
+import com.koreatravel.tabitomo.domain.dto.chat.FeedbackRequest;
 import com.koreatravel.tabitomo.service.chat.FeedbackService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.http.HttpStatus;

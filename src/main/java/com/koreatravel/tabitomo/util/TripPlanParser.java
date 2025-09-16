@@ -10,10 +10,10 @@ import java.util.regex.Pattern;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.koreatravel.tabitomo.domain.dto.trip.TripPlan;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import vio.tabitomo.domain.dto.trip.TripPlan;
 
 @Slf4j
 @Component

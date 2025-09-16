@@ -11,8 +11,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "country")
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

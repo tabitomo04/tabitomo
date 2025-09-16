@@ -1,12 +1,10 @@
 package com.koreatravel.tabitomo.domain.entity.test;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
+@Data
 @Entity
 @Table(name = "language")
 public class LanguageEntity {

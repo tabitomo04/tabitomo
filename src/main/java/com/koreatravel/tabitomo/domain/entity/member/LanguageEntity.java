@@ -11,8 +11,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "language")
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -47,10 +46,6 @@ public class LanguageEntity {
     // For DTO conversion
     public Integer getLanguageId() {
         return languageId;
-    }
-    
-    public String getLanguageCode() {
-        return languageCode;
     }
     
     public String getNameNative() {

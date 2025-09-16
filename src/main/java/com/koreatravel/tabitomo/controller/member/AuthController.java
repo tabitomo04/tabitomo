@@ -3,28 +3,30 @@ package com.koreatravel.tabitomo.controller.member;
 import com.koreatravel.tabitomo.domain.dto.member.CountryDTO;
 import com.koreatravel.tabitomo.domain.dto.member.LanguageDTO;
 import com.koreatravel.tabitomo.domain.dto.auth.MemberDTO;
+import com.koreatravel.tabitomo.domain.dto.auth.SignUpDTO;
+import com.koreatravel.tabitomo.service.member.AuthService;
 import com.koreatravel.tabitomo.service.member.MemberService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 import org.springframework.validation.BindingResult;
 import javax.validation.Valid;
 
 @Controller
+@RequiredArgsConstructor
 @RequestMapping("/auth")
 public class AuthController {
-    private final MemberService memberService;
 
-    @Autowired
-    public AuthController(MemberService memberService) {
-        this.memberService = memberService;
-    }
+    private final AuthService authService;
+    
+    private final MemberService memberService;
 
     // 로그인 페이지 이동
     @GetMapping("/login")
@@ -35,7 +37,7 @@ public class AuthController {
     @GetMapping("/signup")
     public String signupPage(Model model) {
         List<CountryDTO> countries = memberService.getAllCountries();
-        List<LanguageDTO> languages = memberService.getAllActiveLanguages();
+        List<LanguageDTO> languages = memberService.getAllLanguages();
         
         model.addAttribute("countries", countries);
         model.addAttribute("languages", languages);
@@ -44,17 +46,19 @@ public class AuthController {
 
     // 회원가입 처리
     @PostMapping("/signup")
-    public String signup(@Valid @ModelAttribute("member") MemberDTO memberDTO, 
+    public String signup(@Valid @ModelAttribute("member") SignUpDTO member, 
+                        @RequestParam("countryId") int countryId,
+                        @RequestParam("languageId") int languageId,
                         BindingResult result, 
                         Model model) {
         if (result.hasErrors()) {
             model.addAttribute("countries", memberService.getAllCountries());
-            model.addAttribute("languages", memberService.getAllActiveLanguages());
+            model.addAttribute("languages", memberService.getAllLanguages());
             return "signupform";
         }
         
         // Process the signup with country and language
-        memberService.register(memberDTO);
+        authService.signup(member, countryId, languageId);
         return "redirect:/auth/signup_success";
     }
 

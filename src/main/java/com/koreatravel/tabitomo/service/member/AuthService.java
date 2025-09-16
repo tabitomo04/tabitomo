@@ -10,7 +10,6 @@ import com.koreatravel.tabitomo.domain.dto.auth.SignUpDTO;
 import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
 
 
-
 @Service
 public class AuthService {
     private final MemberRepository memberRepository;
@@ -21,7 +20,7 @@ public class AuthService {
     }
 
     // 회원가입
-    public void register(SignUpDTO dto) {
+    public void signup(SignUpDTO dto, int countryId, int languageId) {
         // 비밀번호 암호화
         MemberEntity memberEntity = MemberEntity.builder()
                 .email(dto.getEmail())
@@ -30,8 +29,8 @@ public class AuthService {
                 .nickname(dto.getNickname())
                 .build();
         memberEntity.setPassword(passwordEncoder.encode(memberEntity.getPassword()));
-        memberEntity.setCountry(dto.getCountry());
-        memberEntity.setLanguage(dto.getLanguage());
+        memberEntity.setCountry(countryId);
+        memberEntity.setLanguage(languageId);
         memberRepository.save(memberEntity);
     }
 

@@ -1,12 +1,16 @@
 package com.koreatravel.tabitomo.domain.dto.member;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
+@Data
 public class CountryDTO {
-    private String countryCode;
+    private int countryId;
     private String countryNameKo;
     private String countryNameEn;
+
+    public CountryDTO(int countryId, String countryNameKo, String countryNameEn) {
+        this.countryId = countryId;
+        this.countryNameKo = countryNameKo;
+        this.countryNameEn = countryNameEn;
+    }
 }

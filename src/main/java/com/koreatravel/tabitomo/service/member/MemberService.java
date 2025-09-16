@@ -31,29 +31,12 @@ public class MemberService {
         return memberRepository.findById(id).orElse(null);
     }
 
-    public CountryDTO findCountryById(int id) {
-        CountryEntity countryEntity = countryRepository.findById(id);
-        return CountryDTO.builder()
-                .countryId(countryEntity.getCountryId())
-                .countryName(countryEntity.getCountryName())
-                .build();
+    public java.util.List<CountryDTO> getAllCountries() {
+        return countryRepository.findAll().stream().map(country -> new CountryDTO(country.getCountryId(), country.getCountryName(), country.getRegion())).toList();
     }
 
-    public LanguageDTO findLanguageById(int id) {
-        LanguageEntity languageEntity = languageRepository.findById(id);
-        return LanguageDTO.builder()
-                .languageId(languageEntity.getLanguageId())
-                .languageName(languageEntity.getLanguageName())
-                .languageNative(languageEntity.getLanguageNative())
-                .build();
-    }
-
-    public List<CountryDTO> getAllCountries() {
-        return countryRepository.findAll();
-    }
-
-    public List<LanguageDTO> getAllLanguages() {
-        return languageRepository.findAll();
+    public java.util.List<LanguageDTO> getAllLanguages() {
+        return languageRepository.findAll().stream().map(language -> new LanguageDTO(language.getLanguageId(), language.getNameNative(), language.getNameEn())).toList();
     }
 }
 

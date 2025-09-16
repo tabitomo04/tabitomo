@@ -76,4 +76,20 @@ public class MemberEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "preferred_language_id", referencedColumnName = "language_id")
     private LanguageEntity preferredLanguage;
+
+    public void setCountry(CountryEntity country) {
+        this.country = country;
+    }
+
+    public void setLanguage(LanguageEntity language) {
+        this.preferredLanguage = language;
+    }
+
+    public void setCountry(int countryId) {
+        this.country.setCountryId(countryId);
+    }
+
+    public void setLanguage(int languageId) {
+        this.preferredLanguage.setLanguageId(languageId);
+    }
 }

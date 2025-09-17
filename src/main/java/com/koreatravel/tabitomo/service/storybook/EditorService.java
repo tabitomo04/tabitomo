@@ -295,10 +295,9 @@ public class EditorService {
                                     .tagName(tagName)
                                     .build()
                     ));
-            StoryTagEntity storytag = StoryTagEntity.builder()
-                    .storybook(entity)
-                    .tag(tagentity)
-                    .build();
+            StoryTagEntity storytag = new StoryTagEntity();
+            storytag.setStorybook(entity);
+            storytag.setTag(tagentity);
             storytagRepository.save(storytag);
         }
 
@@ -335,10 +334,9 @@ public class EditorService {
                                         .build()
                         ));
 
-                StoryTagEntity storytag = StoryTagEntity.builder()
-                        .storybook(entity)
-                        .tag(tagentity)
-                        .build();
+                StoryTagEntity storytag = new StoryTagEntity();
+                storytag.setStorybook(entity);
+                storytag.setTag(tagentity);
                 storytagRepository.save(storytag);
             }
 
@@ -382,10 +380,9 @@ public class EditorService {
                                         .build()
                         ));
 
-                StoryTagEntity storytag = StoryTagEntity.builder()
-                        .storybook(entity)
-                        .tag(tagentity)
-                        .build();
+                StoryTagEntity storytag = new StoryTagEntity();
+                storytag.setStorybook(entity);
+                storytag.setTag(tagentity);
                 storytagRepository.save(storytag);
             }
         }

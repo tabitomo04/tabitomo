@@ -7,6 +7,8 @@
   <title>회원가입</title>
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/css/signup.css" th:href="@{/css/signup.css}">
   <style>
     body {
       background: #f8f9fa;
@@ -117,25 +119,26 @@
   <div class="container py-5">
     <div class="form-container">
       <h1 class="form-title">회원가입</h1>
-      <form th:action="@{/signup}" th:object="${member}" method="post" onsubmit="return handleSubmit()">
+      <form th:action="@{/signup}" th:object="${member}" method="post" >
         <!-- 이메일 입력 필드 -->
         <div class="mb-3">
           <label for="emailId" class="form-label">이메일</label>
           <div class="d-flex align-items-center gap-2">
             <div class="d-flex align-items-center flex-grow-1">
               <input type="text" class="form-control" id="emailId" placeholder="아이디" required 
-                     onchange="resetEmailCheck()" style="max-width: 180px;">
+                      style="max-width: 180px;" onchange="resetEmailCheck()">
               <span class="mx-2">@</span>
               <input type="text" class="form-control" id="emailDomain" placeholder="도메인" required 
-                     onchange="resetEmailCheck()" style="max-width: 180px;">
+                      style="max-width: 180px;" onchange="resetEmailCheck()">
             </div>
             <button type="button" class="btn btn-outline-primary" 
-                    onclick="checkEmail()" style="min-width: 100px; white-space: nowrap;">
+                     style="min-width: 100px; white-space: nowrap;"
+                     onclick="checkEmail()">
               중복확인
             </button>
             <button type="button" id="emailVerifyBtn" class="btn btn-outline-success ms-2" 
                     style="display: none; min-width: 100px; white-space: nowrap;"
-                    onclick="requestEmailVerification()">
+                    >
               인증하기
             </button>
           </div>
@@ -159,7 +162,8 @@
         <div class="mb-4">
           <label for="nickname" class="form-label">닉네임</label>
           <div class="input-group">
-            <input type="text" class="form-control" id="nickname" th:field="*{nickname}" placeholder="닉네임을 입력해주세요" onkeyup="resetNicknameCheck()">
+            <input type="text" class="form-control" id="nickname" th:field="*{nickname}" 
+                   placeholder="닉네임을 입력해주세요" onkeyup="resetNicknameCheck()">
             <button class="btn btn-outline-secondary" type="button" id="nicknameCheckBtn" onclick="checkNickname()">중복확인</button>
           </div>
           <div id="nicknameCheckResult" class="validation-message"></div>
@@ -226,381 +230,29 @@
           </div>
           <div id="verificationResult" class="validation-message text-center mb-3"></div>
           <div class="d-grid gap-2">
-            <button type="button" class="btn btn-primary" onclick="verifyEmail()">인증하기</button>
-            <button type="button" class="btn btn-outline-secondary" onclick="resendVerificationCode()">인증번호 재전송</button>
+            <button type="button" class="btn btn-primary" >인증하기</button>
+            <button type="button" class="btn btn-outline-secondary" >인증번호 재전송</button>
           </div>
         </div>
       </div>
     </div>
   </div>
   
-  <!-- Bootstrap JS and dependencies -->
+  <!-- JavaScript -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+  <script src="/js/signup.js" th:src="@{/js/signup.js}"></script>
   <script>
-    // 이메일 주소 조합
-    function combineEmail() {
-      const emailId = document.getElementById('emailId').value.trim();
-      const emailDomain = document.getElementById('emailDomain').value.trim();
-      
-      if (!emailId || !emailDomain) {
-        alert('이메일을 모두 입력해주세요.');
-        return false;
-      }
-      
-      return true;
-    }
-    
-    // 전역 변수
-    let isEmailChecked = false;
-    let isNicknameChecked = false;
-    let isEmailVerified = false;
-    let verificationCode = '';
-    let verificationTimer = null;
-    let timeLeft = 180; // 3분 (180초)
-    
-    // 이메일 중복 확인 리셋
-    function resetEmailCheck() {
-      isEmailChecked = false;
-      document.getElementById('emailCheckResult').textContent = '';
-      document.getElementById('emailCheckResult').className = 'validation-message';
-    }
-    
-    // 닉네임 중복 확인 리셋
-    function resetNicknameCheck() {
-      isNicknameChecked = false;
-      document.getElementById('nicknameCheckResult').textContent = '';
-      document.getElementById('nicknameCheckResult').className = 'validation-message';
-    }
-    
-    // 이메일 중복 확인
-    function checkEmail() {
-      const emailId = document.getElementById('emailId').value.trim();
-      const emailDomain = document.getElementById('emailDomain').value.trim();
-      
-      if (!emailId || !emailDomain) {
-        alert('이메일을 모두 입력해주세요.');
-        return false;
-      }
-      
-      const email = `${emailId}@${emailDomain}`;
-      
-      fetch(`/member/api/check-email?email=${encodeURIComponent(email)}`)
-        .then(response => response.json())
-        .then(data => {
-          const resultDiv = document.getElementById('emailCheckResult');
-          if (data.exists) {
-            resultDiv.textContent = data.message;
-            resultDiv.className = 'validation-message error';
-            isEmailChecked = false;
-            isEmailVerified = false;
-            document.getElementById('emailVerifyBtn').style.display = 'none';
-          } else {
-            resultDiv.textContent = data.message + ' 이메일 인증을 진행해주세요.';
-            resultDiv.className = 'validation-message success';
-            isEmailChecked = true;
-            document.getElementById('emailVerifyBtn').style.display = 'inline-block';
-            document.getElementById('emailVerifyBtn').disabled = false;
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          alert('중복 확인 중 오류가 발생했습니다. 다시 시도해주세요.');
-        });
-    }
-    
-    // 닉네임 중복 확인
-    function checkNickname() {
-      const nickname = document.getElementById('nickname').value.trim();
-      
-      if (!nickname) {
-        alert('닉네임을 입력해주세요.');
-        return false;
-      }
-      
-      fetch(`/member/api/check-nickname?nickname=${encodeURIComponent(nickname)}`)
-        .then(response => response.json())
-        .then(data => {
-          const resultDiv = document.getElementById('nicknameCheckResult');
-          if (data.exists) {
-            resultDiv.textContent = data.message;
-            resultDiv.className = 'validation-message error';
-            isNicknameChecked = false;
-          } else {
-            resultDiv.textContent = data.message;
-            resultDiv.className = 'validation-message success';
-            isNicknameChecked = true;
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          alert('중복 확인 중 오류가 발생했습니다. 다시 시도해주세요.');
-        });
-    }
-    
-    // 이메일 인증 요청
-    function requestEmailVerification() {
-      if (!isEmailChecked) {
-        alert('먼저 이메일 중복 확인을 해주세요.');
-        return false;
-      }
-      
-      const emailId = document.getElementById('emailId').value.trim();
-      const emailDomain = document.getElementById('emailDomain').value.trim();
-      const email = emailId + '@' + emailDomain;
-      
-      // 인증번호 생성 및 이메일 전송 API 호출
-      fetch('/api/email/send-verification', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: email, verificationCode: '' }) // MemberProfileDTO와 호환되도록 빈 문자열 추가
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          verificationCode = data.verificationCode;
-          openVerificationModal();
-          startVerificationTimer();
-        } else {
-          alert('인증번호 전송에 실패했습니다. 다시 시도해주세요.');
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        alert('인증번호 전송 중 오류가 발생했습니다. 다시 시도해주세요.');
-      });
-    }
-    
-    // 인증 모달 열기
-    function openVerificationModal() {
-      const modal = document.getElementById('emailVerificationModal');
-      modal.style.display = 'block';
-      
-      // 모달 닫기 버튼 이벤트
-      const span = document.getElementsByClassName('close')[0];
-      span.onclick = function() {
-        modal.style.display = 'none';
-        resetVerification();
-      }
-      
-      // 모달 외부 클릭 시 닫기
-      window.onclick = function(event) {
-        if (event.target == modal) {
-          modal.style.display = 'none';
-          resetVerification();
-        }
-      }
-    }
-    
-    // 인증 타이머 시작
-    function startVerificationTimer() {
-      clearInterval(verificationTimer);
-      timeLeft = 180; // 3분으로 초기화
-      updateTimerDisplay();
-      
-      verificationTimer = setInterval(function() {
-        timeLeft--;
-        updateTimerDisplay();
-        
-        if (timeLeft <= 0) {
-          clearInterval(verificationTimer);
-          document.getElementById('verificationResult').textContent = '인증 시간이 만료되었습니다. 다시 시도해주세요.';
-          document.getElementById('verificationResult').className = 'validation-message error';
-          verificationCode = '';
-        }
-      }, 1000);
-    }
-    
-    // 타이머 표시 업데이트
-    function updateTimerDisplay() {
-      const minutes = Math.floor(timeLeft / 60);
-      const seconds = timeLeft % 60;
-      document.getElementById('verificationTimer').textContent = 
-        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    }
-    
-    // 인증번호 재전송
-    function resendVerificationCode() {
-      requestEmailVerification();
-      document.getElementById('verificationResult').textContent = '';
-      document.getElementById('verificationCode').value = '';
-    }
-    
-    // 이메일 인증 확인
-    function verifyEmail() {
-      const inputCode = document.getElementById('verificationCode').value.trim();
-      const resultDiv = document.getElementById('verificationResult');
-      const emailId = document.getElementById('emailId').value.trim();
-      const emailDomain = document.getElementById('emailDomain').value.trim();
-      const email = emailId + '@' + emailDomain;
-      
-      if (!inputCode) {
-        resultDiv.textContent = '인증번호를 입력해주세요.';
-        resultDiv.className = 'validation-message error';
-        return;
-      }
-      
-      if (timeLeft <= 0) {
-        resultDiv.textContent = '인증 시간이 만료되었습니다. 다시 시도해주세요.';
-        resultDiv.className = 'validation-message error';
-        return;
-      }
-      
-      // 서버에서 인증 확인
-      fetch('/api/email/verify', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email,
-          code: inputCode
-        })
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('서버 응답 오류: ' + response.status);
-        }
-        return response.json();
-      })
-      .then(data => {
-        // 서버 응답 처리
-        if (data.success) {
-          // 인증 성공
-          clearInterval(verificationTimer);
-          resultDiv.textContent = data.message || '이메일 인증이 완료되었습니다.';
-          resultDiv.className = 'validation-message success';
-          isEmailVerified = true;
-          
-          // 3초 후 모달 닫기
-          setTimeout(() => {
-            document.getElementById('emailVerificationModal').style.display = 'none';
-            document.getElementById('emailVerifyBtn').textContent = '인증완료';
-            document.getElementById('emailVerifyBtn').disabled = true;
-          }, 1000);
-        } else {
-          // 인증 실패
-          resultDiv.textContent = data.message || '인증에 실패했습니다.';
-          resultDiv.className = 'validation-message error';
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        // 테스트용: 서버 응답이 없을 경우 클라이언트에서 처리
-        if (verificationCode && inputCode === verificationCode) {
-          // 인증 성공 (테스트용)
-          clearInterval(verificationTimer);
-          resultDiv.textContent = '이메일 인증이 완료되었습니다.';
-          resultDiv.className = 'validation-message success';
-          isEmailVerified = true;
-          
-          // 3초 후 모달 닫기
-          setTimeout(() => {
-            document.getElementById('emailVerificationModal').style.display = 'none';
-            document.getElementById('emailVerifyBtn').textContent = '인증완료';
-            document.getElementById('emailVerifyBtn').disabled = true;
-          }, 1000);
-        } else {
-          // 인증 실패
-          resultDiv.textContent = '인증번호가 일치하지 않거나 서버 오류가 발생했습니다.';
-          resultDiv.className = 'validation-message error';
-        }
-      });
-    }
-    
-    // 인증 관련 상태 초기화
-    function resetVerification() {
-      clearInterval(verificationTimer);
-      timeLeft = 180;
-      document.getElementById('verificationCode').value = '';
-      document.getElementById('verificationResult').textContent = '';
-      document.getElementById('verificationResult').className = 'validation-message';
-    }
-    
-    // 폼 제출 시 유효성 검사
-    function handleSubmit() {
-      // 이메일 검증
-      if (!combineEmail()) {
-        return false;
-      }
-      
-      // 이메일 중복 확인 검사
-      if (!isEmailChecked) {
-        alert('이메일 중복 확인을 해주세요.');
-        return false;
-      }
-      
-      // 이메일 인증 확인
-      if (!isEmailVerified) {
-        alert('이메일 인증을 완료해주세요.');
-        return false;
-      }
-      
-      // 닉네임 중복 확인 검사
-      if (!isNicknameChecked) {
-        alert('닉네임 중복 확인을 해주세요.');
-        return false;
-      }
-      
-      // 비밀번호 일치 검증
-      const password = document.getElementById('password').value;
-      const confirmPassword = document.getElementById('confirmPassword').value;
-      
-      if (password !== confirmPassword) {
-        alert('비밀번호가 일치하지 않습니다.');
-        return false;
-      }
-      
-      // 비밀번호 길이 검증 (예: 8자 이상)
-      if (password.length < 8) {
-        alert('비밀번호는 8자 이상이어야 합니다.');
-        return false;
-      }
-      
-      // 닉네임 검증
-      const nickname = document.getElementById('nickname').value;
-      if (!nickname) {
-        alert('닉네임을 입력해주세요.');
-        return false;
-      }
-      
-      // 국가 선택 검증
-      const countryId = document.getElementById('countryId').value;
-      if (!countryId) {
-        alert('국가를 선택해주세요.');
-        return false;
-      }
-      
-      // 언어 선택 검증
-      const languageId = document.getElementById('languageId').value;
-      if (!languageId) {
-        alert('선호 언어를 선택해주세요.');
-        return false;
-      }
-      
-      // 성별 선택 검증
-      const gender = document.getElementById('gender').value;
-      if (!gender) {
-        alert('성별을 선택해주세요.');
-        return false;
-      }
-      
-      return true;
-    }
-    
-    // 성별 선택 함수
+    // 성별 선택 함수 (HTML에 직접 필요한 함수만 남김)
     function selectGender(element, genderValue) {
-      // 모든 성별 옵션에서 selected 클래스 제거
-      document.querySelectorAll('.gender-option').forEach(option => {
-        option.classList.remove('selected');
+      // 모든 성별 버튼에서 selected 클래스 제거
+      document.querySelectorAll('.gender-option').forEach(btn => {
+        btn.classList.remove('selected');
       });
       
-      // 선택한 옵션에 selected 클래스 추가
+      // 선택된 버튼에 selected 클래스 추가
       element.classList.add('selected');
       
-      // hidden input에 값 설정
+      // hidden input 값 업데이트
       document.getElementById('gender').value = genderValue;
     }
   </script>

@@ -14,20 +14,19 @@ import lombok.*;
 @IdClass(TripTagId.class)
 public class TripTagEntity {
     
-    @Id
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "trip_id", nullable = false, insertable = false, updatable = false)
+    @JoinColumn(name = "trip_id", referencedColumnName = "trip_id", insertable = false, updatable = false)
     private Trip trip;
     
-    @Id
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tag_id", nullable = false, insertable = false, updatable = false)
+    @JoinColumn(name = "tag_id", referencedColumnName = "tag_id", insertable = false, updatable = false)
     private TagMasterEntity tag;
     
-    // Composite key fields (must match the @IdClass fields)
+    @Id
     @Column(name = "trip_id")
     private Long tripId;
     
+    @Id
     @Column(name = "tag_id")
     private Integer tagId;
     

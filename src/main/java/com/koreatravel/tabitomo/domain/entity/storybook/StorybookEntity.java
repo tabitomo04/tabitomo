@@ -58,14 +58,30 @@ public class StorybookEntity {
     
     // Helper method to add a tag
     public void addTag(TagMasterEntity tag) {
-        StoryTagEntity storyTag = new StoryTagEntity();
-        storyTag.setStorybook(this);
-        storyTag.setTag(tag);
-        tags.add(storyTag);
+        if (tag == null) return;
+        
+        // Check if the tag already exists
+        boolean exists = tags.stream()
+            .anyMatch(storyTag -> storyTag.getTagId() != null && 
+                               storyTag.getTagId().equals(tag.getTagId()));
+        
+        if (!exists) {
+            StoryTagEntity storyTag = new StoryTagEntity();
+            storyTag.setStorybook(this);
+            storyTag.setTag(tag);
+            tags.add(storyTag);
+        }
     }
     
     // Helper method to remove a tag
     public void removeTag(TagMasterEntity tag) {
-        tags.removeIf(storyTag -> storyTag.getTag().equals(tag));
+        if (tag == null || tag.getTagId() == null) return;
+        tags.removeIf(storyTag -> storyTag.getTagId() != null && 
+                               storyTag.getTagId().equals(tag.getTagId()));
+    }
+    
+    // Helper method to clear all tags
+    public void clearTags() {
+        tags.clear();
     }
 }

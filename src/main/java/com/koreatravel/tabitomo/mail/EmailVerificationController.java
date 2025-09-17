@@ -23,10 +23,21 @@ public class EmailVerificationController {
 
     @PostMapping("/send-verification")
     public ResponseEntity<?> sendVerificationEmail(@RequestBody Map<String, String> request) {
+        Map<String, Object> response = new HashMap<>();
+        
         try {
             String email = request.get("email");
             if (email == null || email.isEmpty()) {
-                return ResponseEntity.badRequest().body("이메일 주소가 필요합니다.");
+                response.put("success", false);
+                response.put("message", "이메일 주소가 필요합니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            // 이메일 형식 검증
+            if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+                response.put("success", false);
+                response.put("message", "유효하지 않은 이메일 형식입니다.");
+                return ResponseEntity.badRequest().body(response);
             }
             
             String verificationCode = String.format("%06d", (int) (Math.random() * 1000000));
@@ -41,8 +52,7 @@ public class EmailVerificationController {
             // 테스트를 위해 콘솔에 인증번호 출력
             System.out.println("이메일: " + email + ", 인증번호: " + verificationCode);
             
-            // 응답 반환 (테스트를 위해 인증 코드도 함께 반환)
-            Map<String, Object> response = new HashMap<>();
+            // 응답 반환
             response.put("success", true);
             response.put("message", "인증 이메일이 전송되었습니다.");
             response.put("verificationCode", verificationCode); // 테스트용 (실제 운영에서는 제거)
@@ -50,18 +60,24 @@ public class EmailVerificationController {
             return ResponseEntity.ok().body(response);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.badRequest().body("인증 이메일 전송에 실패했습니다: " + e.getMessage());
+            response.put("success", false);
+            response.put("message", "인증 이메일 전송에 실패했습니다: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
         }
     }
     
     @PostMapping("/verify")
     public ResponseEntity<?> verifyEmailCode(@RequestBody Map<String, String> request) {
+        Map<String, Object> response = new HashMap<>();
+        
         try {
             String email = request.get("email");
             String inputCode = request.get("code");
             
             if (email == null || email.isEmpty() || inputCode == null || inputCode.isEmpty()) {
-                return ResponseEntity.badRequest().body("이메일 주소와 인증 코드가 필요합니다.");
+                response.put("success", false);
+                response.put("message", "이메일 주소와 인증 코드가 필요합니다.");
+                return ResponseEntity.badRequest().body(response);
             }
             
             // 저장된 인증 코드와 시간 조회
@@ -70,7 +86,9 @@ public class EmailVerificationController {
             
             // 인증 코드가 존재하고, 만료되지 않았는지 확인
             if (savedCode == null || verificationTime == null) {
-                return ResponseEntity.badRequest().body("인증 요청을 먼저 해주세요.");
+                response.put("success", false);
+                response.put("message", "인증 요청을 먼저 해주세요.");
+                return ResponseEntity.badRequest().body(response);
             }
             
             long currentTime = System.currentTimeMillis();
@@ -78,19 +96,22 @@ public class EmailVerificationController {
                 // 인증 코드 만료
                 verificationCodes.remove(email);
                 verificationTimes.remove(email);
-                return ResponseEntity.badRequest().body("인증 시간이 만료되었습니다. 다시 시도해주세요.");
+                response.put("success", false);
+                response.put("message", "인증 시간이 만료되었습니다. 다시 시도해주세요.");
+                return ResponseEntity.badRequest().body(response);
             }
             
             // 인증 코드 확인
             if (!savedCode.equals(inputCode)) {
-                return ResponseEntity.badRequest().body("인증 코드가 일치하지 않습니다.");
+                response.put("success", false);
+                response.put("message", "인증 코드가 일치하지 않습니다.");
+                return ResponseEntity.badRequest().body(response);
             }
             
             // 인증 성공 (실제 구현에서는 세션이나 토큰에 인증 완료 상태 저장)
             verificationCodes.remove(email);
             verificationTimes.remove(email);
             
-            Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "이메일 인증이 완료되었습니다.");
             
@@ -98,7 +119,9 @@ public class EmailVerificationController {
             
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.badRequest().body("인증 처리 중 오류가 발생했습니다: " + e.getMessage());
+            response.put("success", false);
+            response.put("message", "인증 처리 중 오류가 발생했습니다: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
         }
     }
 }

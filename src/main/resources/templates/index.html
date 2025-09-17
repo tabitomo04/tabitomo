@@ -1,13 +1,21 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>메인 페이지</title>
 </head>
 <body>
-[Tabitomo에 오신 것을 환영합니다.]<br>
-<a th:href="@{/signup}">회원가입</a><br>
-<a th:href="@{/login}">로그인</a>
+<h1>메인 페이지</h1>
+<p th:text="${message}"></p>
 
+<div th:if="${session.memberId}">
+    <p th:text="${session.loginNickname} + '님, 환영합니다!'"></p>
+    <a href="/member/edit">회원 정보 수정</a>
+    <a href="/logout">로그아웃</a>
+</div>
+<div th:unless="${session.memberId}">
+    <a href="/login">로그인</a>
+    <a href="/signup">회원가입</a>
+</div>
 </body>
 </html>

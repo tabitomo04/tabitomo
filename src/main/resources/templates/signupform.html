@@ -65,6 +65,11 @@
     .btn-submit:hover {
         background: #0056b3;
     }
+    #nicknameMessage {
+        display: block;
+        margin-top: 5px;
+        font-size: 0.9em;
+    }
   </style>
 </head>
 <body>
@@ -72,18 +77,19 @@
   <h2>회원가입</h2>
   <form th:action="@{/signup}" th:object="${memberDTO}" method="post" onsubmit="return handleSubmit()">
 
+    <!-- 이메일 -->
     <div class="form-group">
       <label>이메일</label>
       <div class="inline-group">
-        <input type="text" id="emailId" placeholder="아이디">
+        <input type="text" id="emailId" placeholder="아이디" required>
         <span>@</span>
-        <input type="text" id="emailDomain" placeholder="도메인">
+        <input type="text" id="emailDomain" placeholder="도메인" required>
         <button type="button">인증하기</button>
       </div>
     </div>
-
     <input type="hidden" name="email" id="hiddenEmail">
 
+    <!-- 비밀번호 -->
     <div class="form-group">
       <label>비밀번호</label>
       <input type="password" name="password" required>
@@ -94,14 +100,17 @@
       <input type="password" required>
     </div>
 
+    <!-- 닉네임 -->
     <div class="form-group">
       <label>닉네임</label>
       <div class="inline-group">
-        <input type="text" name="nickname" required>
-        <button type="button">중복확인</button>
+        <input type="text" name="nickname" id="nickname" required>
+        <button type="button" onclick="checkNickname()">중복확인</button>
       </div>
+      <span id="nicknameMessage"></span>
     </div>
 
+    <!-- 성별 -->
     <div class="form-group">
       <label>성별</label>
       <div class="inline-group">
@@ -112,16 +121,18 @@
       <input type="hidden" name="gender" id="gender">
     </div>
 
+    <!-- 국적 -->
     <div class="form-group">
       <label>국적</label>
-      <select name="nationality">
-        <option value="한국">한국</option>
-        <option value="일본">일본</option>
-        <option value="미국">미국</option>
-        <option value="기타">기타</option>
+      <select name="country_id">
+        <option value="1">한국</option>
+        <option value="2">일본</option>
+        <option value="3">미국</option>
+        <option value="4">기타</option>
       </select>
     </div>
 
+    <!-- 출생년도 -->
     <div class="form-group">
       <label>출생년도</label>
       <select name="age">
@@ -137,30 +148,74 @@
 </div>
 
 <script>
+  // 성별 선택
   function selectGender(el, value) {
-      document.querySelectorAll(".gender-option").forEach(opt => {
-          opt.classList.remove("selected");
-      });
+      document.querySelectorAll(".gender-option").forEach(opt => opt.classList.remove("selected"));
       el.classList.add("selected");
       document.getElementById("gender").value = value;
   }
 
-  // 폼 제출을 가로채서 이메일 값을 hidden input에 설정하는 함수
+  // 닉네임 중복 확인 상태
+  let isNicknameChecked = false;
+
+  // 닉네임 input 이벤트
+  document.getElementById('nickname').addEventListener('input', () => {
+      isNicknameChecked = false;
+      document.getElementById('nicknameMessage').textContent = '';
+  });
+
+  // 닉네임 중복 확인
+  function checkNickname() {
+      const nicknameInput = document.getElementById('nickname');
+      const nickname = nicknameInput.value.trim();
+      const nicknameMessage = document.getElementById('nicknameMessage');
+
+      if (nickname === '') {
+          nicknameMessage.textContent = '닉네임을 입력해주세요.';
+          nicknameMessage.style.color = 'red';
+          return;
+      }
+
+      fetch(`/checkNickname?nickname=${encodeURIComponent(nickname)}`)
+          .then(response => response.json())
+          .then(data => {
+              if (data.isDuplicate) {
+                  nicknameMessage.textContent = '이미 사용 중인 닉네임입니다.';
+                  nicknameMessage.style.color = 'red';
+                  isNicknameChecked = false;
+              } else {
+                  nicknameMessage.textContent = '사용 가능한 닉네임입니다.';
+                  nicknameMessage.style.color = 'green';
+                  isNicknameChecked = true;
+              }
+          })
+          .catch(error => {
+              console.error('Error:', error);
+              nicknameMessage.textContent = '오류가 발생했습니다. 다시 시도해주세요.';
+              nicknameMessage.style.color = 'red';
+              isNicknameChecked = false;
+          });
+  }
+
+  // 폼 제출
   function handleSubmit() {
       const emailId = document.getElementById('emailId').value;
       const emailDomain = document.getElementById('emailDomain').value;
       const hiddenEmailInput = document.getElementById('hiddenEmail');
 
-      // 이메일 아이디와 도메인이 모두 입력되었는지 확인
       if (!emailId || !emailDomain) {
           alert('이메일 주소를 모두 입력해주세요.');
-          return false; // 폼 제출 중단
+          return false;
       }
 
-      // 완전한 이메일 주소 생성
       hiddenEmailInput.value = `${emailId}@${emailDomain}`;
 
-      // 폼 제출 계속 진행
+      if (!isNicknameChecked) {
+          alert('닉네임 중복 확인을 완료해주세요.');
+          document.getElementById('nickname').focus();
+          return false;
+      }
+
       return true;
   }
 </script>

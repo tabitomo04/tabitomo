@@ -1,0 +1,43 @@
+/* 프로필 이미지 컨테이너 스타일 */
+.profile-image-container {
+    position: relative;
+    display: inline-block;
+}
+
+.profile-image-container img {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border: 3px solid #f8f9fa;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* 해시태그 스타일 */
+.selected-hashtags {
+    min-height: 60px;
+    border: 1px dashed #dee2e6;
+    border-radius: 0.25rem;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.hashtag-badge {
+    font-size: 0.875rem;
+    padding: 0.35em 0.65em;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* 폼 스타일 */
+.form-control:disabled, .form-control[readonly] {
+    background-color: #f8f9fa;
+    opacity: 1;
+}
+
+/* 반응형 조정 */
+@media (max-width: 768px) {
+    .profile-image-container img {
+        width: 120px;
+        height: 120px;
+    }
+}

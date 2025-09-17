@@ -10,6 +10,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import com.koreatravel.tabitomo.domain.entity.tag.TagMaster;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -48,4 +51,20 @@ public class StorybookEntity {
 
     @Column(name = "likes", columnDefinition = "integer default 0")
     private int likes;
+
+    @OneToMany(mappedBy = "storybook", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<com.koreatravel.tabitomo.domain.entity.tag.StoryTag> tags = new ArrayList<>();
+    
+    // Helper method to add a tag
+    public void addTag(TagMaster tag) {
+        StoryTag storyTag = new StoryTag();
+        storyTag.setStorybook(this);
+        storyTag.setTag(tag);
+        tags.add(storyTag);
+    }
+    
+    // Helper method to remove a tag
+    public void removeTag(TagMaster tag) {
+        tags.removeIf(storyTag -> storyTag.getTag().equals(tag));
+    }
 }

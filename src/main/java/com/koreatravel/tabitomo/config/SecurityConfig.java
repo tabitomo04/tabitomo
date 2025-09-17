@@ -24,12 +24,6 @@ public class SecurityConfig {
     private final UserDetailsServiceImpl userDetailsService;
 
     @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        // 정적 리소스는 시큐리티 필터를 거치지 않도록 설정
-        return (web) -> web.ignoring().requestMatchers("/css/**", "/js/**", "/image/**");
-    }
-
-    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 // CSRF 보호 비활성화 (개발 편의를 위해)
@@ -40,18 +34,34 @@ public class SecurityConfig {
                 )
                 // 권한 설정
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/login", "/signup", "/api/**").permitAll()
+                        // 정적 리소스 허용
+                        .requestMatchers(
+                            "/", 
+                            "/css/**", 
+                            "/js/**", 
+                            "/image/**", 
+                            "/images/**", 
+                            "/favicon.ico", 
+                            "/error"
+                        ).permitAll()
+                        // API 및 인증 관련 경로 허용
+                        .requestMatchers(
+                            "/auth/**", 
+                            "/api/**", 
+                            "/member/api/**"
+                        ).permitAll()
+                        // 그 외 모든 요청은 인증 필요
                         .anyRequest().authenticated()
                 )
                 // 폼 로그인 설정
                 .formLogin(form -> form
-                        .loginPage("/login")
+                        .loginPage("/auth/login")
                         .defaultSuccessUrl("/")
                         .permitAll()
                 )
                 // 로그아웃 설정
                 .logout(logout -> logout
-                        .logoutSuccessUrl("/login?logout")
+                        .logoutSuccessUrl("/auth/login?logout")
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
                         .permitAll()

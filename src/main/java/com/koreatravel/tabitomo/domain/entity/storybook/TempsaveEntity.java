@@ -35,6 +35,9 @@ public class TempsaveEntity {
     @Column(columnDefinition = "TEXT") // HTML 내용을 저장하기 위해 TEXT 타입으로 설정
     private String content;
 
+    @Column(name = "tags", length = 255)
+    private String tags;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private MemberEntity member;

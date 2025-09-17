@@ -7,17 +7,22 @@ import com.koreatravel.tabitomo.domain.dto.storybook.StorybookDTO;
 import com.koreatravel.tabitomo.domain.dto.storybook.TempsaveDTO;
 import com.koreatravel.tabitomo.domain.dto.trip.TripPlan;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class MemberProfileDTO {
     private Long id;
     private String email;
     private String nickname;
     private String profileImageUrl;
     private String introduction;
+    private String statusMessage;
     private String role;
     private CountryDTO country;
     private LanguageDTO language;

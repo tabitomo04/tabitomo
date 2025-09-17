@@ -1,4 +1,4 @@
-package com.koreatravel.tabitomo.controller.storybook;
+package com.koreatravel.tabitomo.controller;
 
 
 import com.koreatravel.tabitomo.PathConstants;
@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 @Slf4j
 @Controller
@@ -154,11 +153,13 @@ public class EditorController {
     public String edit(@RequestParam(value = "booknum", required = false) Integer booknum,
                        @RequestParam(value = "tempId", required = false) Integer tempId,
                        Model model) {
+        // 저장된 것 수정
         if (booknum != null) {
             StorybookDTO dto = editorService.getstory(booknum);
             if (dto != null) model.addAttribute("post", dto);
         }
 
+        // 임시저장본 수정
         if (tempId != null) {
             TempsaveDTO tempdto = editorService.gettemp(tempId);
             if (tempdto != null) model.addAttribute("temp", tempdto);
@@ -176,17 +177,38 @@ public class EditorController {
     @GetMapping(PathConstants.STORYBOOK_DELETE)
     public String delete(@RequestParam("booknum") Integer booknum){
         editorService.delete(booknum);
-        return "redirect:/list";
+        return "redirect:/storybook/list";
     }
 
     @GetMapping(PathConstants.STORYBOOK_TEMPDELETE)
     public String tempdel(@RequestParam("tempId") Integer tempId){
         editorService.tempdel(tempId);
-        return "redirect:/member/mypage?all=true";
+        return "redirect:/mypage";
     }
 
     /**
-     * 좋아요 토글 on
+     * 마이페이지 불러오기
+     * @return 마이페이지
+     */
+    @GetMapping("/mypage")
+    public String mypage(Model model,@RequestParam(defaultValue = "false") boolean all){
+
+        // 스토리북 리스트
+        List<StorybookListDTO> storybookList = editorService.getMyStorybookList();
+        if (!all) {
+            storybookList = storybookList.stream().limit(3).toList();
+        }
+        model.addAttribute("storylist", storybookList);
+        model.addAttribute("all", all);
+
+        // 임시저장 리스트
+        List<TempsaveDTO> tempsaveList = editorService.getTempsaveList();
+        model.addAttribute("templist",tempsaveList);
+        return "mypage";
+    }
+
+
+    /**
      *  좋아요 토글 on
      * @param booknum
      * @param email
@@ -195,9 +217,9 @@ public class EditorController {
     @PostMapping("/like")
     public ResponseEntity<Map<String, Object>> like(
             @RequestParam Integer booknum,
-            @RequestParam UUID id) {
+            @RequestParam String email) {
 
-        int likes = editorService.likeBook(booknum, id);
+        int likes = editorService.likeBook(booknum, email);
         return ResponseEntity.ok(Map.of("likes", likes, "liked", true));
     }
 
@@ -210,9 +232,9 @@ public class EditorController {
     @PostMapping("/unlike")
     public ResponseEntity<Map<String, Object>> unlike(
             @RequestParam Integer booknum,
-            @RequestParam UUID id) {
+            @RequestParam String email) {
 
-        int likes = editorService.unlikeBook(booknum, id);
+        int likes = editorService.unlikeBook(booknum, email);
         return ResponseEntity.ok(Map.of("likes", likes, "liked", false));
     }
 
@@ -225,14 +247,17 @@ public class EditorController {
     @GetMapping("/isLiked")
     public ResponseEntity<Map<String, Object>> isLiked(
             @RequestParam Integer booknum,
-            @RequestParam UUID id) {
+            @RequestParam String email) {
 
-        boolean liked = editorService.isLiked(booknum, id);
+        boolean liked = editorService.isLiked(booknum, email);
         return ResponseEntity.ok(Map.of("liked", liked));
     }
 
-
-
-
-
+    @ResponseBody
+    @GetMapping("/storybook/getTagifyList")
+    public List<String> getTagifyList(String value) {
+        List<String> taglist = editorService.gettaglist();
+        return taglist;
+    }
+    
 }

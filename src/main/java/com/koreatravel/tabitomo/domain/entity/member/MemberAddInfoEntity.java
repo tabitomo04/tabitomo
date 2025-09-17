@@ -1,22 +1,23 @@
 package com.koreatravel.tabitomo.domain.entity.member;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Getter
 @Setter
 @Entity
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "member_add_info")
 @IdClass(MemberAddInfoId.class)
 public class MemberAddInfoEntity {
     
     @Id
-    @Column(name = "member_id", nullable = false, columnDefinition = "BINARY(16)")
-    private UUID memberId;
+    @Column(name = "member_id", nullable = false)
+    private Long memberId;
     
     @Id
     @Column(name = "info_high_num", nullable = false)

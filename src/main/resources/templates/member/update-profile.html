@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head th:replace="~{fragments/header :: head}">
+    <title>프로필 수정 - Tabitomo</title>
+    <link rel="stylesheet" href="/css/member/profile-update.css">
+</head>
+<body>
+<!-- Header -->
+<div th:replace="~{fragments/header :: header}"></div>
+
+<!-- Navigation Menu -->
+<div th:replace="~{fragments/menu :: menu}"></div>
+
+<!-- Main Content -->
+<main class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h5 mb-0">프로필 수정</h2>
+                </div>
+                <div class="card-body">
+                    <form id="profileForm" enctype="multipart/form-data">
+                        <!-- 프로필 이미지 업로드 -->
+                        <div class="mb-4 text-center">
+                            <div class="profile-image-container mb-3">
+                                <img th:src="${profile.profileImageUrl ?: '/images/default-profile.png'}" 
+                                     id="profileImage" 
+                                     class="rounded-circle" 
+                                     width="150" 
+                                     height="150"
+                                     alt="프로필 이미지">
+                                <label for="profileImageInput" class="btn btn-outline-primary btn-sm mt-2">
+                                    <i class="bi bi-camera"></i> 이미지 변경
+                                </label>
+                                <input type="file" 
+                                       id="profileImageInput" 
+                                       accept="image/*" 
+                                       class="d-none">
+                            </div>
+                        </div>
+
+                        <!-- 이메일 -->
+                        <div class="mb-3">
+                            <label for="email" class="form-label">이메일</label>
+                            <div class="input-group">
+                                <input type="email" 
+                                       class="form-control" 
+                                       id="email" 
+                                       th:value="${profile.email}"
+                                       required
+                                       disabled>
+                                <button class="btn btn-outline-secondary" 
+                                        type="button" 
+                                        id="verifyEmailBtn"
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#emailVerificationModal">
+                                    인증하기
+                                </button>
+                            </div>
+                            <div class="form-text">이메일을 변경하려면 인증이 필요합니다.</div>
+                        </div>
+
+                        <!-- 닉네임 -->
+                        <div class="mb-3">
+                            <label for="nickname" class="form-label">닉네임</label>
+                            <div class="input-group">
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="nickname" 
+                                       th:value="${profile.nickname}"
+                                       required>
+                                <button class="btn btn-outline-secondary" 
+                                        type="button" 
+                                        id="checkNicknameBtn">
+                                    중복확인
+                                </button>
+                            </div>
+                            <div id="nicknameFeedback" class="form-text"></div>
+                        </div>
+
+                        <!-- 상태 메시지 -->
+                        <div class="mb-4">
+                            <label for="statusMessage" class="form-label">상태 메시지</label>
+                            <textarea class="form-control" 
+                                     id="statusMessage" 
+                                     rows="3" 
+                                     th:text="${profile.statusMessage}"></textarea>
+                        </div>
+
+                        <!-- 개인정보 설정 -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h3 class="h6 mb-0">개인정보 설정</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" id="showGender" checked>
+                                    <label class="form-check-label" for="showGender">성별 공개</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="showAge" checked>
+                                    <label class="form-check-label" for="showAge">나이 공개</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a th:href="@{/member/mypage}" class="btn btn-secondary">취소</a>
+                            <button type="submit" class="btn btn-primary">저장하기</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- 이메일 인증 모달 -->
+<div class="modal fade" id="emailVerificationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">이메일 인증</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="newEmail" class="form-label">새 이메일 주소</label>
+                    <input type="email" class="form-control" id="newEmail" required>
+                </div>
+                <div class="mb-3">
+                    <button type="button" class="btn btn-outline-primary" id="sendVerificationCodeBtn">
+                        인증코드 전송
+                    </button>
+                </div>
+                <div class="mb-3 d-none" id="verificationCodeGroup">
+                    <label for="verificationCode" class="form-label">인증코드</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="verificationCode" required>
+                        <button class="btn btn-outline-primary" type="button" id="verifyCodeBtn">
+                            확인
+                        </button>
+                    </div>
+                    <div class="form-text">이메일로 전송된 인증코드를 입력해주세요.</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 해시태그 관리 모달 -->
+<div class="modal fade" id="hashtagModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">관심사 해시태그 관리</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="hashtagInput" class="form-label">해시태그 추가</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="hashtagInput" placeholder="해시태그 입력">
+                        <button class="btn btn-outline-primary" type="button" id="addHashtagBtn">
+                            추가
+                        </button>
+                    </div>
+                </div>
+                <div class="selected-hashtags mb-3">
+                    <div class="d-flex flex-wrap gap-2" id="hashtagContainer">
+                        <!-- 해시태그가 여기에 동적으로 추가됩니다 -->
+                    </div>
+                </div>
+                <div class="popular-hashtags">
+                    <h6 class="mb-2">인기 해시태그</h6>
+                    <div class="d-flex flex-wrap gap-2" id="popularHashtags">
+                        <span class="badge bg-light text-dark">#여행</span>
+                        <span class="badge bg-light text-dark">#맛집</span>
+                        <span class="badge bg-light text-dark">#힐링</span>
+                        <span class="badge bg-light text-dark">#액티비티</span>
+                        <span class="badge bg-light text-dark">#자연</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">완료</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<!-- JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function() {
+        const profileForm = document.getElementById('profileForm');
+        const profileImageInput = document.getElementById('profileImageInput');
+        const profileImage = document.getElementById('profileImage');
+        const checkNicknameBtn = document.getElementById('checkNicknameBtn');
+        const nicknameInput = document.getElementById('nickname');
+        const nicknameFeedback = document.getElementById('nicknameFeedback');
+        const emailInput = document.getElementById('email');
+        const newEmailInput = document.getElementById('newEmail');
+        const sendVerificationCodeBtn = document.getElementById('sendVerificationCodeBtn');
+        const verificationCodeGroup = document.getElementById('verificationCodeGroup');
+        const verifyCodeBtn = document.getElementById('verifyCodeBtn');
+        const verificationCodeInput = document.getElementById('verificationCode');
+        const addHashtagBtn = document.getElementById('addHashtagBtn');
+        const hashtagInput = document.getElementById('hashtagInput');
+        const hashtagContainer = document.getElementById('hashtagContainer');
+        const popularHashtags = document.getElementById('popularHashtags');
+        
+        // 프로필 이미지 변경
+        profileImageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    profileImage.src = e.target.result;
+                    // 서버에 이미지 업로드
+                    uploadProfileImage(file);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // 프로필 이미지 업로드 함수
+        function uploadProfileImage(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            axios.post('/api/member/profile/image', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            }).then(response => {
+                // 이미지 업로드 성공 시 미리보기 업데이트
+                if (response.data.imageUrl) {
+                    profileImage.src = response.data.imageUrl;
+                }
+            }).catch(error => {
+                console.error('이미지 업로드 실패:', error);
+                alert('이미지 업로드에 실패했습니다.');
+            });
+        }
+
+        // 닉네임 중복 확인
+        checkNicknameBtn.addEventListener('click', function() {
+            const nickname = nicknameInput.value.trim();
+            if (!nickname) {
+                nicknameFeedback.textContent = '닉네임을 입력해주세요.';
+                nicknameFeedback.className = 'form-text text-danger';
+                return;
+            }
+            
+            axios.get('/api/member/nickname/check', {
+                params: { nickname: nickname }
+            }).then(response => {
+                if (response.data.exists) {
+                    nicknameFeedback.textContent = '이미 사용 중인 닉네임입니다.';
+                    nicknameFeedback.className = 'form-text text-danger';
+                } else {
+                    nicknameFeedback.textContent = '사용 가능한 닉네임입니다.';
+                    nicknameFeedback.className = 'form-text text-success';
+                }
+            }).catch(error => {
+                console.error('닉네임 중복 확인 실패:', error);
+                nicknameFeedback.textContent = '닉네임 확인 중 오류가 발생했습니다.';
+                nicknameFeedback.className = 'form-text text-danger';
+            });
+        });
+
+        // 이메일 인증 코드 전송
+        sendVerificationCodeBtn.addEventListener('click', function() {
+            const email = newEmailInput.value.trim();
+            if (!email) {
+                alert('이메일 주소를 입력해주세요.');
+                return;
+            }
+            
+            // TODO: 이메일 인증 코드 전송 API 호출
+            axios.post('/api/member/email/verification/send', { email: email })
+                .then(response => {
+                    alert('인증 코드가 전송되었습니다. 이메일을 확인해주세요.');
+                    verificationCodeGroup.classList.remove('d-none');
+                })
+                .catch(error => {
+                    console.error('인증 코드 전송 실패:', error);
+                    alert('인증 코드 전송에 실패했습니다. 다시 시도해주세요.');
+                });
+        });
+
+        // 인증 코드 확인
+        verifyCodeBtn.addEventListener('click', function() {
+            const email = newEmailInput.value.trim();
+            const code = verificationCodeInput.value.trim();
+            
+            if (!email || !code) {
+                alert('이메일과 인증 코드를 모두 입력해주세요.');
+                return;
+            }
+            
+            // TODO: 인증 코드 확인 API 호출
+            axios.post('/api/member/email/verification/verify', { 
+                email: email, 
+                code: code 
+            }).then(response => {
+                alert('이메일 인증이 완료되었습니다.');
+                emailInput.value = email;
+                // 모달 닫기
+                const modal = bootstrap.Modal.getInstance(document.getElementById('emailVerificationModal'));
+                modal.hide();
+            }).catch(error => {
+                console.error('인증 실패:', error);
+                alert('인증 코드가 일치하지 않습니다. 다시 확인해주세요.');
+            });
+        });
+
+        // 해시태그 추가
+        addHashtagBtn.addEventListener('click', function() {
+            const hashtag = hashtagInput.value.trim();
+            if (hashtag) {
+                addHashtag(hashtag);
+                hashtagInput.value = '';
+            }
+        });
+
+        // 엔터 키로 해시태그 추가
+        hashtagInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addHashtagBtn.click();
+            }
+        });
+
+        // 인기 해시태그 클릭 이벤트 위임
+        popularHashtags.addEventListener('click', function(e) {
+            if (e.target.classList.contains('badge')) {
+                const hashtag = e.target.textContent.trim().substring(1); // # 제거
+                addHashtag(hashtag);
+            }
+        });
+
+        // 해시태그 추가 함수
+        function addHashtag(tag) {
+            if (!tag) return;
+            
+            // # 제거 (중복 방지)
+            tag = tag.replace(/^#+/, '');
+            if (!tag) return;
+            
+            // 이미 추가된 태그인지 확인
+            const existingTags = Array.from(hashtagContainer.querySelectorAll('.hashtag-badge'))
+                .map(el => el.textContent.trim().substring(1));
+                
+            if (existingTags.includes(tag)) {
+                alert('이미 추가된 태그입니다.');
+                return;
+            }
+            
+            // 태그 추가
+            const badge = document.createElement('span');
+            badge.className = 'badge bg-primary me-1 mb-1 hashtag-badge';
+            badge.innerHTML = `#${tag} <span class="ms-1" style="cursor: pointer;">&times;</span>`;
+            
+            // 삭제 버튼 이벤트
+            badge.querySelector('span').addEventListener('click', function() {
+                badge.remove();
+            });
+            
+            hashtagContainer.appendChild(badge);
+        }
+
+        // 폼 제출
+        profileForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // 수집된 해시태그 가져오기
+            const hashtags = Array.from(hashtagContainer.querySelectorAll('.hashtag-badge'))
+                .map(el => el.textContent.trim().substring(1));
+            
+            // 프로필 데이터 수집
+            const profileData = {
+                nickname: nicknameInput.value.trim(),
+                statusMessage: document.getElementById('statusMessage').value.trim(),
+                showGender: document.getElementById('showGender').checked,
+                showAge: document.getElementById('showAge').checked,
+                hashtags: hashtags
+            };
+            
+            // 프로필 업데이트 API 호출
+            axios.put('/api/member/profile', profileData)
+                .then(response => {
+                    alert('프로필이 성공적으로 업데이트되었습니다.');
+                    window.location.href = '/member/mypage';
+                })
+                .catch(error => {
+                    console.error('프로필 업데이트 실패:', error);
+                    alert('프로필 업데이트에 실패했습니다. 다시 시도해주세요.');
+                });
+        });
+    });
+    /*]]>*/
+</script>
+</body>
+</html>

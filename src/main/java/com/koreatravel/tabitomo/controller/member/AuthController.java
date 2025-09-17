@@ -4,6 +4,7 @@ import com.koreatravel.tabitomo.domain.dto.member.CountryDTO;
 import com.koreatravel.tabitomo.domain.dto.member.LanguageDTO;
 import com.koreatravel.tabitomo.domain.dto.member.MemberProfileDTO;
 import com.koreatravel.tabitomo.domain.dto.auth.SignUpDTO;
+import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
 import com.koreatravel.tabitomo.service.member.AuthService;
 import com.koreatravel.tabitomo.service.member.MemberService;
 
@@ -46,6 +47,7 @@ public class AuthController {
 
         model.addAttribute("countries", countries);
         model.addAttribute("languages", languages);
+        model.addAttribute("member", new SignUpDTO()); // SignUpDTO 추가
         return "signupform";
     }
 
@@ -85,14 +87,23 @@ public class AuthController {
             
             // 세션에 사용자 프로필 저장
             session.setAttribute("user", memberProfile);
+            session.setAttribute("authenticatedEmail", email);
             
-            return "redirect:/"; // 로그인 성공 시 메인 페이지 이동
+            // 사용자 정보 조회
+            MemberEntity member = memberService.findByEmail(email);
+            
+            // 질문 완료 여부 확인
+            if (!member.isQuestionnaireCompleted()) {
+                return "redirect:/question/start";
+            }
+            
+            return "redirect:/";
             
         } catch (BadCredentialsException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
             return "redirect:/auth/login";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "로그인 처리 중 오류가 발생했습니다.");
             return "redirect:/auth/login";
         }
     }

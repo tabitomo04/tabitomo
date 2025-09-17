@@ -64,17 +64,20 @@ public class MemberEntity {
     @Column(name = "gender")
     private Integer gender;
 
-    @Column(name = "profile_image_url")
+    @Column(name = "profile_image_url", length = 255)
     private String profileImageUrl;
-
+    
+    @Column(name = "status_message", length = 255)
+    private String statusMessage;
+    
+    @Column(name = "questionnaire_completed", nullable = false)
+    private boolean questionnaireCompleted = false;
+    
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
-
+    
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @Column(name = "questionnaire_completed")
-    private boolean questionnaireCompleted;
 
     @Column(name = "role")
     private String role;

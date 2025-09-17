@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import com.koreatravel.tabitomo.domain.entity.tag.TagMaster;
 
 @Entity
 @Getter
@@ -44,6 +45,22 @@ public class Trip {
     @CreationTimestamp
     @Column(updatable = false, name = "created_at")
     private LocalDateTime createdAt;
+    
+    @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<com.koreatravel.tabitomo.domain.entity.tag.TripTag> tags = new ArrayList<>();
+    
+    // Helper method to add a tag
+    public void addTag(TagMaster tag) {
+        TripTag tripTag = new TripTag();
+        tripTag.setTrip(this);
+        tripTag.setTag(tag);
+        tags.add(tripTag);
+    }
+    
+    // Helper method to remove a tag
+    public void removeTag(TagMaster tag) {
+        tags.removeIf(tripTag -> tripTag.getTag().equals(tag));
+    }
 
     @Builder
     public Trip(MemberEntity member, Place accommodation, String title, LocalDate startDate, LocalDate endDate, String visibility) {

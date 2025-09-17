@@ -16,10 +16,10 @@ public interface PathConstants {
     public static final String MEMBER_DELETE = MEMBER + "/delete";
 
     // 질문 페이지
-    public static final String MEMBER_QUESTION = MEMBER + "/question";
-    public static final String MEMBER_QUESTION_START = MEMBER_QUESTION + "/start";
-    public static final String MEMBER_QUESTION_FORM = MEMBER_QUESTION + "/form";
-    public static final String MEMBER_QUESTION_COMPLETE = MEMBER_QUESTION + "/complete";
+    public static final String QUESTION = BASE + "/question";
+    public static final String QUESTION_START = QUESTION + "/start";
+    public static final String QUESTION_FORM = QUESTION + "/form";
+    public static final String QUESTION_COMPLETE = QUESTION + "/complete";
 
     // 여행
     public static final String TRAVEL = "/travel";

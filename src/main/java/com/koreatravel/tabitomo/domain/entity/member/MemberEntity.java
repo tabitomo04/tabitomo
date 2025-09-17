@@ -3,10 +3,12 @@ package com.koreatravel.tabitomo.domain.entity.member;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.Past;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import lombok.*;
 
@@ -23,30 +25,19 @@ import lombok.*;
 @Builder
 public class MemberEntity {
     
-    @Builder
-    public MemberEntity(String email, LocalDate dateOfBirth, String password, String nickname, Integer gender) {
-        this.email = email;
-        this.dateOfBirth = dateOfBirth;
-        this.password = password;
-        this.nickname = nickname;
-        this.gender = gender;
-        this.active = true;
-        this.questionnaireCompleted = false;
-        this.role = "ROLE_USER";
-    }
-
-    @EmbeddedId
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private MemberId id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(columnDefinition = "BINARY(16)")
+    private UUID id;
 
     @Email
     @NotBlank
     @Size(max = 80)
     private String email;
 
-    @NotBlank
-    @Past
-    @Column(name = "date_of_birth")
+    @NotNull(message = "생년월일은 필수 입력 값입니다.")
+    @Past(message = "유효한 생년월일을 입력해주세요.")
+    @Column(name = "date_of_birth", nullable = false)
     private LocalDate dateOfBirth;
 
     @Column(name = "age")
@@ -67,9 +58,6 @@ public class MemberEntity {
     @Column(name = "profile_image_url", length = 255)
     private String profileImageUrl;
     
-    @Column(name = "status_message", length = 255)
-    private String statusMessage;
-    
     @Column(name = "questionnaire_completed", nullable = false)
     private boolean questionnaireCompleted = false;
     
@@ -87,26 +75,40 @@ public class MemberEntity {
     private CountryEntity country;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "preferred_language_id")
+    @JoinColumn(name = "preferred_language_id", referencedColumnName = "id")
     private LanguageEntity preferredLanguage;
 
-    /**
-     * countryId로 CountryEntity를 설정하는 편의 메서드
-     */
-    public void setCountry(int countryId) {
-        if (this.country == null) {
-            this.country = new CountryEntity();
-        }
-        this.country.setCountryId(countryId);
+    @Builder
+    public MemberEntity(String email, LocalDate dateOfBirth, String password, String nickname, Integer gender) {
+        this.email = email;
+        this.dateOfBirth = dateOfBirth;
+        this.password = password;
+        this.nickname = nickname;
+        this.gender = gender;
+        this.active = true;
+        this.questionnaireCompleted = false;
+        this.role = "ROLE_USER";
     }
 
-    /**
-     * languageId로 LanguageEntity를 설정하는 편의 메서드
-     */
-    public void setLanguage(int languageId) {
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+
+    public void setLanguage(Integer languageId) {
         if (this.preferredLanguage == null) {
             this.preferredLanguage = new LanguageEntity();
         }
         this.preferredLanguage.setLanguageId(languageId);
+    }
+    
+    public void setPreferredLanguage(LanguageEntity language) {
+        this.preferredLanguage = language;
     }
 }

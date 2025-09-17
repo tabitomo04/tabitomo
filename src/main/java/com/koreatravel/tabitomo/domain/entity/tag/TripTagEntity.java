@@ -4,6 +4,8 @@ import com.koreatravel.tabitomo.domain.entity.trip.Trip;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "trip_tag")
 @Getter
@@ -23,8 +25,8 @@ public class TripTagEntity {
     private TagMasterEntity tag;
     
     @Id
-    @Column(name = "trip_id")
-    private Long tripId;
+    @Column(name = "trip_id", columnDefinition = "BINARY(16)")
+    private UUID tripId;
     
     @Id
     @Column(name = "tag_id")

@@ -1,21 +1,14 @@
 package com.koreatravel.tabitomo.repository.member;
 
 import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
-import com.koreatravel.tabitomo.domain.entity.member.MemberId;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import java.util.Optional;
+import java.util.UUID;
 
-public interface MemberRepository extends JpaRepository<MemberEntity, MemberId> {
+public interface MemberRepository extends JpaRepository<MemberEntity, UUID> {
     Optional<MemberEntity> findByEmail(String email);
-    
-    @Override
-    Optional<MemberEntity> findById(MemberId id);
-    
-    default Optional<MemberEntity> findById(Long id) {
-        return findById(new MemberId(id));
-    }
-    
-    Optional<MemberEntity> findByNickname(String nickname);
     
     /**
      * 이메일로 회원 존재 여부 확인
@@ -27,7 +20,8 @@ public interface MemberRepository extends JpaRepository<MemberEntity, MemberId> 
     /**
      * 닉네임으로 회원 존재 여부 확인
      * @param nickname 확인할 닉네임
-     * @return 존재하면 true, 아니면 false
+     * @return 존재 여부
      */
-    boolean existsByNickname(String nickname);
+    @Query("SELECT CASE WHEN COUNT(m) > 0 THEN true ELSE false END FROM MemberEntity m WHERE m.nickname = :nickname")
+    boolean existsByNickname(@Param("nickname") String nickname);
 }

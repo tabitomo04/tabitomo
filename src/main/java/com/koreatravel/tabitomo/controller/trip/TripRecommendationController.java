@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -215,7 +216,7 @@ public class TripRecommendationController {
         }
         
         try {
-            tripPlanService.updateTripPlan(tripPlan, userDetails.getMemberId());
+tripPlanService.updateTripPlan(tripPlan, userDetails.getId());
             return ResponseEntity.ok(
                     Map.of("status", "success", "message", "여행 계획이 성공적으로 업데이트되었습니다."));
         } catch (Exception e) {
@@ -237,8 +238,8 @@ public class TripRecommendationController {
         }
         
         try {
-            Long tripId = tripPlanService.saveTripPlan(tripPlan, userDetails.getMemberId());
-            return Map.of("status", "success", "message", "여행 계획이 저장되었습니다.", "tripId", tripId);
+            UUID tripId = tripPlanService.saveTripPlan(tripPlan, userDetails.getId());
+            return Map.of("status", "success", "message", "여행 계획이 저장되었습니다.", "tripId", tripId.toString());
         } catch (Exception e) {
             log.error("여행 계획 저장 중 오류 발생", e);
             return Map.of("status", "error", "message", "저장 중 오류가 발생했습니다: " + e.getMessage());

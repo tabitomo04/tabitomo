@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.UUID;
 
 @Getter
 public class UserDetailsImpl implements UserDetails {
@@ -37,12 +38,13 @@ public class UserDetailsImpl implements UserDetails {
         return member.getEmail();
     }
 
-    public com.koreatravel.tabitomo.domain.entity.member.MemberId getId() {
+    public UUID getId() {
         return member.getId();
     }
     
-    public Long getMemberId() {
-        return member.getId() != null ? member.getId().getId() : null;
+    // For backward compatibility
+    public UUID getMemberId() {
+        return member.getId();
     }
 
     @Override

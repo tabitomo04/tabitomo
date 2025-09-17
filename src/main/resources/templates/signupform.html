@@ -119,17 +119,17 @@
   <div class="container py-5">
     <div class="form-container">
       <h1 class="form-title">회원가입</h1>
-      <form th:action="@{/signup}" th:object="${member}" method="post" >
+      <form th:action="@{/auth/signup}" th:object="${member}" method="post" onsubmit="return handleSubmit(event)">
         <!-- 이메일 입력 필드 -->
         <div class="mb-3">
           <label for="emailId" class="form-label">이메일</label>
           <div class="d-flex align-items-center gap-2">
             <div class="d-flex align-items-center flex-grow-1">
-              <input type="text" class="form-control" id="emailId" placeholder="아이디" required 
-                      style="max-width: 180px;" onchange="resetEmailCheck()">
+              <input type="text" class="form-control" id="emailId" name="emailId" placeholder="아이디" required 
+                      style="max-width: 180px;" onchange="resetEmailCheck()" th:field="*{emailId}">
               <span class="mx-2">@</span>
-              <input type="text" class="form-control" id="emailDomain" placeholder="도메인" required 
-                      style="max-width: 180px;" onchange="resetEmailCheck()">
+              <input type="text" class="form-control" id="emailDomain" name="emailDomain" placeholder="도메인" required 
+                      style="max-width: 180px;" onchange="resetEmailCheck()" th:field="*{emailDomain}">
             </div>
             <button type="button" class="btn btn-outline-primary" 
                      style="min-width: 100px; white-space: nowrap;"
@@ -148,21 +148,21 @@
         <!-- 비밀번호 입력 -->
         <div class="mb-4">
           <label for="password" class="form-label">비밀번호</label>
-          <input type="password" class="form-control" id="password" th:field="*{password}" placeholder="8자 이상의 영문, 숫자, 특수문자 조합">
+          <input type="password" class="form-control" id="password" name="password" th:field="*{password}" placeholder="8자 이상의 영문, 숫자, 특수문자 조합">
           <div class="form-text">보안을 위해 영문, 숫자, 특수문자를 조합해주세요.</div>
         </div>
 
         <!-- 비밀번호 확인 -->
         <div class="mb-4">
           <label for="confirmPassword" class="form-label">비밀번호 확인</label>
-          <input type="password" class="form-control" id="confirmPassword" th:field="*{confirmPassword}" placeholder="비밀번호를 다시 입력해주세요">
+          <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" th:field="*{confirmPassword}" placeholder="비밀번호를 다시 입력해주세요">
         </div>
 
         <!-- 닉네임 입력 -->
         <div class="mb-4">
           <label for="nickname" class="form-label">닉네임</label>
           <div class="input-group">
-            <input type="text" class="form-control" id="nickname" th:field="*{nickname}" 
+            <input type="text" class="form-control" id="nickname" name="nickname" th:field="*{nickname}" 
                    placeholder="닉네임을 입력해주세요" onkeyup="resetNicknameCheck()">
             <button class="btn btn-outline-secondary" type="button" id="nicknameCheckBtn" onclick="checkNickname()">중복확인</button>
           </div>
@@ -172,10 +172,16 @@
         <!-- 국가 선택 -->
         <div class="mb-4">
           <label for="countryId" class="form-label">국가</label>
-          <select id="countryId" name="countryId" class="form-select">
-            <option value="" selected disabled>국가를 선택하세요</option>
-            <option th:each="country : ${countries}" th:value="${country.countryId}" th:text="${country.countryNameEn}"></option>
+          <select id="countryId" name="countryId" class="form-select" required>
+            <option value="" disabled>국가를 선택하세요</option>
+            <option th:each="country : ${countries}" 
+                    th:value="${country.countryId}" 
+                    th:text="${country.countryNameKo + ' (' + country.countryNameEn + ') (' + country.countryCode + ')'}"
+                    th:data-country-code="${country.countryCode}">
+            </option>
           </select>
+          <input type="hidden" id="countryCode" name="countryCode" th:value="${#lists.size(countries) > 0 ? countries[0].countryCode : ''}">
+          <div class="form-text">국가를 선택해주세요.</div>
         </div>
 
         <!-- 언어 선택 -->
@@ -191,16 +197,15 @@
         <div class="mb-4">
           <div class="form-label">성별</div>
           <div class="btn-group w-100" role="group">
-            <input type="radio" class="btn-check" name="gender" id="male" autocomplete="off" value="1" onchange="document.getElementById('gender').value=this.value">
+            <input type="radio" class="btn-check" name="gender" id="male" autocomplete="off" value="1" th:field="*{gender}">
             <label class="btn btn-outline-primary" for="male">남성</label>
             
-            <input type="radio" class="btn-check" name="gender" id="female" autocomplete="off" value="2" onchange="document.getElementById('gender').value=this.value">
+            <input type="radio" class="btn-check" name="gender" id="female" autocomplete="off" value="2" th:field="*{gender}">
             <label class="btn btn-outline-primary" for="female">여성</label>
             
-            <input type="radio" class="btn-check" name="gender" id="other" autocomplete="off" value="3" onchange="document.getElementById('gender').value=this.value">
+            <input type="radio" class="btn-check" name="gender" id="other" autocomplete="off" value="3" th:field="*{gender}">
             <label class="btn btn-outline-primary" for="other">기타</label>
           </div>
-          <input type="hidden" name="gender" id="gender">
         </div>
 
         <!-- 회원가입 버튼 -->
@@ -230,8 +235,8 @@
           </div>
           <div id="verificationResult" class="validation-message text-center mb-3"></div>
           <div class="d-grid gap-2">
-            <button type="button" class="btn btn-primary" >인증하기</button>
-            <button type="button" class="btn btn-outline-secondary" >인증번호 재전송</button>
+            <button type="button" id="verifyBtn" class="btn btn-primary" onclick="verifyEmail()">인증하기</button>
+            <button type="button" class="btn btn-outline-secondary" onclick="sendVerificationEmail()">인증번호 재전송</button>
           </div>
         </div>
       </div>

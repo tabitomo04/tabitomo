@@ -8,9 +8,8 @@ import lombok.Setter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
-import com.koreatravel.tabitomo.domain.entity.member.MemberId;
-import com.koreatravel.tabitomo.domain.entity.storybook.StorybookEntity;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -37,14 +36,10 @@ public class LikedbookEntity {
     @Column(name = "created_at",columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable = false, updatable = false)
     private LocalDateTime createDate;
 
-    public void setMember(MemberId id) {
-        MemberEntity member = new MemberEntity();
-        member.setId(id);
-        this.member = member;
-    }
-    
-    // 편의를 위한 메서드 추가
-    public void setMemberId(Long id) {
-        this.setMember(new MemberId(id));
+    public void setMemberId(UUID id) {
+        if (this.member == null) {
+            this.member = new MemberEntity();
+        }
+        this.member.setId(id);
     }
 }

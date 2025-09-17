@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,7 +38,7 @@ public class AddInfoService {
     }
     
     @Transactional
-    public void saveMemberAddInfo(Long memberId, int infoHighNum, int infoLowNum) {
+    public void saveMemberAddInfo(UUID memberId, int infoHighNum, int infoLowNum) {
         MemberAddInfoEntity memberAddInfo = MemberAddInfoEntity.builder()
                 .memberId(memberId)
                 .infoHighNum(infoHighNum)

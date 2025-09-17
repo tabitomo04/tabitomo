@@ -126,6 +126,9 @@ function checkNickname() {
             return response.json();
         })
         .then(data => {
+            if (!data.success) {
+                throw new Error(data.message || '닉네임 확인 중 오류가 발생했습니다.');
+            }
             if (data.exists) {
                 showMessage('nicknameCheckResult', data.message, 'error');
                 isNicknameChecked = false;
@@ -168,37 +171,52 @@ function requestEmailVerification() {
     verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 전송 중...';
     
     // 서버에 인증 이메일 요청
-    fetch(`/api/member/email/verification/send?email=${encodeURIComponent(email)}`, {
+    console.log('Sending verification email to:', email);
+    
+    fetch('/api/email/send-verification', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-Requested-With': 'XMLHttpRequest'
         },
-        body: JSON.stringify({})
+        body: JSON.stringify({ email: email })
     })
-    .then(response => {
+    .then(async response => {
+        console.log('Response status:', response.status);
+        const responseData = await response.json().catch(() => ({}));
+        
         if (!response.ok) {
-            return response.json().then(err => {
-                throw new Error(err.message || '인증 이메일 전송에 실패했습니다.');
-            });
+            console.error('Error response:', responseData);
+            const errorMessage = responseData.message || 
+                               (response.status === 400 ? '잘못된 요청입니다. 입력값을 확인해주세요.' : 
+                               response.status === 500 ? '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' : 
+                               '인증 이메일 전송에 실패했습니다.');
+            throw new Error(errorMessage);
         }
-        return response.json();
+        return responseData;
     })
     .then(data => {
+        console.log('Email sent successfully:', data);
         if (data.success) {
-            showMessage('emailCheckResult', '인증 이메일이 전송되었습니다.', 'success');
+            showMessage('emailCheckResult', '인증 이메일이 전송되었습니다. 이메일을 확인해주세요.', 'success');
             openVerificationModal();
         } else {
             throw new Error(data.message || '인증 이메일 전송에 실패했습니다.');
         }
     })
     .catch(error => {
-        console.error('Error:', error);
-        showMessage('emailCheckResult', error.message || '인증 이메일 전송 중 오류가 발생했습니다.', 'error');
+        console.error('Error details:', {
+            message: error.message,
+            name: error.name,
+            stack: error.stack
+        });
+        showMessage('emailCheckResult', `오류: ${error.message}`, 'error');
     })
     .finally(() => {
-        verifyBtn.disabled = false;
-        verifyBtn.innerHTML = originalText;
+        if (verifyBtn) {
+            verifyBtn.disabled = false;
+            verifyBtn.innerHTML = originalText || '인증하기';
+        }
     });
 }
 
@@ -264,13 +282,16 @@ function verifyEmail() {
     verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 확인 중...';
     
     // 서버에 인증 코드 확인 요청
-    fetch('/api/member/email/verification/verify', {
+    fetch('/api/email/verify', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-Requested-With': 'XMLHttpRequest'
         },
-        body: JSON.stringify({})
+        body: JSON.stringify({
+            email: email,
+            code: code
+        })
     })
     .then(response => {
         if (!response.ok) {
@@ -394,8 +415,29 @@ function handleSubmit(event) {
     return true;
 }
 
+// Handle country selection
+function handleCountryChange() {
+    const countrySelect = document.getElementById('countryId');
+    const countryCodeInput = document.getElementById('countryCode');
+    const selectedOption = countrySelect.options[countrySelect.selectedIndex];
+    
+    if (selectedOption && selectedOption.dataset.countryCode) {
+        countryCodeInput.value = selectedOption.dataset.countryCode;
+    }
+}
+
 // 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize country select
+    const countrySelect = document.getElementById('countryId');
+    if (countrySelect) {
+        countrySelect.addEventListener('change', handleCountryChange);
+        
+        // Trigger change event to set initial value
+        if (countrySelect.value) {
+            handleCountryChange();
+        }
+    }
     // 이메일 입력 필드에 이벤트 리스너 추가
     const emailId = document.getElementById('emailId');
     const emailDomain = document.getElementById('emailDomain');

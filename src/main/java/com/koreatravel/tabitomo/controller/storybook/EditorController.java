@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @Controller
@@ -221,7 +222,7 @@ public class EditorController {
             @RequestParam Integer booknum,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        int likes = editorService.likeBook(booknum, userDetails.getMemberId());
+        int likes = editorService.likeBook(booknum, userDetails.getId());
         return ResponseEntity.ok(Map.of("likes", likes, "liked", true));
     }
 
@@ -236,7 +237,7 @@ public class EditorController {
             @RequestParam Integer booknum,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        int likes = editorService.unlikeBook(booknum, userDetails.getMemberId());
+        int likes = editorService.unlikeBook(booknum, userDetails.getId());
         return ResponseEntity.ok(Map.of("likes", likes, "liked", false));
     }
 
@@ -251,7 +252,7 @@ public class EditorController {
             @RequestParam Integer booknum,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        boolean liked = editorService.isLiked(booknum, userDetails.getMemberId());
+        boolean liked = editorService.isLiked(booknum, userDetails.getId());
         return ResponseEntity.ok(Map.of("liked", liked));
     }
 

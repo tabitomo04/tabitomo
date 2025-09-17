@@ -37,6 +37,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class EditorService {
@@ -483,7 +484,7 @@ public class EditorService {
      * @return
      */
     @Transactional
-    public int likeBook(Integer booknum, Long memberId) {
+    public int likeBook(Integer booknum, UUID memberId) {
         StorybookEntity bookentity = storybookRepository.findById(booknum)
                 .orElseThrow(() -> new RuntimeException("해당 booknum 존재하지 않음"));
         MemberEntity memberentity = memberRepository.findById(memberId)
@@ -511,7 +512,7 @@ public class EditorService {
      * @return
      */
     @Transactional
-    public int unlikeBook(Integer booknum, Long memberId) {
+    public int unlikeBook(Integer booknum, UUID memberId) {
         StorybookEntity bookentity = storybookRepository.findById(booknum)
                 .orElseThrow(() -> new RuntimeException("해당 booknum 존재하지 않음"));
 
@@ -533,7 +534,7 @@ public class EditorService {
      * @return
      */
     @Transactional
-    public boolean isLiked(Integer booknum, Long memberId) {
+    public boolean isLiked(Integer booknum, UUID memberId) {
         StorybookEntity bookentity = storybookRepository.findById(booknum)
                 .orElseThrow(() -> new RuntimeException("해당 booknum 존재하지 않음"));
         MemberEntity memberentity = memberRepository.findById(memberId)

@@ -16,6 +16,7 @@ import com.koreatravel.tabitomo.repository.trip.TripRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -29,9 +30,9 @@ public class TripPlanService {
     private final ScheduleRepository scheduleRepository;
 
     @Transactional
-    public Long saveTripPlan(TripPlan tripPlan, Long id) {
-        MemberEntity member = memberRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다: " + id));
+    public UUID saveTripPlan(TripPlan tripPlan, UUID memberId) {
+        MemberEntity member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다: " + memberId));
 
         Place accommodationPlace = null;
         if (tripPlan.getAccommodation() != null && tripPlan.getAccommodation().getPlaceName() != null) {
@@ -73,14 +74,10 @@ public class TripPlanService {
     }
 
     @Transactional
-    public void updateTripPlan(TripPlan updatedTripPlan, Long id) {
+    public void updateTripPlan(TripPlan updatedTripPlan, UUID memberId) {
         log.info("Updating trip plan with ID: {}", updatedTripPlan.getId());
-        Trip trip = tripRepository.findById(updatedTripPlan.getId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 여행을 찾을 수 없습니다."));
-
-        if (!trip.getMember().getId().equals(id)) {
-            throw new SecurityException("이 여행 계획을 수정할 권한이 없습니다.");
-        }
+        Trip trip = tripRepository.findByIdAndMemberId(updatedTripPlan.getId(), memberId)
+                .orElseThrow(() -> new SecurityException("해당 여행을 찾을 수 없거나 수정 권한이 없습니다."));
 
         trip.updateTitle(updatedTripPlan.getPlanName());
 
@@ -139,18 +136,17 @@ public class TripPlanService {
     }
 
     @Transactional(readOnly = true)
-    public List<Trip> findTripsByUserId(Long id) {
-        return tripRepository.findByMemberId(id);
+    public List<Trip> findTripsByUserId(UUID userId) {
+        return tripRepository.findByMemberId(userId);
     }
 
     @Transactional(readOnly = true)
-    public Optional<Trip> findTripByIdAndUserId(Long tripId, Long id) {
-        return tripRepository.findByIdWithMember(tripId)
-                .filter(trip -> trip.getMember().getId().equals(id));
+    public Optional<Trip> findTripByIdAndUserId(UUID tripId, UUID userId) {
+        return tripRepository.findByIdAndMemberId(tripId, userId);
     }
 
     @Transactional(readOnly = true)
-    public List<Schedule> findSchedulesByTripId(Long tripId) {
+    public List<Schedule> findSchedulesByTripId(UUID tripId) {
         return scheduleRepository.findByTripIdWithPlace(tripId);
     }
 }

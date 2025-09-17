@@ -26,8 +26,11 @@ public class CountryEntity {
     @Column(name = "country_code", length = 2, unique = true, nullable = false)
     private String countryCode;  // ISO 3166-1 alpha-2 (e.g., KR, US, JP)
     
-    @Column(name = "country_name", nullable = false, length = 100)
-    private String countryName;  // 국가명
+    @Column(name = "name_kr", nullable = false, length = 50)
+    private String nameKr;  // 한국어 국가명
+    
+    @Column(name = "name_en", nullable = false, length = 50)
+    private String nameEn;  // 영어 국가명
     
     @Column(name = "region", length = 50)
     private String region;
@@ -47,13 +50,18 @@ public class CountryEntity {
     @Builder.Default
     private List<MemberEntity> members = new ArrayList<>();
     
+    // Getters for the new fields
+    public String getNameKr() {
+        return nameKr;
+    }
+
+    public String getNameEn() {
+        return nameEn;
+    }
+    
     // For DTO conversion
     public Integer getCountryId() {
         return countryId;
-    }
-    
-    public String getCountryName() {
-        return countryName;
     }
     
     public String getCountryCode() {
@@ -69,12 +77,13 @@ public class CountryEntity {
     }
     
     // 생성 메서드
-    public static CountryEntity createCountry(String countryCode, String countryName, String region, String isoCode) {
-        CountryEntity country = new CountryEntity();
-        country.setCountryCode(countryCode);
-        country.setCountryName(countryName);
-        country.setRegion(region);
-        country.setIsoCode(isoCode);
-        return country;
+    public static CountryEntity createCountry(String countryCode, String nameKr, String nameEn, String region, String isoCode) {
+        return CountryEntity.builder()
+                .countryCode(countryCode)
+                .nameKr(nameKr)
+                .nameEn(nameEn)
+                .region(region)
+                .isoCode(isoCode)
+                .build();
     }
 }

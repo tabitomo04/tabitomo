@@ -4,7 +4,6 @@ import com.koreatravel.tabitomo.PathConstants;
 import com.koreatravel.tabitomo.domain.dto.member.QuestionAnswersDTO;
 import com.koreatravel.tabitomo.domain.entity.member.AddInfoEntity;
 import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
-import com.koreatravel.tabitomo.domain.entity.member.MemberId;
 import com.koreatravel.tabitomo.exception.ResourceNotFoundException;
 import com.koreatravel.tabitomo.repository.member.AddInfoRepository;
 import com.koreatravel.tabitomo.service.member.AddInfoService;
@@ -27,8 +26,6 @@ import java.util.*;
 @Controller
 @RequiredArgsConstructor
 public class QuestionController {
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(QuestionController.class);
-
     private final AddInfoService addInfoService;
     private final AddInfoRepository addInfoRepository;
     private final MemberService memberService;
@@ -55,14 +52,16 @@ public class QuestionController {
 
     @GetMapping(PathConstants.QUESTION_FORM)
     public String showQuestionForm(Model model, HttpSession session, RedirectAttributes redirectAttributes) {
-        String email = (String) session.getAttribute("authenticatedEmail");
-        if (email == null) {
-            redirectAttributes.addFlashAttribute("error", "로그인이 필요합니다.");
-            return "redirect:/login";
-        }
-
         try {
-            MemberEntity member = memberService.findByEmail(email);
+            // 세션에서 인증된 사용자 ID 확인
+            UUID memberId = (UUID) session.getAttribute("memberId");
+            if (memberId == null) {
+                redirectAttributes.addFlashAttribute("error", "로그인이 필요합니다.");
+                return "redirect:/login";
+            }
+
+            // 이미 설문을 완료한 경우 메인 페이지로 리다이렉트
+            MemberEntity member = memberService.findById(memberId);
             if (member.isQuestionnaireCompleted()) {
                 return "redirect:/";
             }
@@ -89,7 +88,7 @@ public class QuestionController {
                               HttpSession session,
                               RedirectAttributes redirectAttributes) {
         // 세션에서 인증된 사용자 ID 확인
-        Long memberId = (Long) session.getAttribute("memberId");
+        UUID memberId = (UUID) session.getAttribute("memberId");
         if (memberId == null) {
             redirectAttributes.addFlashAttribute("error", "로그인이 필요합니다.");
             return "redirect:/login";
@@ -103,8 +102,7 @@ public class QuestionController {
             }
             
             // 사용자 조회
-            MemberId id = new MemberId(memberId);
-            MemberEntity member = memberService.findById(id);
+            MemberEntity member = memberService.findById(memberId);
             
             // 이미 설문을 완료한 경우
             if (member.isQuestionnaireCompleted()) {
@@ -130,7 +128,7 @@ public class QuestionController {
         }
     }
 
-    private void saveAnswers(Long memberId, QuestionAnswersDTO answers) {
+    private void saveAnswers(UUID memberId, QuestionAnswersDTO answers) {
         // Save hobbies (info_high_num = 1)
         if (answers.getHobbies() != null) {
             for (Long infoLowNum : answers.getHobbies()) {

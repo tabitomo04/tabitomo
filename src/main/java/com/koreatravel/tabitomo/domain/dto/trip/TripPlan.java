@@ -4,10 +4,11 @@ import lombok.Data;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Data
 public class TripPlan {
-    private Long id; // 여행 계획 ID
+    private UUID id; // 여행 계획 ID
     private String planName; // 여행 계획 이름
     private String destination;
     private LocalDate startDate;

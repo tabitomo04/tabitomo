@@ -4,6 +4,7 @@ import lombok.*;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -16,8 +17,8 @@ import java.time.LocalDateTime;
 public class MemberAddInfoEntity {
     
     @Id
-    @Column(name = "member_id", nullable = false)
-    private Long memberId;
+    @Column(name = "member_id", nullable = false, columnDefinition = "BINARY(16)")
+    private UUID memberId;
     
     @Id
     @Column(name = "info_high_num", nullable = false)

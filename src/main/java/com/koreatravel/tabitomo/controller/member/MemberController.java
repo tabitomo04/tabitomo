@@ -18,12 +18,15 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
+@Slf4j
 @Controller
 @RequestMapping("/member")
 @RequiredArgsConstructor
@@ -66,8 +69,7 @@ public class MemberController {
     }
 
     @GetMapping("/info/{memberId}")
-    public String viewMemberProfile(@PathVariable String memberId, Model model) {
-        // TODO: memberId로 회원 정보 조회
+    public String viewMemberProfile(@PathVariable UUID memberId, Model model) {
         MemberProfileDTO profile = memberService.getMemberProfile(memberId);
         model.addAttribute("profile", profile);
         return "member/profile";
@@ -80,14 +82,14 @@ public class MemberController {
             return "redirect:/login";
         }
         
-        MemberProfileDTO profile = memberService.getMemberProfile(userDetails.getMemberId().toString());
+        MemberProfileDTO profile = memberService.getMemberProfile(userDetails.getId());
         model.addAttribute("profile", profile);
         return "member/update-profile";
     }
 
     // 여행 상세 조회
     @GetMapping("/trips/{id}")
-    public String tripDetail(@PathVariable Long id, 
+    public String tripDetail(@PathVariable UUID id, 
                            @AuthenticationPrincipal UserDetailsImpl userDetails, 
                            Model model, 
                            RedirectAttributes redirectAttributes) {
@@ -96,7 +98,7 @@ public class MemberController {
         }
 
         // 여행 조회 및 소유권 확인
-        Trip trip = tripService.findTripByIdAndUserId(id, userDetails.getMemberId())
+        Trip trip = tripService.findTripByIdAndUserId(id, userDetails.getId())
                 .orElse(null);
 
         if (trip == null) {
@@ -117,15 +119,15 @@ public class MemberController {
             @RequestPart(value = "profileData") MemberProfileDTO profileDTO) {
         
         try {
-            MemberEntity updatedMember = memberService.updateProfile(
-                userDetails.getMemberId(), 
+            MemberProfileDTO updatedProfile = memberService.updateProfile(
+                userDetails.getId(), 
                 profileDTO, 
                 profileImage
             );
             
             // 프로필 이미지가 업데이트된 경우 세션 업데이트
             if (profileImage != null && !profileImage.isEmpty()) {
-                userDetails.getMember().setProfileImageUrl(updatedMember.getProfileImageUrl());
+                userDetails.getMember().setProfileImageUrl(updatedProfile.getProfileImageUrl());
             }
             
             return ResponseEntity.ok().body(Map.of("message", "프로필이 성공적으로 업데이트되었습니다."));
@@ -164,7 +166,7 @@ public class MemberController {
      */
     @GetMapping("/api/check-email")
     @ResponseBody
-    public Map<String, Object> checkEmail(@RequestParam String email) {
+    public Map<String, Object> checkEmail(@RequestParam("email") String email) {
         boolean isExists = memberService.isEmailExists(email);
         Map<String, Object> response = new HashMap<>();
         response.put("success", !isExists);
@@ -177,13 +179,46 @@ public class MemberController {
      * @param nickname 확인할 닉네임
      * @return 중복 여부를 포함한 JSON 응답
      */
-    @GetMapping("/api/check-nickname")
+    @GetMapping(value = "/api/check-nickname", produces = "application/json;charset=UTF-8")
     @ResponseBody
-    public Map<String, Object> checkNickname(@RequestParam String nickname) {
-        boolean isExists = memberService.isNicknameExists(nickname);
+    public ResponseEntity<Map<String, Object>> checkNickname(
+            @RequestParam(value = "nickname") String nickname) {
+        // Log the raw and decoded nickname for debugging
+        log.debug("Raw nickname parameter: {}", nickname);
+        try {
+            // URL decode the nickname in case it's double-encoded
+            String decodedNickname = java.net.URLDecoder.decode(nickname, "UTF-8");
+            log.debug("Decoded nickname: {}", decodedNickname);
+            nickname = decodedNickname;
+        } catch (java.io.UnsupportedEncodingException e) {
+            log.warn("Failed to decode nickname: {}", nickname, e);
+        }
         Map<String, Object> response = new HashMap<>();
-        response.put("exists", isExists);
-        response.put("message", isExists ? "이미 사용 중인 닉네임입니다." : "사용 가능한 닉네임입니다.");
-        return response;
+        try {
+            log.info("Checking nickname: {}", nickname);
+            
+            if (nickname == null || nickname.trim().isEmpty()) {
+                response.put("success", false);
+                response.put("message", "닉네임을 입력해주세요.");
+                log.warn("Empty nickname provided");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            log.debug("Calling memberService.isNicknameExists({})", nickname);
+            boolean isExists = memberService.isNicknameExists(nickname);
+            
+            response.put("success", true);
+            response.put("exists", isExists);
+            response.put("message", isExists ? "이미 사용 중인 닉네임입니다." : "사용 가능한 닉네임입니다.");
+            
+            log.info("Nickname check completed - exists: {} for nickname: {}", isExists, nickname);
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            log.error("Error checking nickname: " + nickname, e);
+            response.put("success", false);
+            response.put("message", "닉네임 확인 중 오류가 발생했습니다: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
     }
 }

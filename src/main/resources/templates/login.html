@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      lang="ko">
+
+<head th:replace="~{fragments/header :: head}"></head>
+<body>
+<!-- Header -->
+<div th:replace="~{fragments/header :: header}"></div>
+
+<!-- Navigation Menu -->
+<div th:replace="~{fragments/menu :: menu}"></div>
+
+<!-- Main Content -->
+<main class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="text-center" data-translatable>로그인</h2>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/login}" method="post">
+                        <div th:if="${param.error}" class="alert alert-danger" role="alert" data-translatable>
+                            이메일 또는 비밀번호가 올바르지 않습니다.
+                        </div>
+                        <div class="mb-3">
+                            <label for="username" class="form-label" data-translatable>이메일</label>
+                            <input type="email" class="form-control" id="username" name="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label" data-translatable>비밀번호</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary" data-translatable>로그인</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <span data-translatable>아직 회원이 아니신가요?</span> <a th:href="@{/signup}" data-translatable>회원가입</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Footer -->
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

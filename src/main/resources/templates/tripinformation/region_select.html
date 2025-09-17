@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/header :: head}"></head>
+<body>
+<!-- Header -->
+<div th:replace="~{fragments/header :: header}"></div>
+
+<!-- Navigation Menu -->
+<div th:replace="~{fragments/menu :: menu}"></div>
+
+<!-- Main Content -->
+<main class="py-5">
+    <section class="popular-destinations mb-5">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h3 mb-0" data-translatable>지역 선택</h2>
+            </div>
+            <div class="row g-4">
+                <!-- Region Cards -->
+                <div class="col-md-4" th:each="region : ${regions}">
+                    <div class="card h-100"
+                         data-bs-toggle="modal"
+                         data-bs-target="#regionModal"
+                         th:attr="data-region-name=${region}, data-region-description=${
+                            region == '서울특별시' ? '대한민국의 수도이자 정치, 경제, 문화의 중심지입니다.' :
+                            region == '부산광역시' ? '대한민국 제2의 도시이자 최대 항구 도시입니다.' :
+                            region == '대구광역시' ? '분지 지형이 특징인 패션과 현대적인 도시입니다.' :
+                            region == '인천광역시' ? '대한민국 최대 국제공항이 위치한 관문 도시입니다.' :
+                            region == '광주광역시' ? '예로부터 예향으로 불리는 문화와 예술의 도시입니다.' :
+                            region == '대전광역시' ? '대한민국의 과학 기술 중심지, ''한국의 실리콘밸리''입니다.' :
+                            region == '울산광역시' ? '대한민국 최대의 공업 도시이자 경제의 중심지 중 하나입니다.' :
+                            region == '세종특별자치시' ? '대한민국의 새로운 행정 수도입니다.' :
+                            region == '경기도' ? '서울을 둘러싸고 있으며, 다양한 문화와 자연을 함께 즐길 수 있는 곳입니다.' :
+                            region == '강원특별자치도' ? '아름다운 산과 바다로 유명한 대한민국의 대표적인 휴양지입니다.' :
+                            region == '충청북도' ? '대한민국의 중심에 위치하여 중원 문화의 발상지로 알려져 있습니다.' :
+                            region == '충청남도' ? '백제 문화의 중심지였으며, 풍부한 역사와 문화를 자랑합니다.' :
+                            region == '전북특별자치도' ? '맛과 멋의 고장으로, 풍부한 음식 문화와 전통 예술이 살아 숨 쉬는 곳입니다.' :
+                            region == '전라남도' ? '다도해의 아름다운 섬들과 남도의 맛을 자랑하는 곳입니다.' :
+                            region == '경상북도' ? '신라의 천년 고도 경주를 비롯한 수많은 문화유산을 간직한 곳입니다.' :
+                            region == '경상남도' ? '남해의 아름다운 해안선과 함께 다양한 볼거리를 제공하는 곳입니다.' :
+                            (region == '제주도' or region == '제주특별자치도') ? '화산 활동으로 만들어진 독특한 자연 경관을 자랑하는 대한민국 최대의 섬입니다.' :
+                            '이 지역에 대한 설명을 추가해주세요.'
+                         }"
+                         style="cursor: pointer;">
+
+                        <th:block th:switch="${region}">
+                            <img th:case="'제주도'" th:src="@{/image/korean local image/제주도.jpeg}" class="card-img-top" th:alt="${region}" style="height: 200px; object-fit: cover;">
+                            <img th:case="'제주특별자치도'" th:src="@{/image/korean local image/제주도.jpeg}" class="card-img-top" th:alt="${region}" style="height: 200px; object-fit: cover;">
+                            <img th:case="'세종특별자치시'" th:src="@{/image/korean local image/세종특별자치시.jpg}" class="card-img-top" th:alt="${region}" style="height: 200px; object-fit: cover;">
+                            <img th:case="'서울특별시'" th:src="@{/image/korean local image/서울특별시.jpeg}" class="card-img-top" th:alt="${region}" style="height: 200px; object-fit: cover;">
+                            <img th:case="'경상남도'" th:src="@{/image/korean local image/경상남도.png}" class="card-img-top" th:alt="${region}" style="height: 200px; object-fit: cover;">
+                            <img th:case="*" th:src="@{/image/korean local image/{region}.jpg(region=${region})}" class="card-img-top" th:alt="${region}" style="height: 200px; object-fit: cover;">
+                        </th:block>
+                        <div class="card-body">
+                            <h5 class="card-title"><span th:text="${region}" data-translatable></span></h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- Region Description Modal -->
+<div class="modal fade" id="regionModal" tabindex="-1" aria-labelledby="regionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="regionModalLabel" data-translatable></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <img id="regionImage" src="" class="img-fluid mb-3" alt="Region Image">
+                <p id="regionDescription" data-translatable></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-translatable>닫기</button>
+                <a href="#" id="findPlacesBtn" class="btn btn-primary" data-translatable>장소 찾기</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script>
+    const regionModal = document.getElementById('regionModal');
+    regionModal.addEventListener('show.bs.modal', function (event) {
+        const card = event.relatedTarget;
+        const regionName = card.getAttribute('data-region-name');
+        const regionDescription = card.getAttribute('data-region-description');
+        const regionImageSrc = card.querySelector('img').getAttribute('src');
+
+        const modalTitle = regionModal.querySelector('.modal-title');
+        const modalImage = regionModal.querySelector('#regionImage');
+        const modalDescription = regionModal.querySelector('#regionDescription');
+        const findPlacesBtn = regionModal.querySelector('#findPlacesBtn');
+
+        // --- 1. Reset state for new content ---
+        // Clear previously stored original text to avoid using stale translations
+        delete modalTitle.dataset.originalText;
+        delete modalDescription.dataset.originalText;
+
+        // --- 2. Set new content in the original language (Korean) ---
+        modalTitle.textContent = regionName;
+        modalImage.src = regionImageSrc;
+        modalImage.alt = regionName;
+        modalDescription.textContent = regionDescription;
+
+        // --- 3. Apply the current language translation to the modal's new content ---
+        const applyTranslationToModal = () => {
+            // The translation manager is defined in translation.js
+            if (window.translationManager) {
+                window.translationManager.applyCurrentLanguage(regionModal);
+            }
+        };
+
+        // The translation script might not be ready when this runs.
+        // If it's ready, translate immediately. If not, wait for its ready event.
+        if (window.translationManager && window.translationManager.isReady) {
+            applyTranslationToModal();
+        } else {
+            document.addEventListener('translationManagerReady', applyTranslationToModal, { once: true });
+        }
+
+        // --- 4. Set the href for the "Find Places" button ---
+        const url = /*[[@{/tripinformation/places}]]*/ '/tripinformation/places';
+        findPlacesBtn.href = url + '?region=' + encodeURIComponent(regionName);
+    });
+</script>
+
+</body>
+</html>

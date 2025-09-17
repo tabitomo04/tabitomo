@@ -1,176 +1,288 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>여행 계획 확정</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="/css/tripselect.css">
-    <style>
-        .plan-summary {
-            background-color: #f8f9fa;
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        .check-icon {
-            font-size: 4rem;
-            color: #198754;
-            margin-bottom: 1rem;
-        }
-    </style>
-</head>
+
+
+<head th:replace="~{fragments/header :: head}"></head>
+
 <body>
-    <div class="container mt-5">
-        <div class="progress mb-4">
-            <div class="progress-bar" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">100%</div>
+
+<style>
+    /* Loading animation styles */
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 9999;
+        display: none; /* Initially hidden */
+        justify-content: center;
+        align-items: center;
+    }
+
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Toast notification styles */
+    .toast-notification {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #333;
+        color: #fff;
+        padding: 15px 20px;
+        border-radius: 5px;
+        z-index: 10000;
+        display: none; /* Initially hidden */
+        opacity: 0;
+        transition: opacity 0.3s, bottom 0.3s;
+    }
+
+    .toast-notification.show {
+        display: block;
+        opacity: 1;
+        bottom: 30px;
+    }
+</style>
+
+<div th:replace="~{fragments/header :: header}"></div>
+<div th:replace="~{fragments/menu :: menu}"></div>
+
+<div class="container mt-5">
+    <div class="progress mb-4">
+        <div class="progress-bar" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">100%</div>
+    </div>
+    
+    <div class="text-center">
+        <div class="check-icon">
+            <i class="fas fa-check-circle"></i>
         </div>
-        
-        <div class="text-center">
-            <div class="check-icon">
-                <i class="fas fa-check-circle"></i>
-            </div>
-            <h2 class="mb-4">여행 계획이 완성되었습니다!</h2>
-            <p class="lead mb-4">아래 내용을 확인해주세요.</p>
-        </div>
-        
-        <!-- PDF 및 저장 데이터 영역 시작 -->
-        <div class="pdf-area">
-            <div class="plan-summary">
-                <h4 class="mb-4">여행 요약</h4>
-                <div class="row">
-                    <div class="col-md-6">
-                        <p><strong>목적지:</strong> <span th:text="${tripPlan.destination}"></span></p>
-                        <p><strong>여행 기간:</strong> 
-                            <span th:text="${#temporals.format(tripPlan.startDate, 'yyyy-MM-dd')}"></span> ~ 
-                            <span th:text="${#temporals.format(tripPlan.endDate, 'yyyy-MM-dd')}"></span>
-                            (<span th:text="${tripPlan.duration}"></span>박 <span th:text="${tripPlan.duration + 1}"></span>일)
-                        </p>
-                    </div>
-                    <div class="col-md-6">
-                        <p><strong>여행 스타일:</strong>
-                            <span th:if="${tripPlan.styles != null}">
-                                <span th:each="style, iter : ${tripPlan.styles}" th:text="${style + (iter.last ? '' : ', ')}"></span>
-                            </span>
-                        </p>
-                        <p><strong>예산:</strong> <span th:text="${tripPlan.budget}"></span>만원</p>
-                    </div>
+        <h2 class="mb-4" data-translatable>여행 계획이 완성되었습니다!</h2>
+        <p class="lead mb-4" data-translatable>아래 내용을 확인해주세요.</p>
+    </div>
+    
+    <!-- PDF 및 저장 데이터 영역 시작 -->
+    <div class="pdf-area">
+        <div class="plan-summary">
+            <h4 class="mb-4" data-translatable>여행 요약</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong data-translatable>목적지:</strong> <span th:text="${tripPlan.destination}" data-translatable></span></p>
+                    <p><strong data-translatable>여행 기간:</strong> 
+                        <span th:text="${#temporals.format(tripPlan.startDate, 'yyyy-MM-dd')}"></span> ~ 
+                        <span th:text="${#temporals.format(tripPlan.endDate, 'yyyy-MM-dd')}"></span>
+                        (<span th:text="${tripPlan.duration - 1}"></span><span data-translatable>박</span> <span th:text="${tripPlan.duration}"></span><span data-translatable>일</span>)
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong data-translatable>여행 스타일:</strong>
+                        <span th:if="${tripPlan.styles != null}">
+                            <span th:each="style, iter : ${tripPlan.styles}"><span data-translatable th:text="${style}"></span><span th:if="${!iter.last}">, </span></span>
+                        </span>
+                    </p>
+                    <p><strong data-translatable>예산:</strong> <span th:text="${tripPlan.budget}"></span><span data-translatable>만원</span></p>
                 </div>
             </div>
-            
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">일정 요약</h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>날짜</th>
-                                    <th>일정</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            <th:block th:if="${tripPlan.dailySchedules != null and #lists.size(tripPlan.dailySchedules) > 0}">
-                                <tr th:each="day, iter : ${#numbers.sequence(1, tripPlan.duration)}">
-                                    <td>Day <span th:text="${day}"></span><br>
-                                        <small class="text-muted"
-                                            th:text="${tripPlan.startDate != null ? #temporals.format(tripPlan.startDate.plusDays(day-1), 'MM/dd (E)') : ''}"></small>
-                                    </td>
-                                    <td>
-                                        <div th:each="schedule : ${tripPlan.dailySchedules[__${iter.index}__].schedules}">
-                                            <div class="d-flex justify-content-between">
-                                                <span th:text="${schedule.time}"></span>
-                                                <span th:text="${schedule.place}" class="ms-2"></span>
-                                            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0" data-translatable>일정 요약</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th data-translatable>날짜</th>
+                                <th data-translatable>일정</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <th:block th:if="${tripPlan.dailySchedules != null and !tripPlan.dailySchedules.isEmpty()}">
+                            <tr th:each="dailySchedule : ${tripPlan.dailySchedules}">
+                                <td><span data-translatable>Day</span> <span th:text="${dailySchedule.day}"></span><br>
+                                    <small class="text-muted" 
+                                           th:if="${tripPlan.startDate != null}" 
+                                           th:attr="data-date=${#temporals.format(tripPlan.startDate.plusDays(dailySchedule.day - 1), 'yyyy-MM-dd')}">
+                                        <!-- Date will be rendered by JavaScript -->
+                                    </small>
+                                </td>
+                                <td>
+                                    <div th:each="schedule : ${dailySchedule.schedules}">
+                                        <div class="d-flex justify-content-between">
+                                            <span th:text="${schedule.startTime} + (${schedule.endTime != null and schedule.endTime != ''} ? ' - ' + ${schedule.endTime} : '')"></span>
+                                            <span th:text="${schedule.place}" class="ms-2" data-translatable></span>
                                         </div>
-                                    </td>
-                                </tr>
-                            </th:block>
-                            <th:block th:unless="${tripPlan.dailySchedules != null and #lists.size(tripPlan.dailySchedules) > 0}">
-                                <tr><td colspan="2">일정 정보가 없습니다.</td></tr>
-                            </th:block>
-                            </tbody>
-                        </table>
-                    </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </th:block>
+                        <th:block th:unless="${tripPlan.dailySchedules != null and !tripPlan.dailySchedules.isEmpty()}">
+                            <tr><td colspan="2" data-translatable>일정 정보가 없습니다.</td></tr>
+                        </th:block>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">추천 숙소</h5>
-                </div>
-                <div class="card-body">
-                    <div th:if="${tripPlan.accommodations != null and #lists.size(tripPlan.accommodations) > 0}">
-                        <div class="row mb-4" th:each="acc : ${tripPlan.accommodations}">
-                            <div class="col-md-4">
-                                <img th:src="${acc.imageUrl != null ? acc.imageUrl : 'https://via.placeholder.com/300x200'}" class="img-fluid rounded" alt="숙소 이미지">
-                            </div>
-                            <div class="col-md-8">
-                                    <h5 th:text="${acc.placeName}"></h5>
-                                    <p class="text-muted" th:if="${acc.description != null}">
-                                        <i class="fas fa-map-marker-alt me-1"></i>
-                                        <span th:text="${acc.description}"></span>
-                                    </p>
-                                    <div class="mb-2">
-                                        <span class="badge bg-info text-dark ms-1" th:text="'Day ' + ${acc.day}"></span>
-                                    </div>
-                            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0" data-translatable>추천 숙소</h5>
+            </div>
+            <div class="card-body">
+                <div th:if="${tripPlan.accommodation != null and tripPlan.accommodation.placeName != null}">
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <img th:src="${tripPlan.accommodation.imageUrl != null ? tripPlan.accommodation.imageUrl : 'https://via.placeholder.com/300x200'}" class="img-fluid rounded" alt="숙소 이미지">
+                        </div>
+                        <div class="col-md-8">
+                                <h5 th:text="${tripPlan.accommodation.placeName}" data-translatable></h5>
+                                <p class="text-muted" th:if="${tripPlan.accommodation.address != null}">
+                                    <i class="fas fa-map-marker-alt me-1"></i>
+                                    <span th:text="${tripPlan.accommodation.address}" data-translatable></span>
+                                </p>
                         </div>
                     </div>
-                    <div th:unless="${tripPlan.accommodations != null and #lists.size(tripPlan.accommodations) > 0}">
-                        <p>추천 숙소 정보가 없습니다.</p>
-                    </div>
                 </div>
-            </div>
-        </div>
-        <!-- PDF 및 저장 데이터 영역 끝 -->
-
-        <!-- 로그인한 사용자만 저장 폼을 볼 수 있도록 처리 -->
-        <div sec:authorize="isAuthenticated()">
-            <form th:action="@{/trips/save}" method="post" id="savePlanForm" class="mt-4 p-4 border rounded bg-light">
-                <div class="mb-3">
-                    <label for="planName" class="form-label"><strong>여행 계획 이름</strong></label>
-                    <input type="text" class="form-control" id="planName" name="planName" placeholder="예: 나의 첫 부산 여행" required>
+                <div th:unless="${tripPlan.accommodation != null and tripPlan.accommodation.placeName != null}">
+                    <p data-translatable>추천 숙소 정보가 없습니다.</p>
                 </div>
-                <input type="hidden" id="planDetails" name="planDetails">
-                <div class="d-flex justify-content-between">
-                    <a href="/tripselect/step1" class="btn btn-outline-secondary">다시 추천받기</a>
-                    <div>
-                        <button type="button" class="btn btn-outline-primary me-2" id="pdfDownloadBtn">PDF로 저장</button>
-                        <button type="submit" class="btn btn-primary">내 여행에 저장</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-
-        <!-- 로그인하지 않은 사용자를 위한 안내 -->
-        <div sec:authorize="!isAuthenticated()" class="alert alert-warning mt-4">
-            여행 계획을 저장하려면 <a th:href="@{/login}">로그인</a>이 필요합니다.
-            <div class="d-flex justify-content-between mt-3">
-                 <a href="/tripselect/step1" class="btn btn-outline-secondary">다시 추천받기</a>
-                 <button type="button" class="btn btn-outline-primary me-2" id="pdfDownloadBtn">PDF로 저장</button>
             </div>
         </div>
     </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const saveForm = document.getElementById('savePlanForm');
-            if (saveForm) {
-                saveForm.addEventListener('submit', function(event) {
-                    const planDetailsHtml = document.querySelector('.pdf-area').innerHTML;
-                    document.getElementById('planDetails').value = planDetailsHtml;
-                });
-            }
+    <!-- PDF 및 저장 데이터 영역 끝 -->
 
-            const pdfButton = document.getElementById('pdfDownloadBtn');
+    <!-- 로그인한 사용자만 저장 폼을 볼 수 있도록 처리 -->
+    <div sec:authorize="isAuthenticated()">
+        <form th:action="@{/trip/save}" method="post" id="savePlanForm" class="mt-4 p-4 border rounded bg-light">
+            <div class="mb-3">
+                <label for="planName" class="form-label"><strong data-translatable>여행 계획 이름</strong></label>
+                <input type="text" class="form-control" id="planName" name="planName" placeholder="예: 나의 첫 부산 여행" required data-translatable-placeholder>
+            </div>
+            <input type="hidden" id="planDetails" name="planDetails">
+            <div class="d-flex justify-content-between">
+                <a th:href="@{/tripselect/step1}" class="btn btn-outline-secondary" data-translatable>다시 추천받기</a>
+                <div>
+                    <a th:href="@{/trip/step5}" class="btn btn-info me-2" data-translatable>편집</a>
+                    <button type="button" class="btn btn-outline-primary me-2" id="pdfDownloadBtn" data-translatable>PDF로 저장</button>
+                    <button type="submit" class="btn btn-primary" data-translatable>내 여행에 저장</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- 로그인하지 않은 사용자를 위한 안내 -->
+    <div sec:authorize="!isAuthenticated()" class="alert alert-warning mt-4">
+        <span data-translatable>여행 계획을 저장하려면</span> <a th:href="@{/login}" data-translatable>로그인</a><span data-translatable>이 필요합니다.</span>
+        <div class="d-flex justify-content-between mt-3">
+             <a th:href="@{/tripselect/step1}" class="btn btn-outline-secondary" data-translatable>다시 추천받기</a>
+             <div>
+                <a th:href="@{/trip/step5}" class="btn btn-info me-2" data-translatable>편집</a>
+                <button type="button" class="btn btn-outline-primary me-2" id="pdfDownloadBtn-noauth" data-translatable>PDF로 저장</button>
+             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Animation -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+</div>
+
+<!-- Toast Notification -->
+<div class="toast-notification" id="toastNotification">
+    <span data-translatable="Trip saved successfully!">여행이 성공적으로 저장되었습니다!</span>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        const saveForm = document.getElementById('savePlanForm');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const toastNotification = document.getElementById('toastNotification');
+
+        if (saveForm) {
+            saveForm.addEventListener('submit', function(event) {
+                event.preventDefault(); // 폼 기본 제출 방지
+                
+                loadingOverlay.style.display = 'flex';
+
+                const tripPlanJson = /*[[${tripPlan}]]*/ null;
+                if (!tripPlanJson) {
+                    alert('저장할 여행 데이터가 없습니다.');
+                    loadingOverlay.style.display = 'none';
+                    return;
+                }
+
+                const planName = document.getElementById('planName').value;
+                if (!planName || planName.trim() === '') {
+                    alert('여행 계획 이름을 입력해주세요.');
+                    loadingOverlay.style.display = 'none';
+                    return;
+                }
+                
+                tripPlanJson.planName = planName;
+
+                const headers = {
+                    'Content-Type': 'application/json',
+                };
+                
+                fetch('/trip/save', {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(tripPlanJson)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    loadingOverlay.style.display = 'none';
+                    if(data.status === 'success'){
+                        const toastSpan = toastNotification.querySelector('span');
+                        toastSpan.setAttribute('data-translatable', 'Trip saved successfully!');
+                        toastSpan.innerText = '여행이 성공적으로 저장되었습니다!';
+
+                        if(window.translationManager) {
+                            window.translationManager.applyCurrentLanguage(toastNotification);
+                        }
+
+                        toastNotification.classList.add('show');
+                        
+                        setTimeout(() => {
+                            toastNotification.classList.remove('show');
+                            window.location.href = '/mypage';
+                        }, 2000);
+                    } else {
+                        alert('오류: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    loadingOverlay.style.display = 'none';
+                    console.error('Error:', error);
+                    alert('여행 계획 저장 중 오류가 발생했습니다.');
+                });
+            });
+        }
+
+        function setupPdfDownload(buttonId) {
+            const pdfButton = document.getElementById(buttonId);
             if(pdfButton) {
-                 pdfButton.addEventListener('click', function() {
+                pdfButton.addEventListener('click', function() {
                     const element = document.querySelector('.pdf-area');
                     if (!element) {
                         alert('PDF로 저장할 영역을 찾을 수 없습니다.');
@@ -186,7 +298,36 @@
                     html2pdf().set(opt).from(element).save();
                 });
             }
-        });
-    </script>
+        }
+
+        setupPdfDownload('pdfDownloadBtn');
+        setupPdfDownload('pdfDownloadBtn-noauth');
+
+        function formatDateElements() {
+            const lang = window.translationManager ? window.translationManager.currentLanguage : 'ko';
+            const locale = (lang === 'jp') ? 'ja-JP' : (lang === 'en' ? 'en-US' : 'ko-KR');
+
+            document.querySelectorAll('small[data-date]').forEach(el => {
+                const date = new Date(el.dataset.date + 'T00:00:00');
+                
+                const monthDay = new Intl.DateTimeFormat(locale, { month: 'numeric', day: 'numeric' }).format(date);
+                
+                const weekdayKey = new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(date);
+
+                el.innerHTML = `${monthDay} (<span data-translatable>${weekdayKey}</span>)`;
+            });
+
+            if (window.translationManager) {
+                window.translationManager.applyCurrentLanguage(document.body);
+            }
+        }
+
+        setTimeout(() => {
+            formatDateElements();
+            document.addEventListener('languageChanged', formatDateElements);
+        }, 100);
+    });
+</script>
+
 </body>
 </html>

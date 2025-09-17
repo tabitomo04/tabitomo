@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+
+<head>
+    <th:block th:replace="~{fragments/header :: head}"></th:block>
+    <title data-translatable>여행 계획 편집</title>
+    <link rel="stylesheet" th:href="@{/css/tripselect.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <!-- Preload flatpickr locales -->
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/ko.js"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/ja.js"></script>
+</head>
+
+<body>
+
+<style>
+    /* Loading animation styles */
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 9999;
+        display: none; /* Initially hidden */
+        justify-content: center;
+        align-items: center;
+    }
+
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Toast notification styles */
+    .toast-notification {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #333;
+        color: #fff;
+        padding: 15px 20px;
+        border-radius: 5px;
+        z-index: 10000;
+        display: none; /* Initially hidden */
+        opacity: 0;
+        transition: opacity 0.3s, bottom 0.3s;
+    }
+
+    .toast-notification.show {
+        display: block;
+        opacity: 1;
+        bottom: 30px;
+    }
+</style>
+
+<div th:replace="~{fragments/header :: header}"></div>
+<div th:replace="~{fragments/menu :: menu}"></div>
+
+<div class="container mt-5">
+    <div class="progress mb-4">
+        <div class="progress-bar" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">100%</div>
+    </div>
+
+    <div class="text-center">
+        <h2 class="mb-4" data-translatable>여행 계획 편집</h2>
+        <p class="lead mb-4" data-translatable>아래에서 계획을 수정하고 저장하세요.</p>
+    </div>
+
+    <div id="trip-plan-editor"></div>
+
+    <div class="d-flex justify-content-between mt-4">
+        <a th:href="@{/tripselect/step1}" class="btn btn-outline-secondary" data-translatable>다시 추천 받기</a>
+        <button type="button" class="btn btn-primary" id="saveChangesBtn" data-translatable>변경사항 저장</button>
+    </div>
+</div>
+
+<!-- Favorites Modal -->
+<div class="modal fade" id="favoritesModal" tabindex="-1" aria-labelledby="favoritesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="favoritesModalLabel" data-translatable>즐겨찾기 목록</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="favoritesModalBody">
+                <!-- Favorite places will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Animation -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+</div>
+
+<!-- Toast Notification -->
+<div class="toast-notification" id="toastNotification">
+    <span data-translatable="Changes saved successfully!">변경사항이 성공적으로 저장되었습니다!</span>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        const tripPlan = /*[[${tripPlan}]]*/ null;
+        const editor = document.getElementById('trip-plan-editor');
+        const favoritesModal = new bootstrap.Modal(document.getElementById('favoritesModal'));
+        const favoritesModalBody = document.getElementById('favoritesModalBody');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const toastNotification = document.getElementById('toastNotification');
+
+        let flatpickrInstances = [];
+
+        window.updateSchedulePlace = function(placeData, dayIndex, scheduleIndex) {
+            const schedule = tripPlan.dailySchedules[dayIndex].schedules[scheduleIndex];
+            schedule.place = placeData.name;
+            schedule.address = placeData.address;
+            schedule.latitude = placeData.latitude;
+            schedule.longitude = placeData.longitude;
+            renderEditor();
+        }
+
+        if (!tripPlan) {
+            editor.innerHTML = '<p class="alert alert-danger" data-translatable>여행 계획을 불러올 수 없습니다.</p>';
+            if (window.translationManager) window.translationManager.applyCurrentLanguage(editor);
+            return;
+        }
+
+        function destroyFlatpickrInstances() {
+            flatpickrInstances.forEach(instance => instance.destroy());
+            flatpickrInstances = [];
+        }
+
+        function initializeTimePickers(lang) {
+            destroyFlatpickrInstances();
+            let language = lang || (window.translationManager ? window.translationManager.currentLanguage : 'ko');
+            if (language === 'jp') language = 'ja';
+
+            const localeObject = flatpickr.l10ns[language] || flatpickr.l10ns.default;
+
+            document.querySelectorAll('.time-picker').forEach(input => {
+                const instance = flatpickr(input, {
+                    enableTime: true,
+                    noCalendar: true,
+                    dateFormat: "H:i",
+                    altInput: true,
+                    altFormat: "h:i K",
+                    locale: localeObject,
+                });
+                flatpickrInstances.push(instance);
+            });
+        }
+
+        function renderEditor(lang) {
+            destroyFlatpickrInstances();
+            let html = '';
+            html += `
+                <div class="mb-4">
+                    <label for="planName" class="form-label"><h4 data-translatable>여행 계획 이름</h4></label>
+                    <input type="text" class="form-control" id="planName" value="${tripPlan.planName || (tripPlan.destination + ' 여행')}">
+                </div>`;
+
+            if (tripPlan.dailySchedules) {
+                tripPlan.dailySchedules.forEach((daily, dayIndex) => {
+                    html += `
+                    <div class="card mb-4" data-day-index="${dayIndex}">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><span data-translatable>Day</span> ${daily.day}</h5>
+                            <button class="btn btn-sm btn-outline-success add-schedule-btn" data-translatable>일정 추가</button>
+                        </div>
+                        <div class="card-body schedule-list">
+                            ${(daily.schedules || []).map((schedule, scheduleIndex) => renderScheduleItem(dayIndex, scheduleIndex, schedule)).join('')}
+                        </div>
+                    </div>`;
+                });
+            }
+            editor.innerHTML = html;
+            if (window.translationManager) window.translationManager.applyCurrentLanguage(editor);
+            
+            initializeTimePickers(lang);
+            attachEventListeners();
+        }
+
+        function renderScheduleItem(dayIndex, scheduleIndex, schedule) {
+            return `
+                <div class="row g-3 mb-3 align-items-center schedule-item" data-day-index="${dayIndex}" data-schedule-index="${scheduleIndex}">
+                    <div class="col-md-2">
+                        <label class="form-label" data-translatable>시작 시간</label>
+                        <input type="text" class="form-control time-picker" name="startTime" value="${schedule.startTime || ''}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label" data-translatable>종료 시간</label>
+                        <input type="text" class="form-control time-picker" name="endTime" value="${schedule.endTime || ''}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" data-translatable>장소</label>
+                        <div class="input-group">
+                            <span class="form-control bg-light" data-translatable>${schedule.place || ''}</span>
+                            <input type="hidden" name="place" value="${schedule.place || ''}">
+                            <button class="btn btn-outline-secondary search-place-btn" type="button" data-translatable>검색</button>
+                            <button class="btn btn-outline-info show-favorites-btn" type="button" data-translatable>즐겨찾기</button>
+                        </div>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button class="btn btn-sm btn-outline-danger delete-schedule-btn" data-translatable>삭제</button>
+                    </div>
+                     <div class="col-md-12">
+                        <label class="form-label" data-translatable>주소</label>
+                        <p class="form-control-plaintext" data-translatable>${schedule.address || ''}</p>
+                        <input type="hidden" name="address" value="${schedule.address || ''}">
+                    </div>
+                </div>`;
+        }
+
+        function attachEventListeners() {
+            editor.addEventListener('click', function(e) {
+                const target = e.target;
+                const scheduleItem = target.closest('.schedule-item');
+                const card = target.closest('.card');
+
+                if (target.classList.contains('add-schedule-btn')) {
+                    const dayIndex = parseInt(card.dataset.dayIndex);
+                    if (!tripPlan.dailySchedules[dayIndex].schedules) {
+                        tripPlan.dailySchedules[dayIndex].schedules = [];
+                    }
+                    tripPlan.dailySchedules[dayIndex].schedules.push({ place: '', startTime: '', endTime: '', description: '', latitude: 0, longitude: 0, address: '' });
+                    renderEditor();
+                }
+
+                if (target.classList.contains('delete-schedule-btn')) {
+                    const dayIndex = parseInt(scheduleItem.dataset.dayIndex);
+                    const scheduleIndex = parseInt(scheduleItem.dataset.scheduleIndex);
+                    tripPlan.dailySchedules[dayIndex].schedules.splice(scheduleIndex, 1);
+                    renderEditor();
+                }
+
+                if (target.classList.contains('search-place-btn')) {
+                    const dayIndex = parseInt(scheduleItem.dataset.dayIndex);
+                    const scheduleIndex = parseInt(scheduleItem.dataset.scheduleIndex);
+                    const destination = tripPlan.destination || '';
+                    const url = `/trip/place-search-popup?destination=${encodeURIComponent(destination)}&day=${dayIndex}&schedule=${scheduleIndex}`;
+                    window.open(url, 'placeSearchPopup', 'width=600,height=700');
+                }
+
+                if (target.classList.contains('show-favorites-btn')) {
+                    const dayIndex = parseInt(scheduleItem.dataset.dayIndex);
+                    const scheduleIndex = parseInt(scheduleItem.dataset.scheduleIndex);
+                    
+                    favoritesModalBody.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+                    favoritesModal.show();
+
+                    fetch('/api/favorites')
+                        .then(response => response.json())
+                        .then(favorites => {
+                            favoritesModalBody.innerHTML = '';
+                            if (favorites.length === 0) {
+                                favoritesModalBody.innerHTML = '<p data-translatable>즐겨찾기한 장소가 없습니다.</p>';
+                            } else {
+                                const list = document.createElement('ul');
+                                list.className = 'list-group';
+                                favorites.forEach(fav => {
+                                    const item = document.createElement('li');
+                                    item.className = 'list-group-item d-flex justify-content-between align-items-center';
+                                    item.innerHTML = `
+                                        <div>
+                                            <h6 class="my-0" data-translatable>${fav.place.name}</h6>
+                                            <small class="text-muted" data-translatable>${fav.place.address}</small>
+                                        </div>`;
+                                    const addButton = document.createElement('button');
+                                    addButton.className = 'btn btn-sm btn-primary add-favorite-to-schedule-btn';
+                                    addButton.textContent = '추가';
+                                    addButton.setAttribute('data-translatable', '');
+                                    addButton.onclick = () => {
+                                        const placeData = {
+                                            name: fav.place.name,
+                                            address: fav.place.address,
+                                            latitude: fav.place.latitude,
+                                            longitude: fav.place.longitude
+                                        };
+                                        window.updateSchedulePlace(placeData, dayIndex, scheduleIndex);
+                                        favoritesModal.hide();
+                                    };
+                                    item.appendChild(addButton);
+                                    list.appendChild(item);
+                                });
+                                favoritesModalBody.appendChild(list);
+                            }
+                            if (window.translationManager) window.translationManager.applyCurrentLanguage(favoritesModalBody);
+                        })
+                        .catch(error => {
+                            console.error('Error fetching favorites:', error);
+                            favoritesModalBody.innerHTML = '<p class="text-danger" data-translatable>즐겨찾기를 불러오는 중 오류가 발생했습니다.</p>';
+                            if (window.translationManager) window.translationManager.applyCurrentLanguage(favoritesModalBody);
+                        });
+                }
+            });
+        }
+
+        document.getElementById('saveChangesBtn').addEventListener('click', function() {
+            loadingOverlay.style.display = 'flex';
+
+            tripPlan.planName = document.getElementById('planName').value;
+            document.querySelectorAll('.schedule-item').forEach(item => {
+                const dayIndex = parseInt(item.dataset.dayIndex);
+                const scheduleIndex = parseInt(item.dataset.scheduleIndex);
+                const schedule = tripPlan.dailySchedules[dayIndex].schedules[scheduleIndex];
+                
+                schedule.startTime = item.querySelector('input[name="startTime"]').value;
+                schedule.endTime = item.querySelector('input[name="endTime"]').value;
+                schedule.place = item.querySelector('input[name="place"]').value;
+                schedule.address = item.querySelector('input[name="address"]').value;
+            });
+
+            fetch('/trip/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(tripPlan)
+            })
+            .then(response => response.json())
+            .then(data => {
+                loadingOverlay.style.display = 'none';
+                if(data.status === 'success'){
+                    const toastSpan = toastNotification.querySelector('span');
+                    toastSpan.setAttribute('data-translatable', 'Changes saved successfully!');
+                    toastSpan.innerText = '변경사항이 성공적으로 저장되었습니다!';
+
+                    if(window.translationManager) {
+                        window.translationManager.applyCurrentLanguage(toastNotification);
+                    }
+
+                    toastNotification.classList.add('show');
+                    
+                    setTimeout(() => {
+                        toastNotification.classList.remove('show');
+                        window.location.href = '/mypage';
+                    }, 2000);
+                } else {
+                    alert('오류: ' + data.message);
+                }
+            })
+            .catch(error => {
+                loadingOverlay.style.display = 'none';
+                console.error('Error:', error);
+                alert('저장 중 오류가 발생했습니다.');
+            });
+        });
+
+        document.addEventListener('languageChanged', (e) => {
+            renderEditor(e.detail.lang);
+        });
+
+        renderEditor(); // Initial render
+    });
+</script>
+
+</body>
+</html>

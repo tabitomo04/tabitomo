@@ -1,188 +1,77 @@
 plugins {
-    id 'java'
-    id 'org.springframework.boot' version '3.5.4'
-    id 'io.spring.dependency-management' version '1.1.7'
-    id 'org.asciidoctor.jvm.convert' version '3.3.2'
+	id 'java'
+	id 'org.springframework.boot' version '3.5.4'
+	id 'io.spring.dependency-management' version '1.1.7'
 }
 
-group = 'com.koreatravel'
+group = 'vio'
 version = '0.0.1-SNAPSHOT'
-description = 'Tabitomo Travel Assistant'
 
 java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
 }
 
 configurations {
-    compileOnly {
-        extendsFrom annotationProcessor
-    }
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
 }
 
 repositories {
-    mavenCentral()
-    maven {
-        url = 'https://repo.spring.io/milestone'  // For Spring AI
-    }
-}
-
-ext {
-    set('snippetsDir', file("build/generated-snippets"))
-    set('springAiVersion', "1.0.1")
-    set('mapstructVersion', "1.6.0.Beta2")
-    set('openCsvVersion', "5.9")
-    set('jsoupVersion', "1.17.2")
-    set('googleCloudTranslateVersion', "2.38.0")
+	mavenCentral()
+	maven { url 'https://repo.spring.io/milestone' }
 }
 
 dependencies {
     // Spring Boot Starters
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-data-rest'
-    implementation 'org.springframework.boot:spring-boot-starter-mail'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-    implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    implementation 'org.springframework.boot:spring-boot-starter-web-services'
-    implementation 'org.springframework.boot:spring-boot-starter-cache'
-    
-    // Spring AI
-    implementation ("org.springframework.ai:spring-ai-vertex-ai-gemini:${springAiVersion}") {
-        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-webflux'
-    }
-    
-    // Spring Session
-    implementation 'org.springframework.session:spring-session-jdbc'
-    
-    // Database
-    implementation 'mysql:mysql-connector-java:8.0.33'
-    
-    // Thymeleaf
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
-    implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect'
-    
-    // Explicitly set Thymeleaf version compatible with Spring Boot 3.2.0
-    ext['thymeleaf.version'] = '3.1.2.RELEASE'
-    ext['thymeleaf-layout-dialect.version'] = '3.2.1'
-    
-    // Jakarta Mail
-    implementation 'org.springframework.boot:spring-boot-starter-mail'
-    
-    // MapStruct
-    implementation "org.mapstruct:mapstruct:${mapstructVersion}"
-    annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
-    
-    // OpenCSV
-    implementation "com.opencsv:opencsv:${openCsvVersion}"
-    
-    // JSoup for HTML parsing
-    implementation "org.jsoup:jsoup:${jsoupVersion}"
-    
-    // Thumbnailator for image processing
-    implementation 'net.coobird:thumbnailator:0.4.19'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
     
     // Google Cloud Services
-    implementation "com.google.cloud:google-cloud-translate:${googleCloudTranslateVersion}"
+    implementation 'com.google.cloud:google-cloud-translate:2.38.0'
     
-    // Jakarta Servlet API
-    implementation 'jakarta.servlet:jakarta.servlet-api:6.0.0'
+    // Utilities
+    implementation 'org.mapstruct:mapstruct:1.6.0'
+    implementation 'com.opencsv:opencsv:5.9'
+    implementation 'org.jsoup:jsoup:1.17.2'
     
-    // Jakarta Validation (provided by spring-boot-starter-validation)
-    
-    // Spring Session JDBC for session management
-    implementation 'org.springframework.session:spring-session-jdbc'
-    
-    // Jackson (provided by spring-boot-starter-json)
-    
-    // Lombok
+    // Development & Testing
     compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
-    
-    // Development Only
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    
-    // Runtime Only
     runtimeOnly 'com.mysql:mysql-connector-j'
+    
+    // Annotation Processors
+    annotationProcessor 'org.projectlombok:lombok'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.0'
     
     // Test Dependencies
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
-    
-    // Email Testing
-    testImplementation 'com.icegreen:greenmail-junit5:2.0.1'
-    testImplementation 'com.icegreen:greenmail:2.0.1'
-    testImplementation 'org.awaitility:awaitility:4.2.1'
-    testImplementation 'io.projectreactor:reactor-test'
-    testImplementation 'com.h2database:h2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    
+    // Servlet API (for compile time only)
+    compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.0'
+    
+    // Add this if you need Jakarta Validation API
+    implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
+    // 시큐리티 의존성
+    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+
 }
 
 
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.ai:spring-ai-bom:${springAiVersion}"
-    }
+
+tasks.named('compileJava') {
+    options.compilerArgs << "-parameters"
 }
 
 tasks.named('test') {
-    useJUnitPlatform()
-    testLogging {
-        events "passed", "skipped", "failed"
-    }
+	useJUnitPlatform()
 }
-
-// Add task to generate MapStruct mappers during compilation
-tasks.withType(JavaCompile) {
-    options.compilerArgs = [
-        '-Amapstruct.suppressGeneratorTimestamp=true',
-        '-Amapstruct.suppressGeneratorVersionInfoComment=true',
-        '-Amapstruct.verbose=false',
-        '-parameters'  // For parameter name retention in Java 8+
-    ]
-}
-
-// Configure resources
-processResources {
-    // Include all resources from src/main/resources
-    from('src/main/resources') {
-        include '**/*.*'
-    }
-    // Handle duplicate files by using the first one found
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
-    
-    // Set the output directory for resources
-    into 'build/resources/main'
-}
-
-// Configure JAR file name and manifest
-bootJar {
-    enabled = true
-    archiveFileName = "${project.name}.jar"
-    launchScript()
-    
-    // Specify the main class
-    mainClass = 'com.koreatravel.tabitomo.TabitomoApplication'
-    
-    manifest {
-        attributes 'Implementation-Title': project.name,
-                   'Implementation-Version': project.version,
-                   'Created-By': 'Tabitomo Team',
-                   'Built-By': System.getProperty('user.name'),
-                   'Built-JDK': System.getProperty('java.version'),
-                   'Build-Time': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
-    }
-}
-
-// Configure bootRun to use the main class
-bootRun {
-    mainClass = 'com.koreatravel.tabitomo.TabitomoApplication'
-    classpath = sourceSets.main.runtimeClasspath
-}
-

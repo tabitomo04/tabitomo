@@ -1,12 +1,9 @@
-/* Base Styles */
-body {
-    background-color: #f8f9fa;
-    color: #333;
-    font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
-}
+/* Scoped styles for tripselect pages */
 
-/* Container */
-.container {
+/* The body rule is removed as it causes global conflicts. */
+
+/* Container inside the scope */
+#tripselect-content .container {
     max-width: 1200px;
     padding: 20px;
     background: white;
@@ -17,61 +14,63 @@ body {
 }
 
 /* Progress Bar */
-.progress {
+#tripselect-content .progress {
     height: 10px;
     border-radius: 5px;
     margin: 30px 0;
 }
 
-.progress-bar {
+#tripselect-content .progress-bar {
     background-color: #4e73df;
     transition: width 0.6s ease;
 }
 
 /* Form Elements */
-.form-control, .form-select {
+#tripselect-content .form-control, 
+#tripselect-content .form-select {
     padding: 12px 15px;
     border-radius: 8px;
     border: 1px solid #d1d3e2;
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
-.form-control:focus, .form-select:focus {
+#tripselect-content .form-control:focus, 
+#tripselect-content .form-select:focus {
     border-color: #bac8f3;
     box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
 }
 
 /* Buttons */
-.btn {
+#tripselect-content .btn {
     padding: 10px 20px;
     border-radius: 8px;
     font-weight: 600;
     transition: all 0.2s;
 }
 
-.btn-primary {
+#tripselect-content .btn-primary {
     background-color: #4e73df;
     border-color: #4e73df;
 }
 
-.btn-primary:hover {
+#tripselect-content .btn-primary:hover {
     background-color: #2e59d9;
     border-color: #2653d4;
     transform: translateY(-1px);
 }
 
-.btn-outline-primary {
+#tripselect-content .btn-outline-primary {
     color: #4e73df;
     border-color: #4e73df;
 }
 
-.btn-outline-primary:hover {
+#tripselect-content .btn-outline-primary:hover {
     background-color: #4e73df;
     border-color: #4e73df;
 }
 
 /* Cards */
-.card {
+#tripselect-content .card {
     border: none;
     border-radius: 10px;
     box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
@@ -79,12 +78,12 @@ body {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.card:hover {
+#tripselect-content .card:hover {
     transform: translateY(-5px);
     box-shadow: 0 0.5rem 2rem 0 rgba(58, 59, 69, 0.2);
 }
 
-.card-header {
+#tripselect-content .card-header {
     background-color: #f8f9fc;
     border-bottom: 1px solid #e3e6f0;
     font-weight: 600;
@@ -92,7 +91,7 @@ body {
 }
 
 /* Navigation */
-.nav-pills .nav-link {
+#tripselect-content .nav-pills .nav-link {
     color: #5a5c69;
     font-weight: 600;
     padding: 0.5rem 1.5rem;
@@ -101,24 +100,24 @@ body {
     transition: all 0.2s;
 }
 
-.nav-pills .nav-link.active {
+#tripselect-content .nav-pills .nav-link.active {
     background-color: #4e73df;
     color: white;
 }
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {
-    .container {
+    #tripselect-content .container {
         padding: 15px;
         margin-top: 10px;
     }
     
-    .btn {
+    #tripselect-content .btn {
         padding: 8px 16px;
         font-size: 14px;
     }
     
-    .card-body {
+    #tripselect-content .card-body {
         padding: 1rem;
     }
 }
@@ -129,26 +128,6 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
-.fade-in {
+#tripselect-content .fade-in {
     animation: fadeIn 0.5s ease-out forwards;
-}
-
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #c1c5d6;
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #aab0c5;
 }

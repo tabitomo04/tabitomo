@@ -1,349 +1,222 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       lang="ko">
-<head th:replace="~{fragments/header :: head}">
-    <title>마이페이지 - Tabitomo</title>
-    <style>
-        .profile-section {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-            padding: 2.5rem;
-            margin-bottom: 3rem;
-        }
-        
-        .profile-header {
-            display: flex;
-            align-items: flex-start;
-            gap: 3rem;
-            margin-bottom: 2rem;
-        }
-        
-        .profile-image {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid #f0f2f5;
-        }
-        
-        .profile-info {
-            flex: 1;
-        }
-        
-        .profile-name {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            color: #212529;
-        }
-        
-        .profile-email {
-            color: #6c757d;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .profile-bio {
-            color: #495057;
-            line-height: 1.6;
-            margin-bottom: 1.5rem;
-        }
-        
-        .tag {
-            display: inline-block;
-            background-color: #f1f3f5;
-            color: #495057;
-            padding: 0.3rem 0.8rem;
-            border-radius: 50px;
-            margin-right: 0.5rem;
-            margin-bottom: 0.5rem;
-            font-size: 0.85rem;
-        }
-        
-        .section-title {
-            position: relative;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid #e9ecef;
-        }
-        
-        .section-title h2 {
-            font-weight: 700;
-            color: #212529;
-            margin-bottom: 0;
-            display: inline-block;
-        }
-        
-        .btn-edit {
-            margin-left: 1rem;
-            font-size: 0.9rem;
-            padding: 0.25rem 0.75rem;
-        }
-        
-        .card {
-            border: none;
-            border-radius: 10px;
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            height: 100%;
-        }
-        
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-        
-        .card-img-top {
-            height: 180px;
-            object-fit: cover;
-        }
-        
-        .card-body {
-            padding: 1.5rem;
-        }
-        
-        .card-title {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: #212529;
-        }
-        
-        .card-text {
-            color: #6c757d;
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
-        }
-        
-        .meta {
-            font-size: 0.8rem;
-            color: #adb5bd;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        
-        .meta i {
-            margin-right: 0.3rem;
-        }
-        
-        .btn-more {
-            display: block;
-            width: 200px;
-            margin: 2rem auto 0;
-            text-align: center;
-            border: 1px solid #dee2e6;
-            background: white;
-            color: #495057;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-more:hover {
-            background: #f8f9fa;
-            border-color: #ced4da;
-        }
-        
-        @media (max-width: 768px) {
-            .profile-header {
-                flex-direction: column;
-                align-items: center;
-                text-align: center;
-            }
-            
-            .profile-email {
-                justify-content: center;
-            }
-            
-            .profile-buttons {
-                display: flex;
-                justify-content: center;
-            }
-        }
-    </style>
-</head>
+
+<head th:replace="~{fragments/header :: head}"></head>
+
 <body>
-    <!-- Header -->
-    <div th:replace="~{fragments/header :: header}"></div>
 
-    <!-- Main Content -->
-    <main class="container py-5">
-        <!-- Profile Section -->
-        <section class="profile-section">
-            <div class="profile-header">
-                <img th:src="${session.userProfileImage != null} ? ${session.userProfileImage} : '/image/default image.svg'" 
-                     class="profile-image" 
-                     alt="프로필 이미지"
-                     onerror="this.onerror=null; this.src='/image/default image.svg'">
-                <div class="profile-info">
-                    <h1 class="profile-name" th:text="${user.nickname != null} ? ${user.nickname} : '사용자'">사용자 닉네임</h1>
-                    <div class="profile-email">
-                        <i class="fas fa-envelope"></i>
-                        <span th:text="${user.email}">user@example.com</span>
-                        <span class="badge bg-secondary ms-2">공개</span>
+<div id="toast-container" class="toast-container"></div>
+
+<!-- Header -->
+<div th:replace="~{fragments/header :: header}"></div>
+
+<!-- Navigation Menu -->
+<div th:replace="~{fragments/menu :: menu}"></div>
+
+<!-- Main Content -->
+<main class="container py-5">
+    <h1 class="mb-4" data-translatable>마이페이지</h1>
+
+    <!-- Message Display -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!-- User Info -->
+    <section class="mb-5" sec:authorize="isAuthenticated()">
+        <h2 class="h3 mb-3" data-translatable>회원 정보</h2>
+        <div class="card">
+            <div class="card-body">
+                <p class="card-text">
+                    <strong data-translatable>닉네임:</strong>
+                    <span sec:authentication="principal.nickname"></span>
+                </p>
+                <p class="card-text">
+                    <strong data-translatable>이메일:</strong>
+                    <span sec:authentication="principal.username"></span>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- My Trip Plans -->
+    <section>
+        <h2 class="h3 mb-3" data-translatable>나의 여행 계획</h2>
+        <div th:if="${tripsPage.empty}" class="alert alert-info" role="alert" data-translatable>
+            저장된 여행 계획이 없습니다.
+        </div>
+
+        <div class="list-group" th:unless="${tripsPage.empty}">
+            <div th:each="trip : ${tripsPage.content}" class="list-group-item d-flex justify-content-between align-items-center">
+                <a th:href="@{/trips/{id}(id=${trip.id})}" class="text-decoration-none text-reset flex-grow-1 me-3">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1" th:text="${trip.title}" data-translatable>여행 계획 이름</h5>
+                        <small th:if="${trip.startDate != null}" 
+                               th:text="${#temporals.format(trip.startDate, 'yyyy.MM.dd')} + ' ~ ' + ${#temporals.format(trip.endDate, 'yyyy.MM.dd')}">여행 기간</small>
                     </div>
-                    <p class="profile-bio" th:if="${user.bio}" th:text="${user.bio}">
-                        여행을 사랑하는 여행자입니다. 새로운 경험과 추억을 만드는 것을 좋아합니다.
+                    <p class="mb-1">
+                        <strong data-translatable>숙소:</strong>
+                        <span th:if="${trip.accommodation != null}" th:text="${trip.accommodation.name}" data-translatable>숙소 이름</span>
+                        <span th:unless="${trip.accommodation != null}" class="text-muted" data-translatable>정보 없음</span>
                     </p>
-                    <div class="tags mb-3">
-                        <span class="tag">#여행</span>
-                        <span class="tag">#맛집탐방</span>
-                        <span class="tag">#자연경관</span>
-                        <span class="tag">#역사여행</span>
+                    <div class="d-flex w-100 justify-content-between">
+                        <small class="text-muted" data-translatable>여기를 클릭하여 상세 내용을 확인하세요.</small>
+                        <small class="text-muted" th:if="${trip.createdAt != null}">
+                            <span data-translatable>생성일:</span> [[${#temporals.format(trip.createdAt, 'yyyy.MM.dd')}]]
+                        </small>
                     </div>
-                    <a href="/mypage/edit" class="btn btn-outline-primary">
-                        <i class="fas fa-user-edit me-1"></i> 프로필 수정
-                    </a>
+                </a>
+                
+                <div class="d-flex align-items-center">
+                    <form th:action="@{/trips/{id}/toggle-visibility(id=${trip.id})}" method="post" class="me-2 visibility-toggle">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch"
+                                   th:id="'visibilitySwitch-' + ${trip.id}" 
+                                   th:checked="${'PUBLIC'.equals(trip.visibility)}"
+                                   onchange="this.form.submit()">
+                            <label class="form-check-label" th:for="'visibilitySwitch-' + ${trip.id}" 
+                                   th:text="${'PUBLIC'.equals(trip.visibility) ? '공개' : '비공개'}" data-translatable></label>
+                        </div>
+                    </form>
+                    <form th:action="@{/trips/{id}/delete(id=${trip.id})}" method="post" onsubmit="return confirm('정말로 이 여행 계획을 삭제하시겠습니까?');">
+                        <button type="submit" class="btn btn-outline-danger btn-sm" data-translatable>삭제</button>
+                    </form>
                 </div>
             </div>
-        </section>
+        </div>
 
-        <!-- My Storybooks Section -->
-        <section class="mb-5">
-            <div class="section-title d-flex justify-content-between align-items-center">
-                <h2>내 스토리북</h2>
-                <div>
-                    <a href="/editor" class="btn btn-outline-secondary btn-sm me-2">
-                        <i class="fas fa-plus me-1"></i> 새 스토리 작성
-                    </a>
-                    <a href="#" class="btn btn-outline-secondary btn-sm">
-                        임시저장본
-                    </a>
-                </div>
-            </div>
-            
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                <!-- Storybook Card 1 -->
-                <div class="col" th:each="story : ${stories}">
-                    <div class="card h-100">
-                        <img src="https://via.placeholder.com/300x180" class="card-img-top" alt="스토리 썸네일">
-                        <div class="card-body">
-                            <h5 class="card-title" th:text="${story.title}">서울 여행기</h5>
-                            <p class="card-text" th:text="${story.subtitle}">서울의 숨은 명소들을 찾아서 떠난 여행기</p>
-                            <div class="meta">
-                                <span><i class="far fa-heart"></i> 128</span>
-                                <span><i class="far fa-comment"></i> 24</span>
-                                <span><i class="far fa-calendar"></i> 2023.11.15</span>
-                            </div>
-                        </div>
-                        <div class="card-footer bg-white border-top-0">
-                            <a href="#" class="btn btn-sm btn-outline-primary w-100">보러가기</a>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Storybook Card 2 -->
-                <div class="col">
-                    <div class="card h-100">
-                        <img src="https://via.placeholder.com/300x180/4CAF50/FFFFFF" class="card-img-top" alt="스토리 썸네일">
-                        <div class="card-body">
-                            <h5 class="card-title">제주도 한 달 살기</h5>
-                            <p class="card-text">제주에서의 한 달 간의 여유로운 생활기</p>
-                            <div class="meta">
-                                <span><i class="far fa-heart"></i> 98</span>
-                                <span><i class="far fa-comment"></i> 15</span>
-                                <span><i class="far fa-calendar"></i> 2023.10.05</span>
-                            </div>
-                        </div>
-                        <div class="card-footer bg-white border-top-0">
-                            <a href="#" class="btn btn-sm btn-outline-primary w-100">보러가기</a>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Storybook Card 3 -->
-                <div class="col">
-                    <div class="card h-100">
-                        <img src="https://via.placeholder.com/300x180/2196F3/FFFFFF" class="card-img-top" alt="스토리 썸네일">
-                        <div class="card-body">
-                            <h5 class="card-title">부산 맛집 투어</h5>
-                            <p class="card-text">부산에서 만난 진정한 맛집들</p>
-                            <div class="meta">
-                                <span><i class="far fa-heart"></i> 156</span>
-                                <span><i class="far fa-comment"></i> 32</span>
-                                <span><i class="far fa-calendar"></i> 2023.09.22</span>
-                            </div>
-                        </div>
-                        <div class="card-footer bg-white border-top-0">
-                            <a href="#" class="btn btn-sm btn-outline-primary w-100">보러가기</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <button class="btn btn-more mt-4">더 보기</button>
-        </section>
+        <!-- Trip Pagination -->
+        <nav th:if="${tripsPage.totalPages > 1}" class="mt-4 d-flex justify-content-center">
+            <ul class="pagination">
+                <li class="page-item" th:classappend="${tripsPage.first} ? 'disabled'">
+                    <a class="page-link" th:href="@{/mypage(tripPage=0, favPage=${favoritePlacesPage.number})}" data-translatable>처음</a>
+                </li>
+                <li class="page-item" th:classappend="${tripsPage.first} ? 'disabled'">
+                    <a class="page-link" th:href="@{/mypage(tripPage=${tripsPage.number - 1}, favPage=${favoritePlacesPage.number})}" data-translatable>이전</a>
+                </li>
+                <li class="page-item" th:each="pageNumber : ${#numbers.sequence(startTripPage, endTripPage)}" th:classappend="${pageNumber == tripsPage.number} ? 'active'">
+                    <a class="page-link" th:href="@{/mypage(tripPage=${pageNumber}, favPage=${favoritePlacesPage.number})}" th:text="${pageNumber + 1}"></a>
+                </li>
+                <li class="page-item" th:classappend="${tripsPage.last} ? 'disabled'">
+                    <a class="page-link" th:href="@{/mypage(tripPage=${tripsPage.number + 1}, favPage=${favoritePlacesPage.number})}" data-translatable>다음</a>
+                </li>
+                <li class="page-item" th:classappend="${tripsPage.last} ? 'disabled'">
+                    <a class="page-link" th:href="@{/mypage(tripPage=${tripsPage.totalPages - 1}, favPage=${favoritePlacesPage.number})}" data-translatable>마지막</a>
+                </li>
+            </ul>
+        </nav>
+    </section>
 
-        <!-- Saved Destinations Section -->
-        <section class="mb-5">
-            <div class="section-title">
-                <h2>저장한 여행지</h2>
+    <!-- Favorite Places -->
+    <section class="mt-5">
+        <h2 class="h3 mb-3" data-translatable>즐겨찾기한 장소</h2>
+        <div id="favorite-places-container">
+            <div th:if="${favoritePlacesPage.empty}" class="alert alert-info" role="alert" data-translatable>
+                즐겨찾기한 장소가 없습니다.
             </div>
-            
-            <div class="row row-cols-2 row-cols-md-4 g-4">
-                <!-- Destination Card 1 -->
-                <div class="col">
-                    <div class="card h-100">
-                        <img src="https://via.placeholder.com/200x150" class="card-img-top" alt="여행지 이미지">
-                        <div class="card-body text-center">
-                            <h5 class="card-title mb-1">경복궁</h5>
-                            <p class="card-text text-muted">서울특별시 종로구</p>
-                            <span class="badge bg-light text-dark">#역사</span>
-                            <span class="badge bg-light text-dark">#가족여행</span>
-                        </div>
+            <div class="list-group" th:unless="${favoritePlacesPage.empty}">
+                <div th:each="fav : ${favoritePlacesPage.content}" class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1" th:text="${fav.place.name}" data-translatable>장소 이름</h5>
+                        <p class="mb-1 text-muted" th:text="${fav.place.address}" data-translatable>장소 주소</p>
                     </div>
-                </div>
-                
-                <!-- Destination Card 2 -->
-                <div class="col">
-                    <div class="card h-100">
-                        <img src="https://via.placeholder.com/200x150/4CAF50/FFFFFF" class="card-img-top" alt="여행지 이미지">
-                        <div class="card-body text-center">
-                            <h5 class="card-title mb-1">남산타워</h5>
-                            <p class="card-text text-muted">서울특별시 용산구</p>
-                            <span class="badge bg-light text-dark">#야경</span>
-                            <span class="badge bg-light text-dark">#데이트</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Destination Card 3 -->
-                <div class="col">
-                    <div class="card h-100">
-                        <img src="https://via.placeholder.com/200x150/2196F3/FFFFFF" class="card-img-top" alt="여행지 이미지">
-                        <div class="card-body text-center">
-                            <h5 class="card-title mb-1">광안리 해수욕장</h5>
-                            <p class="card-text text-muted">부산광역시 수영구</p>
-                            <span class="badge bg-light text-dark">#바다</span>
-                            <span class="badge bg-light text-dark">#여름</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Destination Card 4 -->
-                <div class="col">
-                    <div class="card h-100">
-                        <img src="https://via.placeholder.com/200x150/FF9800/FFFFFF" class="card-img-top" alt="여행지 이미지">
-                        <div class="card-body text-center">
-                            <h5 class="card-title mb-1">한옥마을</h5>
-                            <p class="card-text text-muted">전라북도 전주시</p>
-                            <span class="badge bg-light text-dark">#전통</span>
-                            <span class="badge bg-light text-dark">#한복</span>
-                        </div>
-                    </div>
+                    <button class="btn btn-outline-danger btn-sm unfavorite-btn" th:data-place-id="${fav.place.id}" data-translatable>삭제</button>
                 </div>
             </div>
-            
-            <button class="btn btn-more mt-4">더 보기</button>
-        </section>
-    </main>
+        </div>
 
-    <!-- Footer -->
-    <footer th:replace="~{fragments/footer :: footer}"></footer>
+        <!-- Favorite Places Pagination -->
+        <nav th:if="${favoritePlacesPage.totalPages > 1}" class="mt-4 d-flex justify-content-center">
+            <ul class="pagination">
+                <li class="page-item" th:classappend="${favoritePlacesPage.first} ? 'disabled'">
+                    <a class="page-link" th:href="@{/mypage(favPage=0, tripPage=${tripsPage.number})}" data-translatable>처음</a>
+                </li>
+                <li class="page-item" th:classappend="${favoritePlacesPage.first} ? 'disabled'">
+                    <a class="page-link" th:href="@{/mypage(favPage=${favoritePlacesPage.number - 1}, tripPage=${tripsPage.number})}" data-translatable>이전</a>
+                </li>
+                <li class="page-item" th:each="pageNumber : ${#numbers.sequence(startFavPage, endFavPage)}" th:classappend="${pageNumber == favoritePlacesPage.number} ? 'active'">
+                    <a class="page-link" th:href="@{/mypage(favPage=${pageNumber}, tripPage=${tripsPage.number})}" th:text="${pageNumber + 1}"></a>
+                </li>
+                <li class="page-item" th:classappend="${favoritePlacesPage.last} ? 'disabled'">
+                    <a class="page-link" th:href="@{/mypage(favPage=${favoritePlacesPage.number + 1}, tripPage=${tripsPage.number})}" data-translatable>다음</a>
+                </li>
+                <li class="page-item" th:classappend="${favoritePlacesPage.last} ? 'disabled'">
+                    <a class="page-link" th:href="@{/mypage(favPage=${favoritePlacesPage.totalPages - 1}, tripPage=${tripsPage.number})}" data-translatable>마지막</a>
+                </li>
+            </ul>
+        </nav>
+    </section>
+</main>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://kit.fontawesome.com/your-code.js" crossorigin="anonymous"></script>
+<!-- Footer -->
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    function showToast(message) {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+        const toast = document.createElement('div');
+        toast.className = 'toast-message';
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 100);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                if (container.contains(toast)) {
+                    container.removeChild(toast);
+                }
+            }, 500);
+        }, 3000);
+    }
+
+    const favoritePlacesContainer = document.getElementById('favorite-places-container');
+
+    if (favoritePlacesContainer) {
+        favoritePlacesContainer.addEventListener('click', function(event) {
+            if (event.target.classList.contains('unfavorite-btn')) {
+                const button = event.target;
+                const placeId = button.dataset.placeId;
+
+                if (confirm('이 장소를 즐겨찾기에서 삭제하시겠습니까?')) {
+                    fetch('/api/favorites', {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ placeId: placeId })
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            // Instead of removing the item, just reload the page to reflect pagination.
+                            showToast('즐겨찾기에서 삭제되었습니다.');
+                            window.location.reload();
+                        } else {
+                            response.json().then(err => {
+                                showToast('오류: ' + (err.message || '삭제에 실패했습니다.'));
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showToast('네트워크 오류가 발생했습니다.');
+                    });
+                }
+            }
+        });
+    }
+});
+</script>
+
 </body>
 </html>

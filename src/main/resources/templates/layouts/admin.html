@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html th:fragment="layout (title, content)" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <!-- header.html에서 head 태그의 내용물만 가져와 여기에 삽입합니다. -->
+    <th:block th:replace="~{fragments/header :: head-contents}"></th:block>
+    <!-- 각 페이지의 개별 타이틀을 여기에 삽입합니다. -->
+    <title th:text="${title}">Admin</title>
+</head>
+<body>
+<!-- 상단 헤더 프래그먼트 삽입 -->
+<div th:replace="~{fragments/header :: header}"></div>
+<!-- 메뉴 프래그먼트 삽입 -->
+<div th:replace="~{fragments/menu :: menu}"></div>
+
+<!-- 각 페이지의 실제 컨텐츠를 여기에 삽입 -->
+<div class="container mt-5">
+    <th:block th:replace="${content}"></th:block>
+</div>
+
+<!-- 푸터 프래그먼트 삽입 -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

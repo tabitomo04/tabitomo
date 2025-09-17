@@ -1,140 +1,141 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>여행지 선택 2단계 - 여행 스타일</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/css/tripselect.css">
-</head>
-<body>
-    <div class="container mt-5">
-        <div class="progress mb-4">
-            <div class="progress-bar" role="progressbar" style="width: 50%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">50%</div>
-        </div>
-        
-        <h2 class="mb-4">어떤 여행을 원하시나요?</h2>
-        
-        <form id="tripStyleForm" action="/trip/step3" method="post" th:object="${tripStyleForm}">
-            <input type="hidden" name="destination" th:value="${tripForm.destination}">
-            <input type="hidden" name="startDate" th:value="${tripForm.startDate}">
-            <input type="hidden" name="endDate" th:value="${tripForm.endDate}">
-            
-            <div class="mb-4">
-                <label class="form-label">여행 스타일 (중복 선택 가능)</label>
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <div class="card h-100">
-                            <div class="card-body text-center">
-                                <input type="checkbox" class="btn-check" id="style1" name="styles" value="nature" autocomplete="off">
-                                <label class="btn btn-outline-primary w-100 h-100" for="style1">
-                                    <i class="fas fa-tree fa-2x mb-2"></i><br>
-                                    자연/힐링
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="card h-100">
-                            <div class="card-body text-center">
-                                <input type="checkbox" class="btn-check" id="style2" name="styles" value="food" autocomplete="off">
-                                <label class="btn btn-outline-primary w-100 h-100" for="style2">
-                                    <i class="fas fa-utensils fa-2x mb-2"></i><br>
-                                    맛집 탐방
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="card h-100">
-                            <div class="card-body text-center">
-                                <input type="checkbox" class="btn-check" id="style3" name="styles" value="shopping" autocomplete="off">
-                                <label class="btn btn-outline-primary w-100 h-100" for="style3">
-                                    <i class="fas fa-shopping-bag fa-2x mb-2"></i><br>
-                                    쇼핑
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="card h-100">
-                            <div class="card-body text-center">
-                                <input type="checkbox" class="btn-check" id="style4" name="styles" value="history" autocomplete="off">
-                                <label class="btn btn-outline-primary w-100 h-100" for="style4">
-                                    <i class="fas fa-landmark fa-2x mb-2"></i><br>
-                                    역사/문화
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="card h-100">
-                            <div class="card-body text-center">
-                                <input type="checkbox" class="btn-check" id="style5" name="styles" value="activity" autocomplete="off">
-                                <label class="btn btn-outline-primary w-100 h-100" for="style5">
-                                    <i class="fas fa-hiking fa-2x mb-2"></i><br>
-                                    액티비티
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="card h-100">
-                            <div class="card-body text-center">
-                                <input type="checkbox" class="btn-check" id="style6" name="styles" value="photo" autocomplete="off">
-                                <label class="btn btn-outline-primary w-100 h-100" for="style6">
-                                    <i class="fas fa-camera fa-2x mb-2"></i><br>
-                                    사진 명소
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="mb-3">
-                <label for="budget" class="form-label">예산 (1인 기준, 원)</label>
-                <select class="form-select" id="budget" name="budget" required>
-                    <option value="">예산대를 선택해주세요</option>
-                    <option value="10">10만원 미만</option>
-                    <option value="30">10만원 ~ 30만원</option>
-                    <option value="50">30만원 ~ 50만원</option>
-                    <option value="100">50만원 ~ 100만원</option>
-                    <option value="999">100만원 이상</option>
-                </select>
-            </div>
-            
-            <div class="d-flex justify-content-between mt-4">
-                <a href="/trip/step1" class="btn btn-secondary">이전</a>
-                <button type="submit" class="btn btn-primary" id="submitBtn">AI 추천 받기</button>
-            </div>
-            <!-- 로딩 스피너 추가 -->
-            <div id="loadingSpinner" class="text-center mt-3" style="display:none;">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <p class="mt-2">AI가 여행 계획을 생성 중입니다. 잠시만 기다려 주세요...</p>
-            </div>
-        </form>
-    </div>
-    
-    <script src="https://kit.fontawesome.com/your-code.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.getElementById('tripStyleForm').addEventListener('submit', function(e) {
-            const checkedBoxes = document.querySelectorAll('input[name="styles"]:checked');
-            const submitBtn = document.getElementById('submitBtn');
-            const loadingSpinner = document.getElementById('loadingSpinner');
 
-            if (checkedBoxes.length === 0) {
-                e.preventDefault();
-                alert('하나 이상의 여행 스타일을 선택해주세요.');
-            } else {
-                // 폼 제출 시 로딩 스피너 표시 및 버튼 비활성화
-                submitBtn.disabled = true;
-                loadingSpinner.style.display = 'block';
-            }
-        });
-    </script>
+<head th:replace="~{fragments/header :: head}"></head>
+
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+<div th:replace="~{fragments/menu :: menu}"></div>
+
+<div class="container mt-5">
+    <div class="progress mb-4">
+        <div class="progress-bar" role="progressbar" style="width: 50%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">50%</div>
+    </div>
+
+    <h2 class="mb-4" data-translatable>어떤 여행을 원하시나요?</h2>
+
+    <form id="tripStyleForm" action="/trip/step3" method="post" th:object="${tripStyleForm}">
+        <input type="hidden" name="destination" th:value="${tripPlan.destination}">
+        <input type="hidden" name="startDate" th:value="${tripPlan.startDate}">
+        <input type="hidden" name="endDate" th:value="${tripPlan.endDate}">
+
+        <div class="mb-4">
+            <label class="form-label" data-translatable>여행 스타일 (중복 선택 가능)</label>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <input type="checkbox" class="btn-check" id="style1" name="styles" value="nature" autocomplete="off">
+                            <label class="btn btn-outline-primary w-100 h-100" for="style1">
+                                <i class="fas fa-tree fa-2x mb-2"></i><br>
+                                <span data-translatable>자연/힐링</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <input type="checkbox" class="btn-check" id="style2" name="styles" value="food" autocomplete="off">
+                            <label class="btn btn-outline-primary w-100 h-100" for="style2">
+                                <i class="fas fa-utensils fa-2x mb-2"></i><br>
+                                <span data-translatable>맛집 탐방</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <input type="checkbox" class="btn-check" id="style3" name="styles" value="shopping" autocomplete="off">
+                            <label class="btn btn-outline-primary w-100 h-100" for="style3">
+                                <i class="fas fa-shopping-bag fa-2x mb-2"></i><br>
+                                <span data-translatable>쇼핑</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <input type="checkbox" class="btn-check" id="style4" name="styles" value="history" autocomplete="off">
+                            <label class="btn btn-outline-primary w-100 h-100" for="style4">
+                                <i class="fas fa-landmark fa-2x mb-2"></i><br>
+                                <span data-translatable>역사/문화</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <input type="checkbox" class="btn-check" id="style5" name="styles" value="activity" autocomplete="off">
+                            <label class="btn btn-outline-primary w-100 h-100" for="style5">
+                                <i class="fas fa-hiking fa-2x mb-2"></i><br>
+                                <span data-translatable>액티비티</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <input type="checkbox" class="btn-check" id="style6" name="styles" value="photo" autocomplete="off">
+                            <label class="btn btn-outline-primary w-100 h-100" for="style6">
+                                <i class="fas fa-camera fa-2x mb-2"></i><br>
+                                <span data-translatable>사진 명소</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="budget" class="form-label" data-translatable>예산 (1인 기준, 원)</label>
+            <select class="form-select" id="budget" name="budget" required>
+                <option value="" data-translatable>예산대를 선택해주세요</option>
+                <option value="10" data-translatable>10만원 미만</option>
+                <option value="30" data-translatable>10만원 ~ 30만원</option>
+                <option value="50" data-translatable>30만원 ~ 50만원</option>
+                <option value="100" data-translatable>50만원 ~ 100만원</option>
+                <option value="999" data-translatable>100만원 이상</option>
+            </select>
+        </div>
+
+        <div class="d-flex justify-content-between mt-4">
+            <a th:href="@{/tripselect/step1}" class="btn btn-secondary" data-translatable>이전</a>
+            <button type="submit" class="btn btn-primary" id="submitBtn" data-translatable>AI 추천 받기</button>
+        </div>
+        <!-- 로딩 스피너 추가 -->
+        <div id="loadingSpinner" class="text-center mt-3" style="display:none;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2" data-translatable>AI가 여행 계획을 생성 중입니다. 잠시만 기다려 주세요...</p>
+        </div>
+    </form>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script>
+    document.getElementById('tripStyleForm').addEventListener('submit', function(e) {
+        const checkedBoxes = document.querySelectorAll('input[name="styles"]:checked');
+        const submitBtn = document.getElementById('submitBtn');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+
+        if (checkedBoxes.length === 0) {
+            e.preventDefault();
+            alert('하나 이상의 여행 스타일을 선택해주세요.');
+        } else {
+            // 폼 제출 시 로딩 스피너 표시 및 버튼 비활성화
+            submitBtn.disabled = true;
+            loadingSpinner.style.display = 'block';
+        }
+    });
+</script>
+
 </body>
 </html>

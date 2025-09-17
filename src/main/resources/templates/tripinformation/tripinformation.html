@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/header :: head}"></head>
+
+<body>
+
+<style>
+    /* Toast notification styles */
+    .toast-notification {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #333;
+        color: #fff;
+        padding: 15px 20px;
+        border-radius: 5px;
+        z-index: 10000;
+        display: none; /* Initially hidden */
+        opacity: 0;
+        transition: opacity 0.3s, bottom 0.3s;
+    }
+
+    .toast-notification.show {
+        display: block;
+        opacity: 1;
+        bottom: 30px;
+    }
+</style>
+
+<div th:replace="~{fragments/header :: header}"></div>
+<div th:replace="~{fragments/menu :: menu}"></div>
+
+<div class="container">
+    <h1 class="my-4" data-translatable>국내 여행 정보</h1>
+
+    <!-- Filters -->
+    <div class="filters-container card card-body mb-4">
+        <form th:action="@{/tripinformation/places}" method="get" class="filters-form" style="display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end;">
+            <div class="filter-group" style="display: flex; flex-direction: column;">
+                <label for="region-select" class="form-label" data-translatable>지역</label>
+                <select id="region-select" name="region" class="form-select">
+                    <option value="all" data-translatable>전체</option>
+                    <option th:each="r : ${regions}" th:value="${r}" th:text="${r}" th:selected="${r == selectedRegion}"></option>
+                </select>
+            </div>
+            <div class="filter-group" style="display: flex; flex-direction: column;">
+                <label for="category-select" class="form-label" data-translatable>카테고리</label>
+                <select id="category-select" name="categoryCode" class="form-select">
+                    <option value="all" data-translatable>전체</option>
+                    <option th:each="cat : ${categories}" th:value="${cat}" th:text="${cat}" th:selected="${cat == selectedCategoryCode}"></option>
+                </select>
+            </div>
+            <div class="filter-group" style="display: flex; flex-direction: column;">
+                <label for="keyword-input" class="form-label" data-translatable>검색어</label>
+                <input id="keyword-input" type="text" name="keyword" class="form-control" placeholder="장소, 주소, 설명 등" th:value="${keyword}" data-translatable-placeholder>
+            </div>
+            <button type="submit" class="btn btn-primary" data-translatable>검색</button>
+        </form>
+    </div>
+
+    <!-- Place List -->
+    <div class="row">
+        <div class="col-md-12">
+            <ul class="list-group">
+                <li class="list-group-item place-item" th:each="place : ${placesPage.content}">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h3 th:text="${place.name}" data-translatable>장소 이름</h3>
+                            <p><strong data-translatable>주소:</strong> <span th:text="${place.address}" data-translatable>주소</span></p>
+                            <p><strong data-translatable>카테고리:</strong> <span th:text="${place.categoryCode}" data-translatable>카테고리</span></p>
+                            <p th:text="${place.description}" data-translatable>설명</p>
+                        </div>
+                        <span sec:authorize="isAuthenticated()">
+                            <i class="far fa-star favorite-btn" th:data-place-id="${place.id}" style="cursor: pointer; color: #FFD700; font-size: 1.5rem;"></i>
+                        </span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <nav th:if="${placesPage.totalPages > 1}" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${placesPage.first} ? 'disabled'">
+                <a class="page-link" th:href="@{/tripinformation/places(page=0, region=${selectedRegion}, categoryCode=${selectedCategoryCode}, keyword=${keyword})}" data-translatable>처음</a>
+            </li>
+            <li class="page-item" th:classappend="${placesPage.first} ? 'disabled'">
+                <a class="page-link" th:href="@{/tripinformation/places(page=${placesPage.number - 1}, region=${selectedRegion}, categoryCode=${selectedCategoryCode}, keyword=${keyword})}" data-translatable>이전</a>
+            </li>
+
+            <li class="page-item" th:each="pageNumber : ${#numbers.sequence(startPage, endPage)}"
+                th:classappend="${pageNumber == placesPage.number} ? 'active'">
+                <a class="page-link" th:href="@{/tripinformation/places(page=${pageNumber}, region=${selectedRegion}, categoryCode=${selectedCategoryCode}, keyword=${keyword})}" th:text="${pageNumber + 1}"></a>
+            </li>
+
+            <li class="page-item" th:classappend="${placesPage.last} ? 'disabled'">
+                <a class="page-link" th:href="@{/tripinformation/places(page=${placesPage.number + 1}, region=${selectedRegion}, categoryCode=${selectedCategoryCode}, keyword=${keyword})}" data-translatable>다음</a>
+            </li>
+            <li class="page-item" th:classappend="${placesPage.last} ? 'disabled'">
+                <a class="page-link" th:href="@{/tripinformation/places(page=${placesPage.totalPages - 1}, region=${selectedRegion}, categoryCode=${selectedCategoryCode}, keyword=${keyword})}" data-translatable>마지막</a>
+            </li>
+        </ul>
+    </nav>
+
+</div>
+
+<!-- Toast Notification -->
+<div class="toast-notification" id="toastNotification">
+    <span></span>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Special handling for placeholder translation
+    const translatablePlaceholders = document.querySelectorAll('[data-translatable-placeholder]');
+    translatablePlaceholders.forEach(el => {
+        el.dataset.originalText = el.placeholder;
+    });
+
+    function showToast(messageKey, defaultText) {
+        const toastNotification = document.getElementById('toastNotification');
+        if (!toastNotification) return;
+
+        const toastSpan = toastNotification.querySelector('span');
+        toastSpan.setAttribute('data-translatable', messageKey);
+        toastSpan.textContent = defaultText;
+
+        if(window.translationManager) {
+            window.translationManager.applyCurrentLanguage(toastNotification);
+        }
+
+        toastNotification.classList.add('show');
+
+        setTimeout(() => {
+            toastNotification.classList.remove('show');
+        }, 3000);
+    }
+
+    const favoriteButtons = document.querySelectorAll('.favorite-btn');
+
+    favoriteButtons.forEach(btn => {
+        const placeId = btn.dataset.placeId;
+        fetch(`/api/favorites/status?placeId=${placeId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.isFavorite) {
+                    btn.classList.remove('far');
+                    btn.classList.add('fas');
+                }
+            })
+            .catch(() => {});
+    });
+
+    favoriteButtons.forEach(btn => {
+        btn.addEventListener('click', function () {
+            const placeId = this.dataset.placeId;
+            const isFavorite = this.classList.contains('fas');
+
+            fetch('/api/favorites', {
+                method: isFavorite ? 'DELETE' : 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ placeId: placeId })
+            })
+            .then(response => {
+                if (response.ok) {
+                    this.classList.toggle('far');
+                    this.classList.toggle('fas');
+                    if (isFavorite) {
+                        showToast('favorite.removed', '즐겨찾기에서 삭제되었습니다.');
+                    } else {
+                        showToast('favorite.added', '즐겨찾기에 추가되었습니다.');
+                    }
+                } else {
+                    response.json().then(err => {
+                        showToast('favorite.error', '즐겨찾기 작업 중 오류가 발생했습니다.');
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('favorite.network.error', '네트워크 오류가 발생했습니다.');
+            });
+        });
+    });
+});
+</script>
+
+</body>
+</html>

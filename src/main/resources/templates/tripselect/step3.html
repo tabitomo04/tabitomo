@@ -1,636 +1,215 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>AI 여행 추천 결과</title>
-        <link
-            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-            rel="stylesheet"
-        />
-        <link
-            rel="stylesheet"
-            href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        />
-        <link
-            rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-        />
-        <link rel="stylesheet" href="/css/tripselect.css" />
-        <link rel="stylesheet" href="/css/map-styles.css" />
-        <style>
-            #map {
-                height: 400px;
-                margin-bottom: 1rem;
-                border-radius: 0.5rem;
-            }
-            .itinerary-card {
-                margin-bottom: 1rem;
-                transition: transform 0.2s;
-            }
-            .itinerary-card:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            }
-            .day-nav {
-                position: sticky;
-                top: 0;
-                background: white;
-                z-index: 1000;
-                padding: 1rem 0;
-                margin-bottom: 1rem;
-                border-bottom: 1px solid #eee;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container mt-4">
-            <!-- 디버그/에러 메시지 영역 -->
-            <div id="debugArea" class="alert alert-warning d-none" role="alert" style="white-space:pre-wrap;"></div>
-            <div class="progress mb-4">
-                <div
-                    class="progress-bar"
-                    role="progressbar"
-                    style="width: 75%"
-                    aria-valuenow="75"
-                    aria-valuemin="0"
-                    aria-valuemax="100"
-                >
-                    75%
-                </div>
-            </div>
 
-            <h2 class="mb-4">AI 여행 추천 결과</h2>
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle me-2"></i>
-                <span
-                    th:text="'\'' + ${tripPlan.destination} + '\'에서의 \'' + ${tripPlan.styles} + '\' 여행을 위한 맞춤 추천입니다.'"
-                ></span>
-            </div>
+<head>
+    <head th:replace="~{fragments/header :: head}"></head>
+    <title data-translatable>AI 여행 추천 결과</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <link rel="stylesheet" th:href="@{/css/map-styles.css}" />
+    <style>
+        #map {
+            height: 400px;
+            margin-bottom: 1rem;
+            border-radius: 0.5rem;
+        }
+        .itinerary-card {
+            margin-bottom: 1rem;
+            transition: transform 0.2s;
+        }
+        .itinerary-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .day-nav {
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 1000;
+            padding: 1rem 0;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+    </style>
+</head>
 
-            <!-- Map Section -->
-            <div class="card mb-4">
-                <div
-                    class="card-header d-flex justify-content-between align-items-center"
-                >
-                    <h5 class="mb-0">추천 여행지 지도</h5>
-                    <div class="btn-group" role="group">
-                        <button
-                            type="button"
-                            class="btn btn-sm btn-outline-primary"
-                            id="toggleRoute"
-                        >
-                            경로 표시
-                        </button>
-                        <button
-                            type="button"
-                            class="btn btn-sm btn-outline-secondary"
-                            id="fitBounds"
-                        >
-                            전체 보기
-                        </button>
-                    </div>
-                </div>
-                <div class="card-body p-0">
-                    <div id="map" class="map-container"></div>
-                </div>
-            </div>
+<body>
 
-            <!-- Itinerary Navigation -->
-            <div class="day-nav">
-                <ul class="nav nav-pills" id="dayTabs" role="tablist">
-                    <!-- JS로 동적 생성 -->
-                </ul>
-            </div>
+<div th:replace="~{fragments/header :: header}"></div>
+<div th:replace="~{fragments/menu :: menu}"></div>
 
-            <!-- Itinerary Content (반복문 제거 후 교체) -->
-            <div class="tab-content" id="dayTabsContent">
-                <div id="dynamicItineraryArea"></div>
-            </div>
+<div class="container mt-4">
+    <div class="progress mb-4">
+        <div class="progress-bar" role="progressbar" style="width: 75%">75%</div>
+    </div>
 
-            <div class="d-flex justify-content-between mt-4">
-                <a href="/trip/step1" class="btn btn-secondary">다시 추천받기</a>
-                <form
-                    method="post"
-                    action="/trip/step4"
-                    style="display: inline; margin: 0"
-                >
-                    <input
-                        type="hidden"
-                        name="tripPlanJson"
-                        th:value="${tripPlanJson}"
-                    />
-                    <button type="submit" class="btn btn-primary">
-                        계획 확정하기
-                    </button>
-                </form>
-            </div>
+    <h2 class="mb-4" data-translatable>AI 여행 추천 결과</h2>
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>
+        <span th:if="${tripPlan != null}">
+            <span th:text="|${tripPlan.destination}|" data-translatable></span><span data-translatable>에서의</span> <span th:text="|${tripPlan.styles}|" data-translatable></span><span data-translatable> 여행을 위한 맞춤 추천입니다.</span>
+        </span>
+        <span th:unless="${tripPlan != null}" data-translatable>여행 정보를 불러오는 중입니다...</span>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0" data-translatable>추천 여행지 지도</h5>
         </div>
+        <div class="card-body p-0">
+            <div id="map" class="map-container"></div>
+        </div>
+    </div>
 
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-        <script src="/js/map-utils.js"></script>
-        <script th:inline="javascript">
-            // AI 추천 결과의 place_name을 place로 변환
-            function normalizeTripPlanJson(json) {
-                if (!json) return json;
-                // 일정 변환
-                if (Array.isArray(json.dailySchedules)) {
-                    json.dailySchedules.forEach(daily => {
-                        if (Array.isArray(daily.schedules)) {
-                            daily.schedules.forEach(item => {
-                                if (item.place_name) {
-                                    item.place = item.place_name;
-                                    delete item.place_name;
-                                }
-                            });
-                        }
-                    });
-                }
-                // 숙소 변환
-                if (Array.isArray(json.accommodations)) {
-                    json.accommodations.forEach(acc => {
-                        if (acc.place_name) {
-                            acc.place = acc.place_name;
-                            delete acc.place_name;
-                        }
-                    });
-                }
-                return json;
-            }
+    <div class="day-nav">
+        <ul class="nav nav-pills" id="dayTabs" role="tablist"></ul>
+    </div>
 
-            // 일정의 time(예: "1:00~2:00")을 startTime, endTime으로 분리
-            function splitTimeRangeToFields(tripPlanJson) {
-                if (!tripPlanJson || !Array.isArray(tripPlanJson.dailySchedules)) return tripPlanJson;
-                tripPlanJson.dailySchedules.forEach(daily => {
-                    if (Array.isArray(daily.schedules)) {
-                        daily.schedules.forEach(item => {
-                            if (item.time && item.time.includes("~")) {
-                                const [start, end] = item.time.split("~");
-                                item.startTime = start.trim();
-                                item.endTime = end.trim();
-                            } else if (item.time) {
-                                item.startTime = item.time.trim();
-                                item.endTime = null;
-                            }
-                        });
-                    }
-                });
-                return tripPlanJson;
-            }
+    <div class="tab-content" id="dayTabsContent">
+        <!-- Itinerary panes will be rendered here by JS -->
+    </div>
 
-            // 저장 버튼 클릭 시 tripPlanJson을 변환해서 hidden input에 넣기
-            document.addEventListener("DOMContentLoaded", function () {
-                const saveForm = document.querySelector('form[action="/trip/step4"]');
-                if (saveForm) {
-                    saveForm.addEventListener('submit', function(e) {
-                        let tripPlanInput = saveForm.querySelector('input[name="tripPlanJson"]');
-                        let tripPlanJsonVal = tripPlanInput.value;
-                        let tripPlanJsonObj = tripPlanJsonVal;
-                        if (typeof tripPlanJsonVal === 'string') {
-                            try {
-                                tripPlanJsonObj = JSON.parse(tripPlanJsonVal);
-                            } catch (err) {}
-                        }
-                        tripPlanJsonObj = splitTimeRangeToFields(tripPlanJsonObj);
-                        tripPlanInput.value = JSON.stringify(tripPlanJsonObj);
+    <!-- Accommodation Section -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-hotel me-2"></i><span data-translatable>추천 숙소</span></h5>
+        </div>
+        <div class="card-body" id="accommodationArea">
+            <!-- Accommodations will be rendered here by JS -->
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between mt-4">
+        <a th:href="@{/tripselect/step1}" class="btn btn-secondary" data-translatable>다시 추천받기</a>
+        <form method="post" th:action="@{/trip/step4}" style="display: inline; margin: 0">
+            <button type="submit" class="btn btn-primary" data-translatable>계획 확정하기</button>
+        </form>
+    </div>
+</div>
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script th:src="@{/js/map-utils.js}"></script>
+<script th:inline="javascript">
+    document.addEventListener("DOMContentLoaded", function () {
+        const tripPlan = /*[[${tripPlan}]]*/ null;
+
+        if (!tripPlan) {
+            console.error("Trip plan data is not available.");
+            return;
+        }
+
+        function renderItineraryAndTabs() {
+            const dayTabsContainer = document.getElementById('dayTabs');
+            const tabContentContainer = document.getElementById('dayTabsContent');
+            dayTabsContainer.innerHTML = '';
+            tabContentContainer.innerHTML = '';
+
+            tripPlan.dailySchedules.forEach((daily, idx) => {
+                const li = document.createElement('li');
+                li.className = 'nav-item';
+                const btn = document.createElement('button');
+                btn.className = 'nav-link' + (idx === 0 ? ' active' : '');
+                btn.id = `day${daily.day}-tab`;
+                btn.type = 'button';
+                btn.setAttribute('data-bs-toggle', 'pill');
+                btn.setAttribute('data-bs-target', `#day-pane-${daily.day}`);
+                btn.innerHTML = `<span data-translatable>Day</span> ${daily.day}`;
+                li.appendChild(btn);
+                dayTabsContainer.appendChild(li);
+
+                const tabPane = document.createElement('div');
+                tabPane.className = 'tab-pane fade' + (idx === 0 ? ' show active' : '');
+                tabPane.id = `day-pane-${daily.day}`;
+                tabPane.setAttribute('role', 'tabpanel');
+
+                let html = `<div class="card mb-4"><div class="card-header"><h5><span data-translatable>Day</span> ${daily.day} <span data-translatable>일정</span></h5></div><div class="card-body">`;
+                if (daily.schedules && daily.schedules.length > 0) {
+                    daily.schedules.forEach(item => {
+                        const timeText = item.startTime ? `${item.startTime} - ${item.endTime || ''}` : `<span data-translatable>시간 정보 없음</span>`;
+                        html += `<div class="card mb-3 itinerary-item">
+                            <div class="card-body">
+                                <h5 class="card-title" data-translatable>${item.place || ''}</h5>
+                                <p class="card-text"><small class="text-muted"><i class="far fa-clock me-1"></i> ${timeText}</small></p>
+                                <p class="card-text" data-translatable>${item.description || ''}</p>
+                                <p class="card-text"><small class="text-muted"><i class="fas fa-map-marker-alt me-1"></i><span data-translatable>${item.address || ''}</span></small></p>
+                            </div>
+                        </div>`;
                     });
+                } else {
+                    html += `<p class="text-muted" data-translatable>해당 날짜에 추천 일정이 없습니다.</p>`;
                 }
+                html += `</div></div>`;
+                tabPane.innerHTML = html;
+                tabContentContainer.appendChild(tabPane);
             });
-                // 디버그 메시지 출력 함수
-                function showDebug(msg, isError) {
-                    const area = document.getElementById('debugArea');
-                    if (!area) return;
-                    area.textContent = msg;
-                    area.classList.remove('d-none');
-                    area.classList.toggle('alert-danger', !!isError);
-                    area.classList.toggle('alert-warning', !isError);
-                }
-                function hideDebug() {
-                    const area = document.getElementById('debugArea');
-                    if (!area) return;
-                    area.classList.add('d-none');
-                    area.textContent = '';
-                }
-            // Day 탭 동적 생성
-            function renderDayTabs() {
-                    const dayTabs = document.getElementById('dayTabs');
-                    hideDebug();
-                    try {
-                        console.log('renderDayTabs() called');
-                        console.log('tripPlanJson:', tripPlanJson);
-                        if (!dayTabs) {
-                            showDebug('dayTabs element not found in DOM', true);
-                            return;
-                        }
-                        dayTabs.innerHTML = '';
-                        if (!tripPlanJson || !Array.isArray(tripPlanJson.dailySchedules)) {
-                            showDebug('tripPlanJson.dailySchedules is not an array or tripPlanJson is null', true);
-                            return;
-                        }
-                        console.log('dailySchedules:', tripPlanJson.dailySchedules);
-                        tripPlanJson.dailySchedules.forEach((daily, idx) => {
-                            const li = document.createElement('li');
-                            li.className = 'nav-item';
-                            li.role = 'presentation';
-                            const btn = document.createElement('button');
-                            btn.className = 'nav-link' + (idx === 0 ? ' active' : '');
-                            btn.id = `day${daily.day}-tab`;
-                            btn.type = 'button';
-                            btn.role = 'tab';
-                            btn.setAttribute('data-bs-toggle', 'pill');
-                            btn.setAttribute('data-bs-target', `#day${daily.day}`);
-                            btn.setAttribute('aria-controls', `day${daily.day}`);
-                            btn.setAttribute('aria-selected', idx === 0 ? 'true' : 'false');
-                            btn.textContent = `Day ${daily.day}`;
-                            li.appendChild(btn);
-                            dayTabs.appendChild(li);
-                        });
-                    } catch (e) {
-                        showDebug('renderDayTabs() 오류: ' + e, true);
-                        console.error(e);
-                    }
-            }
-            // Parse the trip plan data from the model
-            const tripPlanData = /*[[${tripPlan}]]*/ null;
-            const accommodations = /*[[${accommodations}]]*/ [];
-            let map;
-            let route = null;
-            let tripPlanJson = /*[[${tripPlanJson}]]*/ null;
-            if (typeof tripPlanJson === 'string') {
-                try {
-                    tripPlanJson = JSON.parse(tripPlanJson);
-                } catch (e) {
-                    console.error('tripPlanJson 파싱 오류:', e, tripPlanJson);
-                }
-            }
-            // place_name → place 변환 적용
-            tripPlanJson = normalizeTripPlanJson(tripPlanJson);
+            if (window.translationManager) window.translationManager.applyCurrentLanguage(document.body);
+        }
 
-            // 일정+숙소 동적 렌더링 (선택된 day만)
-            function renderItinerary(selectedDay) {
-                    const area = document.getElementById("dynamicItineraryArea");
-                    hideDebug();
-                    try {
-                        if (!tripPlanJson || !Array.isArray(tripPlanJson.dailySchedules)) {
-                            showDebug('일정 데이터가 올바르지 않습니다.', true);
-                            return;
-                        }
-                let html = "";
-                // day 타입 강제 변환 및 목적지 필터링(예: 부산)
-                const selectedDayNum = Number(selectedDay);
-                const daily = tripPlanJson.dailySchedules.find(
-                    (d) => Number(d.day) === selectedDayNum
-                );
-                if (!daily) {
-                    showDebug(`Day ${selectedDay} 일정 데이터가 없습니다.`, true);
-                }
-                html += `<div class="card mb-4"><div class="card-header"><h5>Day ${selectedDay} 일정</h5></div><div class="card-body">`;
-                html += `<div class="itinerary-list">`;
-                html += `<div class="mb-2 text-end"><button type="button" class="btn btn-sm btn-outline-success add-schedule-btn" data-day="${selectedDay}"><i class="fas fa-plus"></i> 일정 추가</button></div>`;
-                if (daily && Array.isArray(daily.schedules) && daily.schedules.length > 0) {
-                    daily.schedules.forEach((item, idx) => {
-                        // 위경도 타입 보정
-                        const lat = Number(item.latitude);
-                        const lng = Number(item.longitude);
-                        html += `<div class="card mb-3 itinerary-item" data-day="${selectedDay}" data-index="${idx}">
+        function renderAccommodations() {
+            const area = document.getElementById('accommodationArea');
+            const acc = tripPlan.accommodation;
+            if (!acc || !acc.placeName) {
+                area.innerHTML = '<p class="text-muted" data-translatable>추천 숙소 정보가 없습니다.</p>';
+            } else {
+                const priceText = acc.priceRange ? `<span data-translatable>${acc.priceRange}</span>` : `<span data-translatable>정보 없음</span>`;
+                let html = `<div class="card mb-3">
                     <div class="row g-0">
                         <div class="col-md-4">
-                            <div class="map-placeholder d-flex align-items-center justify-content-center" style="background-color:#FF5252;">
-                                <i class="fas fa-map-marker-alt text-white" style="font-size:2rem;"></i>
-                                ${lat && lng ? `<span class='d-none' data-lat='${lat}' data-lng='${lng}'></span>` : ''}
-                            </div>
+                            <img src="${acc.imageUrl || 'https://via.placeholder.com/300x200'}" class="img-fluid rounded-start" alt="${acc.placeName}">
                         </div>
                         <div class="col-md-8">
                             <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <h5 class="card-title">${item.place || ""}</h5>
-                                    <div>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary edit-schedule-btn me-1" title="수정"><i class="fas fa-edit"></i></button>
-                                        <button type="button" class="btn btn-sm btn-outline-danger delete-schedule-btn me-1" title="삭제"><i class="fas fa-trash"></i></button>
-                                        <button type="button" class="btn btn-sm btn-outline-dark move-up-btn me-1" title="위로"><i class="fas fa-arrow-up"></i></button>
-                                        <button type="button" class="btn btn-sm btn-outline-dark move-down-btn" title="아래로"><i class="fas fa-arrow-down"></i></button>
-                                    </div>
-                                </div>
-                                <p class="card-text">
-                                    <small class="text-muted"><i class="fas fa-map-marker-alt me-1"></i> ${item.description || "주소 정보 없음"}</small><br>
-                                    <small class="text-muted"><i class="far fa-clock me-1"></i> ${item.time || ""}</small>
-                                </p>
-                                <p class="card-text">${item.description || ""}</p>
+                                <h5 class="card-title" data-translatable>${acc.placeName}</h5>
+                                <p class="card-text" data-translatable>${acc.description || ''}</p>
+                                <p class="card-text"><small class="text-muted"><i class="fas fa-map-marker-alt me-1"></i><span data-translatable>${acc.address || ''}</span></small></p>
+                                <p class="card-text"><small class="text-muted"><span data-translatable>예상 가격:</span> ${priceText}</small></p>
                             </div>
                         </div>
                     </div>
                 </div>`;
-                    });
-                } else {
-                    html += `<p class="text-muted">해당 날짜에 추천 일정이 없습니다.</p>`;
-                }
-                html += `</div>`;
-                // 숙소 정보 (day 타입 보정, 이미지 등 표시)
-                html += `<div class="accommodation-list mt-4">`;
-                html += `<h6><i class="fas fa-hotel me-1"></i>해당 날짜의 추천 숙소</h6>`;
-                const accs = (window.accommodations || accommodations || []).filter(
-                    (acc) => Number(acc.day) === selectedDayNum
-                );
-                if (accs.length > 0) {
-                    accs.forEach((acc) => {
-                        html += `<div class="card mb-2"><div class="row g-0 align-items-center">`;
-                        html += `<div class="col-auto"><img src="${acc.image_url || acc.imageUrl || ''}" alt="${acc.placeName || acc.place || acc.place_name || '숙소'}" width="80" style="border-radius:8px;margin:8px;">`;
-                        html += `<div class="col"><div class="card-body py-2 px-3">`;
-                        html += `<h6 class="card-title mb-1">${acc.placeName || acc.place || acc.place_name || "숙소명"}</h6>`;
-                        html += `<div class="card-text small text-muted mb-1">${acc.description || ""}</div>`;
-                        if (acc.price_range || acc.priceRange) html += `<span class="badge bg-info text-dark">${acc.price_range || acc.priceRange}</span>`;
-                        html += `</div></div></div></div>`;
-                    });
-                } else {
-                    html += `<p class="text-muted">추천 숙소 정보가 없습니다.</p>`;
-                }
-                html += `</div></div></div>`;
                 area.innerHTML = html;
-                } catch (e) {
-                    showDebug('renderItinerary() 오류: ' + e, true);
-                    console.error(e);
-                }
             }
-            // ----------------------
-            // 기존 지도 함수들은 아래처럼 별도 분리
-            function initMapWithTripData() {
-                if (
-                    !tripPlanData ||
-                    !tripPlanData.dailySchedules ||
-                    tripPlanData.dailySchedules.length === 0
-                ) {
-                    initDefaultMap();
-                    return;
-                }
-                map = MapUtils.initMap("map");
-                const allMarkers = [];
-                tripPlanData.dailySchedules.forEach((daySchedule, dayIndex) => {
-                    if (!daySchedule.schedules) return;
-                    daySchedule.schedules.forEach((schedule, index) => {
-                        if (schedule.latitude && schedule.longitude) {
-                            const popupContent = `
-                            <div class="marker-popup">
-                                <h5>Day ${daySchedule.day}: ${
-                                schedule.place || "장소"
-                            }</h5>
-                                ${
-                                    schedule.description
-                                        ? `<p>${schedule.description}</p>`
-                                        : ""
-                                }
-                                ${
-                                    schedule.time
-                                        ? `<p><i class="fas fa-clock"></i> ${schedule.time}</p>`
-                                        : ""
-                                }
-                            </div>
-                        `;
-                            const marker = MapUtils.createMarker(
-                                map,
-                                [schedule.latitude, schedule.longitude],
-                                schedule.place || "장소",
-                                popupContent,
-                                {
-                                    day: daySchedule.day,
-                                    customId: `day${daySchedule.day}-place${
-                                        index + 1
-                                    }`,
-                                }
-                            );
-                            allMarkers.push(marker);
-                        }
-                    });
-                });
-                accommodations.forEach((acc) => {
-                    if (acc.latitude && acc.longitude) {
-                        const popupContent = `
-                        <div class="marker-popup">
-                            <h5><i class='fas fa-hotel'></i> 숙소: ${
-                                acc.placeName || acc.place || "숙소"
-                            }</h5>
-                            ${
-                                acc.description
-                                    ? `<p>${acc.description}</p>`
-                                    : ""
+            if (window.translationManager) window.translationManager.applyCurrentLanguage(document.body);
+        }
+
+        function initMapWithTripData() {
+            const map = MapUtils.initMap("map");
+            const scheduleMarkers = MapUtils.createDayMarkers(map, tripPlan.dailySchedules || []);
+            const allMarkers = [...scheduleMarkers];
+
+            const acc = tripPlan.accommodation;
+            if (acc && acc.latitude && acc.longitude) {
+                const hotelIcon = L.divIcon({ html: "<i class='fas fa-hotel' style='color:#007bff;font-size:2rem;'></i>", className: 'hotel-marker-icon' });
+                const accMarker = L.marker([acc.latitude, acc.longitude], { icon: hotelIcon }).addTo(map).bindPopup(`<b>${acc.placeName}</b><br><span data-translatable>${acc.address || ''}</span><br>${acc.description || ''}`);
+                allMarkers.push(accMarker);
+            }
+
+            const coordinates = [];
+            if (tripPlan.dailySchedules) {
+                tripPlan.dailySchedules.forEach(daily => {
+                    if (daily.schedules) {
+                        daily.schedules.forEach(schedule => {
+                            if (schedule.latitude && schedule.longitude) {
+                                coordinates.push([schedule.latitude, schedule.longitude]);
                             }
-                            ${
-                                acc.price_range
-                                    ? `<p><i class='fas fa-won-sign'></i> ${acc.price_range}</p>`
-                                    : ""
-                            }
-                        </div>
-                    `;
-                        const hotelIcon = L.divIcon({
-                            html: "<i class='fas fa-hotel' style='color:#007bff;font-size:2rem;'></i>",
-                            iconSize: [32, 32],
-                            className: "hotel-marker-icon",
                         });
-                        const marker = L.marker([acc.latitude, acc.longitude], {
-                            icon: hotelIcon,
-                            day: acc.day,
-                            customId: `hotel-day${acc.day}`,
-                        })
-                            .addTo(map)
-                            .bindPopup(popupContent);
-                        allMarkers.push(marker);
                     }
                 });
-                window.markers = allMarkers;
-                if (allMarkers.length > 0) {
-                    MapUtils.fitMapToMarkers(map, allMarkers);
-                    const scheduleMarkers = allMarkers.filter(
-                        (m) =>
-                            !m.options.icon ||
-                            m.options.icon.options.className !==
-                                "hotel-marker-icon"
-                    );
-                    if (scheduleMarkers.length > 1) {
-                        const coordinates = scheduleMarkers.map((marker) => [
-                            marker.getLatLng().lat,
-                            marker.getLatLng().lng,
-                        ]);
-                        route = MapUtils.createRoute(map, coordinates);
-                    }
-                } else {
-                    initDefaultMap();
-                }
-                return map;
+            }
+            if (coordinates.length > 1) {
+                MapUtils.createRoute(map, coordinates);
             }
 
-            function initDefaultMap() {
-                map = L.map("map").setView([37.5665, 126.978], 11);
-                L.tileLayer(
-                    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                    {
-                        attribution: "© OpenStreetMap contributors",
-                    }
-                ).addTo(map);
+            if (allMarkers.length > 0) {
+                MapUtils.fitMapToMarkers(map, allMarkers);
             }
+        }
 
-            function handleDayTabChange(dayNumber) {
-                if (!window.markers) return;
-                window.markers.forEach((marker) => {
-                    if (marker.options.day === dayNumber) {
-                        marker.setZIndexOffset(1000);
-                        marker.openPopup();
-                    } else {
-                        marker.setZIndexOffset(0);
-                    }
-                });
-                const dayMarkers = window.markers.filter(
-                    (m) => m.options.day === dayNumber
-                );
-                if (dayMarkers.length > 0) {
-                    map.setView(dayMarkers[0].getLatLng(), 14);
-                }
-            }
+        renderItineraryAndTabs();
+        renderAccommodations();
+        initMapWithTripData();
+    });
+</script>
 
-            document.addEventListener("DOMContentLoaded", function () {
-                renderDayTabs();
-    // 데이터 구조 확인용 콘솔 로그
-    console.log('tripPlanJson:', tripPlanJson);
-    console.log('accommodations:', accommodations);
-                initMapWithTripData();
-                renderItinerary(1); // Day1 자동 렌더링
-
-                // Day 탭 클릭 시 일정+숙소 동적 렌더링
-                const dayTabs = document.querySelectorAll("#dayTabs .nav-link");
-                dayTabs.forEach((tab) => {
-                    tab.addEventListener("shown.bs.tab", function () {
-                        const dayNum = parseInt(
-                            tab.id.replace("day", "").replace("-tab", "")
-                        );
-                        renderItinerary(dayNum); // ← 추가!
-                        handleDayTabChange(dayNum);
-                    });
-                });
-                // 일정 편집/삭제/추가/이동 이벤트 위임
-                document
-                    .getElementById("dynamicItineraryArea")
-                    .addEventListener("click", function (e) {
-                        const target = e.target.closest("button");
-                        if (!target) return;
-                        const day = parseInt(
-                            target.closest(".itinerary-item")?.dataset.day ||
-                                target.dataset.day
-                        );
-                        const idx = parseInt(
-                            target.closest(".itinerary-item")?.dataset.index
-                        );
-
-                                                // 삭제
-                                                if (target.classList.contains("delete-schedule-btn")) {
-                                                        console.log('[삭제버튼] day:', day, 'idx:', idx);
-                                                        if (confirm("정말 삭제하시겠습니까?")) {
-                                                                const daily = tripPlanJson.dailySchedules.find(
-                                                                        (d) => d.day == day
-                                                                );
-                                                                if (!daily) {
-                                                                    console.error('해당 day의 dailySchedules를 찾을 수 없음', day, tripPlanJson.dailySchedules);
-                                                                    return;
-                                                                }
-                                                                if (!Array.isArray(daily.schedules)) {
-                                                                    console.error('daily.schedules가 배열이 아님', daily);
-                                                                    return;
-                                                                }
-                                                                if (isNaN(idx) || idx < 0 || idx >= daily.schedules.length) {
-                                                                    console.error('idx 값이 잘못됨', idx, daily.schedules);
-                                                                    return;
-                                                                }
-                                                                daily.schedules.splice(idx, 1);
-                                                                console.log('[삭제 후] daily.schedules:', daily.schedules);
-                                                                // syncItineraryFromDailySchedules();
-                                                                const tripPlanInput = document.querySelector('input[name="tripPlanJson"]');
-                                                                if (tripPlanInput) tripPlanInput.value = JSON.stringify(normalizeTripPlanJson(tripPlanJson));
-                                                                renderItinerary(day);
-                                                        }
-                                                }
-                        // 수정
-                        if (target.classList.contains("edit-schedule-btn")) {
-                            const daily = tripPlanJson.dailySchedules.find(
-                                (d) => d.day == day
-                            );
-                            const item = daily.schedules[idx];
-                            const place = prompt("장소명", item.place);
-                            const time = prompt("시간", item.time);
-                            const desc = prompt("설명", item.description);
-                            if (
-                                place !== null &&
-                                time !== null &&
-                                desc !== null
-                            ) {
-                                item.place = place;
-                                item.time = time;
-                                item.description = desc;
-                                // syncItineraryFromDailySchedules();
-                                // 렌더링 영역 강제 초기화(깜빡임 방지)
-                                document.getElementById("dynamicItineraryArea").innerHTML = '';
-                                const tripPlanInput = document.querySelector('input[name="tripPlanJson"]');
-                                if (tripPlanInput) tripPlanInput.value = JSON.stringify(normalizeTripPlanJson(tripPlanJson));
-                                renderItinerary(day);
-                            }
-                        }
-                        // 위로
-                        if (target.classList.contains("move-up-btn")) {
-                            const daily = tripPlanJson.dailySchedules.find(
-                                (d) => d.day == day
-                            );
-                            if (idx > 0) {
-                                [
-                                    daily.schedules[idx - 1],
-                                    daily.schedules[idx],
-                                ] = [
-                                    daily.schedules[idx],
-                                    daily.schedules[idx - 1],
-                                ];
-                                // syncItineraryFromDailySchedules();
-                                const tripPlanInput = document.querySelector('input[name="tripPlanJson"]');
-                                if (tripPlanInput) tripPlanInput.value = JSON.stringify(normalizeTripPlanJson(tripPlanJson));
-                                renderItinerary(day);
-                            }
-                        }
-                        // 아래로
-                        if (target.classList.contains("move-down-btn")) {
-                            const daily = tripPlanJson.dailySchedules.find(
-                                (d) => d.day == day
-                            );
-                            if (idx < daily.schedules.length - 1) {
-                                [
-                                    daily.schedules[idx + 1],
-                                    daily.schedules[idx],
-                                ] = [
-                                    daily.schedules[idx],
-                                    daily.schedules[idx + 1],
-                                ];
-                                // syncItineraryFromDailySchedules();
-                                const tripPlanInput = document.querySelector('input[name="tripPlanJson"]');
-                                if (tripPlanInput) tripPlanInput.value = JSON.stringify(normalizeTripPlanJson(tripPlanJson));
-                                renderItinerary(day);
-                            }
-                        }
-                        // 추가
-                        if (target.classList.contains("add-schedule-btn")) {
-                            const place = prompt("장소명");
-                            const time = prompt("시간");
-                            const desc = prompt("설명");
-                            if (place && time && desc) {
-                                const daily = tripPlanJson.dailySchedules.find(
-                                    (d) => d.day == day
-                                );
-                                daily.schedules.push({
-                                    place: place,
-                                    time,
-                                    description: desc,
-                                });
-                                // syncItineraryFromDailySchedules();
-                                const tripPlanInput = document.querySelector('input[name="tripPlanJson"]');
-                                if (tripPlanInput) tripPlanInput.value = JSON.stringify(normalizeTripPlanJson(tripPlanJson));
-                                renderItinerary(day);
-                            }
-                        }
-                    });
-            });
-        </script>
-    </body>
+</body>
 </html>

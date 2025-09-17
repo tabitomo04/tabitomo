@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      lang="ko">
+
+<head th:replace="~{fragments/header :: head}"></head>
+<body>
+<!-- Header -->
+<div th:replace="~{fragments/header :: header}"></div>
+
+<!-- Navigation Menu -->
+<div th:replace="~{fragments/menu :: menu}"></div>
+
+<!-- Main Content -->
+<main class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="text-center" data-translatable>회원가입</h2>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/signup}" method="post">
+                        <div class="mb-3">
+                            <label for="email" class="form-label" data-translatable>이메일</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label" data-translatable>비밀번호</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="nickname" class="form-label" data-translatable>닉네임</label>
+                            <input type="text" class="form-control" id="nickname" name="nickname" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="gender" class="form-label" data-translatable>성별</label>
+                            <select class="form-select" id="gender" name="gender" required>
+                                <option value="0" data-translatable>남성</option>
+                                <option value="1" data-translatable>여성</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="countryId" class="form-label" data-translatable>국가 ID</label>
+                            <input type="number" class="form-control" id="countryId" name="countryId" required>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary" data-translatable>가입하기</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <span data-translatable>이미 회원이신가요?</span> <a th:href="@{/login}" data-translatable>로그인</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Footer -->
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

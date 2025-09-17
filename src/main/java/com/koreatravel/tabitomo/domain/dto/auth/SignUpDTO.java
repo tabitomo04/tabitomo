@@ -1,6 +1,10 @@
 package com.koreatravel.tabitomo.domain.dto.auth;
 
 import lombok.Data;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
 @Data
@@ -14,7 +18,9 @@ public class SignUpDTO {
     private Integer gender;          // 성별 (1: 남, 2: 여, 3: 기타)
     private String countryCode;      // 국가 코드
     private String languageCode;     // 언어 코드
-    private LocalDate birthDate;     // 생년월일
+    @NotNull(message = "생년월일은 필수 입력 값입니다.")
+    @Past(message = "유효한 생년월일을 입력해주세요.")
+    private LocalDate dateOfBirth;     // 생년월일
     
     // 전체 이메일 주소 반환
     public String getEmail() {

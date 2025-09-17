@@ -1,4 +1,4 @@
-package com.koreatravel.tabitomo.service;
+package com.koreatravel.tabitomo.service.storybook;
 
 
 import com.koreatravel.tabitomo.domain.dto.storybook.SaveRequestDTO;
@@ -6,8 +6,18 @@ import com.koreatravel.tabitomo.domain.dto.storybook.StorybookDTO;
 
 import com.koreatravel.tabitomo.domain.dto.storybook.StorybookListDTO;
 import com.koreatravel.tabitomo.domain.dto.storybook.TempsaveDTO;
+import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
 import com.koreatravel.tabitomo.domain.entity.storybook.*;
-import com.koreatravel.tabitomo.repository.*;
+import com.koreatravel.tabitomo.domain.entity.tag.StoryTagEntity;
+import com.koreatravel.tabitomo.domain.entity.tag.TagMasterEntity;
+import com.koreatravel.tabitomo.repository.member.MemberRepository;
+import com.koreatravel.tabitomo.repository.storybook.LikedbookRepository;
+import com.koreatravel.tabitomo.repository.storybook.MediaRepository;
+import com.koreatravel.tabitomo.repository.storybook.StorybookRepository;
+import com.koreatravel.tabitomo.repository.storybook.TempsaveRepository;
+import com.koreatravel.tabitomo.repository.tag.StorytagRepository;
+import com.koreatravel.tabitomo.repository.tag.TagMasterRepository;
+
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 
@@ -62,8 +72,8 @@ public class EditorService {
         // 태그마스터에서 태그이름 가져오기
         List<String> tagNames = new ArrayList<>();
 
-        for (StorytagEntity storytag : entity.getTags()){
-            TagMasterEntity tagId = storytag.getTagId(); //storytag에서 tagmaster의 태그 찾음
+        for (StoryTagEntity storytag : entity.getTags()){
+            TagMasterEntity tagId = storytag.getTag(); //storytag에서 tagmaster의 태그 찾음
             String tagName = tagId.getTagName(); // tagmaster에서 tagID로 tagName찾음
             tagNames.add(tagName);
         }
@@ -285,9 +295,9 @@ public class EditorService {
                                     .tagName(tagName)
                                     .build()
                     ));
-            StorytagEntity storytag = StorytagEntity.builder()
+            StoryTagEntity storytag = StoryTagEntity.builder()
                     .storybook(entity)
-                    .tagId(tagentity)
+                    .tag(tagentity)
                     .build();
             storytagRepository.save(storytag);
         }
@@ -325,9 +335,9 @@ public class EditorService {
                                         .build()
                         ));
 
-                StorytagEntity storytag = StorytagEntity.builder()
+                StoryTagEntity storytag = StoryTagEntity.builder()
                         .storybook(entity)
-                        .tagId(tagentity)
+                        .tag(tagentity)
                         .build();
                 storytagRepository.save(storytag);
             }
@@ -372,9 +382,9 @@ public class EditorService {
                                         .build()
                         ));
 
-                StorytagEntity storytag = StorytagEntity.builder()
+                StoryTagEntity storytag = StoryTagEntity.builder()
                         .storybook(entity)
-                        .tagId(tagentity)
+                        .tag(tagentity)
                         .build();
                 storytagRepository.save(storytag);
             }
@@ -472,15 +482,15 @@ public class EditorService {
     /**
      * 좋아요 토글
      * @param booknum 해당 글 번호
-     * @param email 유저 이메일
+     * @param memberId 유저 memberId
      * @return
      */
     @Transactional
-    public int likeBook(Integer booknum, String email) {
+    public int likeBook(Integer booknum, Long memberId) {
         StorybookEntity bookentity = storybookRepository.findById(booknum)
                 .orElseThrow(() -> new RuntimeException("해당 booknum 존재하지 않음"));
-        MemberEntity memberentity = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("해당 email 존재하지 않음"));
+        MemberEntity memberentity = memberRepository.findById(memberId)
+                .orElseThrow(() -> new RuntimeException("해당 memberId 존재하지 않음"));
 
         bookentity.setLikes(bookentity.getLikes() + 1);
         storybookRepository.save(bookentity);
@@ -500,16 +510,16 @@ public class EditorService {
     /**
      * 좋아요 취소
      * @param booknum 해당 글 번호
-     * @param email 유저 이메일
+     * @param memberId 유저 memberId
      * @return
      */
     @Transactional
-    public int unlikeBook(Integer booknum, String email) {
+    public int unlikeBook(Integer booknum, Long memberId) {
         StorybookEntity bookentity = storybookRepository.findById(booknum)
                 .orElseThrow(() -> new RuntimeException("해당 booknum 존재하지 않음"));
 
-        MemberEntity memberentity = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("해당 email 존재하지 않음"));
+        MemberEntity memberentity = memberRepository.findById(memberId)
+                .orElseThrow(() -> new RuntimeException("해당 memberId 존재하지 않음"));
 
         bookentity.setLikes(Math.max(bookentity.getLikes() - 1, 0));
         storybookRepository.save(bookentity);
@@ -522,15 +532,15 @@ public class EditorService {
     /**
      * 좋아요 유무 확인
      * @param booknum 해당 글번호
-     * @param email 유저 이메일
+     * @param memberId 유저 memberId
      * @return
      */
     @Transactional
-    public boolean isLiked(Integer booknum, String email) {
+    public boolean isLiked(Integer booknum, Long memberId) {
         StorybookEntity bookentity = storybookRepository.findById(booknum)
                 .orElseThrow(() -> new RuntimeException("해당 booknum 존재하지 않음"));
-        MemberEntity memberentity = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("해당 email 존재하지 않음"));
+        MemberEntity memberentity = memberRepository.findById(memberId)
+                .orElseThrow(() -> new RuntimeException("해당 memberId 존재하지 않음"));
         return likedbookRepository.existsByStorybookAndMember(bookentity, memberentity);
     }
 

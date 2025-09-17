@@ -1,7 +1,8 @@
-package com.koreatravel.tabitomo.controller;
+package com.koreatravel.tabitomo.controller.storybook;
 
 
 import com.koreatravel.tabitomo.PathConstants;
+import com.koreatravel.tabitomo.config.security.UserDetailsImpl;
 import com.koreatravel.tabitomo.domain.dto.storybook.SaveRequestDTO;
 import com.koreatravel.tabitomo.domain.dto.storybook.StorybookDTO;
 import com.koreatravel.tabitomo.domain.dto.storybook.StorybookListDTO;
@@ -11,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -211,45 +213,45 @@ public class EditorController {
     /**
      *  좋아요 토글 on
      * @param booknum
-     * @param email
+     * @AuthenticationPrincipal UserDetailsImpl userDetails
      * @return
      */
     @PostMapping("/like")
     public ResponseEntity<Map<String, Object>> like(
             @RequestParam Integer booknum,
-            @RequestParam String email) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        int likes = editorService.likeBook(booknum, email);
+        int likes = editorService.likeBook(booknum, userDetails.getMemberId());
         return ResponseEntity.ok(Map.of("likes", likes, "liked", true));
     }
 
     /**
      * 좋아요 토글 off
      * @param booknum
-     * @param email
+     * @AuthenticationPrincipal UserDetailsImpl userDetails
      * @return
      */
     @PostMapping("/unlike")
     public ResponseEntity<Map<String, Object>> unlike(
             @RequestParam Integer booknum,
-            @RequestParam String email) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        int likes = editorService.unlikeBook(booknum, email);
+        int likes = editorService.unlikeBook(booknum, userDetails.getMemberId());
         return ResponseEntity.ok(Map.of("likes", likes, "liked", false));
     }
 
     /**
      * 이메일과 booknum이 좋아요테이블에 있는지 확인(좋아요 한 적이 있으면 좋아요 상태 유지를 위해)
      * @param booknum
-     * @param email
+     * @AuthenticationPrincipal UserDetailsImpl userDetails
      * @return
      */
     @GetMapping("/isLiked")
     public ResponseEntity<Map<String, Object>> isLiked(
             @RequestParam Integer booknum,
-            @RequestParam String email) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        boolean liked = editorService.isLiked(booknum, email);
+        boolean liked = editorService.isLiked(booknum, userDetails.getMemberId());
         return ResponseEntity.ok(Map.of("liked", liked));
     }
 

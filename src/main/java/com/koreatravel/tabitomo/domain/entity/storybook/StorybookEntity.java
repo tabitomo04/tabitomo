@@ -12,7 +12,8 @@ import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import com.koreatravel.tabitomo.domain.entity.tag.TagMaster;
+import com.koreatravel.tabitomo.domain.entity.tag.TagMasterEntity;
+import com.koreatravel.tabitomo.domain.entity.tag.StoryTagEntity;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -53,18 +54,18 @@ public class StorybookEntity {
     private int likes;
 
     @OneToMany(mappedBy = "storybook", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<com.koreatravel.tabitomo.domain.entity.tag.StoryTag> tags = new ArrayList<>();
+    private List<StoryTagEntity> tags = new ArrayList<>();
     
     // Helper method to add a tag
-    public void addTag(TagMaster tag) {
-        StoryTag storyTag = new StoryTag();
+    public void addTag(TagMasterEntity tag) {
+        StoryTagEntity storyTag = new StoryTagEntity();
         storyTag.setStorybook(this);
         storyTag.setTag(tag);
         tags.add(storyTag);
     }
     
     // Helper method to remove a tag
-    public void removeTag(TagMaster tag) {
+    public void removeTag(TagMasterEntity tag) {
         tags.removeIf(storyTag -> storyTag.getTag().equals(tag));
     }
 }

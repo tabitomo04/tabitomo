@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
 import com.koreatravel.tabitomo.domain.entity.member.MemberId;
-
+import com.koreatravel.tabitomo.domain.entity.storybook.StorybookEntity;
 import java.time.LocalDateTime;
 
 @NoArgsConstructor
@@ -26,8 +26,9 @@ public class LikedbookEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer likeId;
 
-    @Column(name = "booknum", nullable = false)
-    private Integer booknum;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "booknum", nullable = false)
+    private StorybookEntity storybook;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)

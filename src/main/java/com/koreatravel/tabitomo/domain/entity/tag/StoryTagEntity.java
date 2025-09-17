@@ -4,20 +4,6 @@ import com.koreatravel.tabitomo.domain.entity.storybook.StorybookEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.io.Serializable;
-
-@Embeddable
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-class StoryTagId implements Serializable {
-    @Column(name = "booknum")
-    private Integer bookNum;
-    
-    @Column(name = "tag_id")
-    private Integer tagId;
-}
-
 @Entity
 @Table(name = "story_tag")
 @Getter
@@ -36,7 +22,7 @@ public class StoryTagEntity {
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tag_id", nullable = false, insertable = false, updatable = false)
-    private TagMaster tag;
+    private TagMasterEntity tag;
     
     // Composite key fields (must match the @IdClass fields)
     @Column(name = "booknum")
@@ -52,7 +38,7 @@ public class StoryTagEntity {
     }
     
     // Helper method to set both the relationship and the ID
-    public void setTag(TagMaster tag) {
+    public void setTag(TagMasterEntity tag) {
         this.tag = tag;
         this.tagId = tag != null ? tag.getTagId() : null;
     }

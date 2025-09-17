@@ -19,4 +19,5 @@ public class TempsaveDTO {
     private String content;
     private LocalDateTime createDate;
     private LocalDateTime updateDate;
+    private String tags;
 }

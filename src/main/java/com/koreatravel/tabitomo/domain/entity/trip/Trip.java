@@ -5,12 +5,13 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
+import com.koreatravel.tabitomo.domain.entity.tag.TagMasterEntity;
+import com.koreatravel.tabitomo.domain.entity.tag.TripTagEntity;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import com.koreatravel.tabitomo.domain.entity.tag.TagMaster;
 
 @Entity
 @Getter
@@ -47,18 +48,18 @@ public class Trip {
     private LocalDateTime createdAt;
     
     @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<com.koreatravel.tabitomo.domain.entity.tag.TripTag> tags = new ArrayList<>();
+    private List<TripTagEntity> tags = new ArrayList<>();
     
     // Helper method to add a tag
-    public void addTag(TagMaster tag) {
-        TripTag tripTag = new TripTag();
+    public void addTag(TagMasterEntity tag) {
+        TripTagEntity tripTag = new TripTagEntity();
         tripTag.setTrip(this);
         tripTag.setTag(tag);
         tags.add(tripTag);
     }
     
     // Helper method to remove a tag
-    public void removeTag(TagMaster tag) {
+    public void removeTag(TagMasterEntity tag) {
         tags.removeIf(tripTag -> tripTag.getTag().equals(tag));
     }
 

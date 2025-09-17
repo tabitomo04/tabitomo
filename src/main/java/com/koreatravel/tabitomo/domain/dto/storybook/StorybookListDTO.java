@@ -9,4 +9,5 @@ public interface StorybookListDTO {
     String getThumbnail();
     Integer getLikes();
     LocalDateTime getCreateDate();
+    String getNickname();
 }

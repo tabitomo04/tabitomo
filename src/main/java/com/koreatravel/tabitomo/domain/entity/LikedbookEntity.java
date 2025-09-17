@@ -23,11 +23,13 @@ public class LikedbookEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer likeId;
 
-    @Column(name = "booknum", nullable = false)
-    private Integer booknum;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "booknum", referencedColumnName = "booknum", nullable = false)
+    private StorybookEntity storybook;
 
-    @Column(name = "email", nullable = false)
-    private String email;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "email", referencedColumnName = "email", nullable = false)
+    private MemberEntity member;
 
 
     @Column(name = "created_at",columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable = false, updatable = false)

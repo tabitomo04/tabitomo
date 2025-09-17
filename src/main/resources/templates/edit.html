@@ -11,7 +11,41 @@
 
   <script th:src="@{/js/jquery-3.7.1.min.js}"></script>
   <link rel="stylesheet" th:href="@{/css/modal.css}">
+  <!-- tagify -->
+  <!-- tagify 라이브러리 -->
+  <script th:src="@{/js/tagify/tagify.min.js}"></script>
+  <!-- 폴리필 (구버젼 브라우저 지원) -->
+  <script th:src="@{/js/tagify/tagify.polyfills.min.js}"></script>
+  <!-- tagify CSS -->
+  <link th:href="@{/js/tagify/tagify.css}" rel="stylesheet" type="text/css">
 
+  <style>
+    .tagify{
+      width: 100%;
+      max-width: 700px;
+    }
+
+    .tags-look .tagify__dropdown__item{
+      display: inline-block;
+      border-radius: 3px;
+      padding: .3em .5em;
+      border: 1px solid #CCC;
+      background: #F3F3F3;
+      margin: .2em;
+      font-size: .85em;
+      color: black;
+      transition: 0s;
+    }
+
+    .tags-look .tagify__dropdown__item--active{
+      color: black;
+    }
+
+    .tags-look .tagify__dropdown__item:hover{
+      background: lightyellow;
+      border-color: gold;
+    }
+  </style>
 
 </head>
 
@@ -41,6 +75,11 @@
                  maxlength="100"
                  style="color: #aaa;"
                  th:placeholder="${#strings.isEmpty(temp?.subtitle) and #strings.isEmpty(post?.subtitle) ? '부제목을 입력하세요' : ''}">
+        </td>
+      </tr>
+      <tr>
+        <td colspan="5">
+          <input name="tags" id="tags" placeholder="태그 추가" th:value="${temp != null} ? ${temp.tags} : ${#strings.arrayJoin(post.tags, ',')}">
         </td>
       </tr>
       </thead>
@@ -106,6 +145,62 @@
 
 <!--modal js-->
 <script th:src="@{/js/modal.js}"></script>
+
+<script  th:inline="javascript">
+
+  let tagify = null;
+
+  $(document).ready(function() {
+    let input = document.querySelector('input[name="tags"]');
+
+
+    //init Tagify script on the above inputs
+    tagify = new Tagify(input, {
+
+    whitelist: [], // 화이트리스트 배열
+    maxTags: 10, // 최대 허용 태그 갯수
+    enforceWhitelist: false,
+    dropdown: {
+    maxItems: 20,           // 드롭다운 메뉴에서 몇개 정도 항목을 보여줄지
+    classname: "tags-look", // 드롭다운 메뉴 엘리먼트 클래스 이름. 이걸로 css 선택자로 쓰면 된다.
+    enabled: 0,             // 단어 몇글자 입력했을떄 추천 드롭다운 메뉴가 나타날지
+    closeOnSelect: false    // 드롭다운 메뉴에서 태그 선택하면 자동으로 꺼지는지 안꺼지는지
+    }
+    });
+
+    tagify.on('input', onInput);
+    });
+
+
+    //태그 입력란에 입력되고 있을 때
+    function onInput(e){
+
+
+    //입력되고 있는 문자열
+    let value = e.detail.value;
+    //제시 목록 초기화
+    tagify.whitelist = [];
+    tagify.loading(true).dropdown.hide()
+
+    $.ajax({
+    url: '/storybook/getTagifyList',
+    method: 'get',
+    data: {value: value},
+    dataType: 'json',
+    success: function(taglist) {
+        tagify.whitelist = taglist;
+        tagify.loading(false).dropdown.show(value);
+    },
+    error: function(e) {
+        alert(JSON.stringify(e));
+    }
+    });
+    }
+
+
+
+
+</script>
 
 </body>
 </html>

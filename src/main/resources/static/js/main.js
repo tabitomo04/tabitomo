@@ -251,6 +251,7 @@ let editorInstance;
         const saveRequestDTO = {
                 booknum: $('#booknum').val() || null,
                 tempId: $('#tempId').val() || null,
+                tags: tagify.value.map(t => t.value),
                 savetype: $('#savetype').val(),
                 title: $('#title').val(),
                 subtitle: $('#subtitle').val(),
@@ -303,6 +304,7 @@ let editorInstance;
         const saveRequestDTO = {
                 booknum: $('#booknum').val() || null,
                 tempId: $('#tempId').val() || null,
+                temptags: tagify.value.map(t => t.value).join(","),
                 savetype: $('#savetype').val(),
                 title: $('#title').val(),
                 subtitle: $('#subtitle').val(),

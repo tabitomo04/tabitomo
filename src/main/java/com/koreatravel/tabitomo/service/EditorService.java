@@ -41,6 +41,13 @@ public class EditorService {
     private MediaRepository mediaRepository;
     @Autowired
     private LikedbookRepository likedbookRepository;
+    @Autowired
+    private MemberRepository memberRepository;
+    @Autowired
+    private tagMasterRepository tagMasterRepository;
+    @Autowired
+    private StorytagRepository storytagRepository;
+
 
 
     /**
@@ -52,6 +59,15 @@ public class EditorService {
         StorybookEntity entity = storybookRepository.findById(booknum)
                 .orElseThrow(() -> new EntityNotFoundException(booknum + " : 해당번호 없음"));
 
+        // 태그마스터에서 태그이름 가져오기
+        List<String> tagNames = new ArrayList<>();
+
+        for (StorytagEntity storytag : entity.getTags()){
+            TagMasterEntity tagId = storytag.getTagId(); //storytag에서 tagmaster의 태그 찾음
+            String tagName = tagId.getTagName(); // tagmaster에서 tagID로 tagName찾음
+            tagNames.add(tagName);
+        }
+
 
         // 글 + 미디어 DTO로 변환
         StorybookDTO dto = StorybookDTO.builder()
@@ -61,6 +77,7 @@ public class EditorService {
                 .content(entity.getContent())
                 .createDate(entity.getCreateDate())
                 .likes(entity.getLikes())
+                .tags(tagNames)
                 .build();
 
         return dto;
@@ -77,6 +94,7 @@ public class EditorService {
                     .orElseThrow(() -> new RuntimeException("게시물 없음"));
             entity.setTitle(saveRequestDTO.getTitle());
             entity.setSubtitle(saveRequestDTO.getSubtitle());
+            entity.setTags(String.join(",", saveRequestDTO.getTemptags()));
             entity.setContent(saveRequestDTO.getContent());
 
             // temp 미디어 조회
@@ -106,6 +124,7 @@ public class EditorService {
                     .title(saveRequestDTO.getTitle())
                     .subtitle(saveRequestDTO.getSubtitle())
                     .content(saveRequestDTO.getContent())
+                    .tags(String.join(",", saveRequestDTO.getTemptags()))
                     .build();
         }
         tempsaveRepository.save(entity);
@@ -211,6 +230,7 @@ public class EditorService {
                 .title(entity.getTitle())
                 .subtitle(entity.getSubtitle())
                 .content(entity.getContent())
+                .tags(entity.getTags())
                 .build();
 
         return dto;
@@ -255,7 +275,23 @@ public class EditorService {
                 .content(saveRequestDTO.getContent())
                 .build();
 
-        storybookRepository.save(entity);
+        entity = storybookRepository.save(entity);
+        // 해시태그 저장
+        // 태그마스터에 없는 새로운 태그가 있을 시 저장
+        for (String tagName : saveRequestDTO.getTags()) {
+            TagMasterEntity tagentity = tagMasterRepository.findBytagName(tagName)
+                    .orElseGet(() -> tagMasterRepository.save(
+                            TagMasterEntity.builder()
+                                    .tagName(tagName)
+                                    .build()
+                    ));
+            StorytagEntity storytag = StorytagEntity.builder()
+                    .storybook(entity)
+                    .tagId(tagentity)
+                    .build();
+            storytagRepository.save(storytag);
+        }
+
         return entity.getBooknum();
     }
 
@@ -269,12 +305,33 @@ public class EditorService {
         StorybookEntity entity;
 
         if (saveRequestDTO.getBooknum() != null) {
+
+            // 기존 스토리태그 삭제
+            storytagRepository.deleteByStorybook_Booknum(saveRequestDTO.getBooknum());
+
             // 기존 글 수정 후 저장
             entity = storybookRepository.findById(saveRequestDTO.getBooknum())
                     .orElseThrow(() -> new RuntimeException("게시물 없음"));
             entity.setTitle(saveRequestDTO.getTitle());
             entity.setSubtitle(saveRequestDTO.getSubtitle());
             entity.setContent(saveRequestDTO.getContent());
+
+            // 해시태그 저장
+            for (String tagName : saveRequestDTO.getTags()) {
+                TagMasterEntity tagentity = tagMasterRepository.findBytagName(tagName)
+                        .orElseGet(() -> tagMasterRepository.save(
+                                TagMasterEntity.builder()
+                                        .tagName(tagName)
+                                        .build()
+                        ));
+
+                StorytagEntity storytag = StorytagEntity.builder()
+                        .storybook(entity)
+                        .tagId(tagentity)
+                        .build();
+                storytagRepository.save(storytag);
+            }
+
 
             // 미디어 조회
             List<MediaEntity> mediaList = mediaRepository.findByNumAndStatus(saveRequestDTO.getBooknum(), "upload");
@@ -296,6 +353,7 @@ public class EditorService {
 
             // 기존 미디어 삭제 (upload)
             mediaRepository.deleteByNumAndStatus(saveRequestDTO.getBooknum(), "upload");
+
         } else {
             // 새 글 저장
             entity = StorybookEntity.builder()
@@ -303,9 +361,26 @@ public class EditorService {
                     .subtitle(saveRequestDTO.getSubtitle())
                     .content(saveRequestDTO.getContent())
                     .build();
+            entity = storybookRepository.save(entity);
+
+            // 해시태그 저장
+            for (String tagName : saveRequestDTO.getTags()) {
+                TagMasterEntity tagentity = tagMasterRepository.findBytagName(tagName)
+                        .orElseGet(() -> tagMasterRepository.save(
+                                TagMasterEntity.builder()
+                                        .tagName(tagName)
+                                        .build()
+                        ));
+
+                StorytagEntity storytag = StorytagEntity.builder()
+                        .storybook(entity)
+                        .tagId(tagentity)
+                        .build();
+                storytagRepository.save(storytag);
+            }
         }
 
-        storybookRepository.save(entity);
+
         return entity.getBooknum();
     }
 
@@ -404,14 +479,16 @@ public class EditorService {
     public int likeBook(Integer booknum, String email) {
         StorybookEntity bookentity = storybookRepository.findById(booknum)
                 .orElseThrow(() -> new RuntimeException("해당 booknum 존재하지 않음"));
+        MemberEntity memberentity = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("해당 email 존재하지 않음"));
 
         bookentity.setLikes(bookentity.getLikes() + 1);
         storybookRepository.save(bookentity);
 
-        if (!likedbookRepository.existsByBooknumAndEmail(booknum, email)) {
+        if (!likedbookRepository.existsByStorybookAndMember(bookentity, memberentity)) {
             LikedbookEntity liked = LikedbookEntity.builder()
-                    .booknum(booknum)
-                    .email(email)
+                    .storybook(bookentity)
+                    .member(memberentity)
                     .createDate(LocalDateTime.now())
                     .build();
             likedbookRepository.save(liked);
@@ -431,10 +508,13 @@ public class EditorService {
         StorybookEntity bookentity = storybookRepository.findById(booknum)
                 .orElseThrow(() -> new RuntimeException("해당 booknum 존재하지 않음"));
 
+        MemberEntity memberentity = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("해당 email 존재하지 않음"));
+
         bookentity.setLikes(Math.max(bookentity.getLikes() - 1, 0));
         storybookRepository.save(bookentity);
-        if (likedbookRepository.existsByBooknumAndEmail(booknum, email)) {
-            likedbookRepository.deleteByBooknumAndEmail(booknum, email);
+        if (likedbookRepository.existsByStorybookAndMember(bookentity, memberentity)) {
+            likedbookRepository.deleteByStorybookAndMember(bookentity, memberentity);
         }
         return bookentity.getLikes();
     }
@@ -447,7 +527,11 @@ public class EditorService {
      */
     @Transactional
     public boolean isLiked(Integer booknum, String email) {
-        return likedbookRepository.existsByBooknumAndEmail(booknum, email);
+        StorybookEntity bookentity = storybookRepository.findById(booknum)
+                .orElseThrow(() -> new RuntimeException("해당 booknum 존재하지 않음"));
+        MemberEntity memberentity = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("해당 email 존재하지 않음"));
+        return likedbookRepository.existsByStorybookAndMember(bookentity, memberentity);
     }
 
     /**
@@ -468,6 +552,10 @@ public class EditorService {
     public Page<StorybookListDTO> gethotORnewList(String sort, int page, int size) {
         Pageable pageable = PageRequest.of(page,size);
         return storybookRepository.hotORnewPage(sort,pageable);
+    }
+
+    public List<String> gettaglist() {
+        return tagMasterRepository.findRandomTagNames();
     }
 
 }

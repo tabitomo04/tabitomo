@@ -6,6 +6,17 @@
   <title>여행 스토리 검색 페이지</title>
 
   <link rel="stylesheet" th:href= "@{/css/storylist.css}">
+  <link rel="stylesheet" th:href= "@{/css/paging.css}">
+
+  <script>
+    window.addEventListener('load', () => {
+        if (performance.getEntriesByType("navigation")[0].type === "reload") {
+            // 새로고침일 때만 실행
+            history.replaceState(null, '', '/storybook/list');
+        }
+    });
+  </script>
+
 </head>
 <body>
 <div class="container">
@@ -27,12 +38,12 @@
         <div class="card">
           <div class="likes">❤ <span th:text="${storylist.likes}"></span></div>
           <div class="thumbnail">
-            <img th:src="@{${storylist.thumbnail}}" alt="썸네일">
+            <img th:src="@{${storylist.thumbnail} ?: '/uploadedImages/tabitomo.png'}" alt="썸네일">
           </div>
           <h3 th:text="${storylist.title}"></h3>
           <p th:text="${storylist.subtitle}"></p>
           <div class="meta">
-            <span th:text="${storylist.booknum}"></span>
+            <span th:text="${storylist.nickname}"></span>
             <span th:text="${#temporals.format(storylist.createDate, 'yy.MM.dd')}"></span>
           </div>
         </div>
@@ -46,12 +57,12 @@
         <div class="card">
           <div class="likes">❤ <span th:text="${pagelist.likes}"></span></div>
           <div class="thumbnail">
-            <img th:src="@{${pagelist.thumbnail}}" alt="썸네일">
+            <img th:src="@{${pagelist.thumbnail} ?: '/uploadedImages/tabitomo.png'}" alt="썸네일">
           </div>
           <h3 th:text="${pagelist.title}"></h3>
           <p th:text="${pagelist.subtitle}"></p>
           <div class="meta">
-            <span th:text="${pagelist.booknum}"></span>
+            <span th:text="${pagelist.nickname}"></span>
             <span th:text="${#temporals.format(pagelist.createDate, 'yy.MM.dd')}"></span>
           </div>
         </div>

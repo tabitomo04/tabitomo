@@ -6,10 +6,7 @@
   <title>여행하는 작가 프로필</title>
   <link rel="stylesheet" th:href="@{/css/mypage.css}">
   <link rel="stylesheet" th:href="@{/css/modal.css}">
-  <script>
 
-
-  </script>
 </head>
 <body>
 <div class="profile-container">
@@ -47,7 +44,7 @@
           <div class="card">
             <div class="likes">❤ <span th:text="${storylist.likes}"></span></div>
             <div class="thumbnail">
-              <img th:src="@{${storylist.thumbnail}}" alt="썸네일">
+              <img th:src="@{${storylist.thumbnail} ?: '/uploadedImages/tabitomo.png'}" alt="썸네일">
             </div>
             <h3 th:text="${storylist.title}"></h3>
             <p th:text="${storylist.subtitle}"></p>

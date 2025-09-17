@@ -42,7 +42,9 @@ public interface StorybookRepository extends JpaRepository<StorybookEntity, Inte
             "     WHERE m.num = s.booknum AND m.media_type = 'image' " + // m.게시물번호_컬럼 = s.고유번호_컬럼
             "     ORDER BY m.uploaded_at ASC " + // m.업로드시간_컬럼
             "     LIMIT 1) AS thumbnail " +
+            "     u.nickname AS nickname " +
             "FROM storybook s " +
+            "JOIN member u ON s.email = u.email " +
             "ORDER BY RAND() LIMIT 6", // 랜덤으로 6개 가져옴
             nativeQuery = true)
     List<StorybookListDTO> findListRandom();
@@ -59,7 +61,9 @@ public interface StorybookRepository extends JpaRepository<StorybookEntity, Inte
             "     WHERE m.num = s.booknum AND m.media_type = 'image' " + // m.게시물번호_컬럼 = s.고유번호_컬럼
             "     ORDER BY m.uploaded_at ASC " + // m.업로드시간_컬럼
             "     LIMIT 1) AS thumbnail " +
+            "     u.nickname AS nickname " +
             "FROM storybook s " +
+            "JOIN member u ON s.email = u.email " +
             "ORDER BY CASE WHEN :sort = 'hot' THEN s.likes END DESC, " +
             "         CASE WHEN :sort = 'new' THEN s.created_at END DESC",
             countQuery = "SELECT count(*) FROM storybook",

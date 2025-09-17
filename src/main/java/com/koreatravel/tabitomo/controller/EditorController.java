@@ -153,11 +153,13 @@ public class EditorController {
     public String edit(@RequestParam(value = "booknum", required = false) Integer booknum,
                        @RequestParam(value = "tempId", required = false) Integer tempId,
                        Model model) {
+        // 저장된 것 수정
         if (booknum != null) {
             StorybookDTO dto = editorService.getstory(booknum);
             if (dto != null) model.addAttribute("post", dto);
         }
 
+        // 임시저장본 수정
         if (tempId != null) {
             TempsaveDTO tempdto = editorService.gettemp(tempId);
             if (tempdto != null) model.addAttribute("temp", tempdto);
@@ -175,7 +177,7 @@ public class EditorController {
     @GetMapping(PathConstants.STORYBOOK_DELETE)
     public String delete(@RequestParam("booknum") Integer booknum){
         editorService.delete(booknum);
-        return "redirect:/list";
+        return "redirect:/storybook/list";
     }
 
     @GetMapping(PathConstants.STORYBOOK_TEMPDELETE)
@@ -190,7 +192,7 @@ public class EditorController {
      */
     @GetMapping("/mypage")
     public String mypage(Model model,@RequestParam(defaultValue = "false") boolean all){
-        // 스토리북 리스트
+
         // 스토리북 리스트
         List<StorybookListDTO> storybookList = editorService.getMyStorybookList();
         if (!all) {
@@ -249,6 +251,13 @@ public class EditorController {
 
         boolean liked = editorService.isLiked(booknum, email);
         return ResponseEntity.ok(Map.of("liked", liked));
+    }
+
+    @ResponseBody
+    @GetMapping("/storybook/getTagifyList")
+    public List<String> getTagifyList(String value) {
+        List<String> taglist = editorService.gettaglist();
+        return taglist;
     }
 
 

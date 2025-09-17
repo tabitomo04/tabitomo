@@ -38,4 +38,7 @@ public class TempsaveEntity {
     @Column(name = "updated_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP", insertable = false, updatable = false)
     private LocalDateTime updateDate;
 
+    @Column(name = "tags")
+    private String tags;
+
 }

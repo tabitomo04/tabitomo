@@ -59,9 +59,7 @@ document.addEventListener('click', function(e) {
 <div class="container">
   <!-- 태그 -->
   <div class="tags">
-    <span>#힐링</span>
-    <span>#제주도</span>
-    <span>#풀꽃</span>
+    <span th:each="tagName : ${post.tags}" th:text="'#' + ${tagName}"></span>
   </div>
 
   <!-- 제목 & 부제목 -->

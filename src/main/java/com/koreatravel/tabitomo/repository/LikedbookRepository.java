@@ -1,12 +1,14 @@
 package com.koreatravel.tabitomo.repository;
 
 import com.koreatravel.tabitomo.domain.entity.LikedbookEntity;
+import com.koreatravel.tabitomo.domain.entity.MemberEntity;
+import com.koreatravel.tabitomo.domain.entity.StorybookEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface LikedbookRepository extends JpaRepository<LikedbookEntity, Integer> {
 
-    boolean existsByBooknumAndEmail(Integer booknum, String email);
+    boolean existsByStorybookAndMember(StorybookEntity storybook, MemberEntity member);
 
-    void deleteByBooknumAndEmail(Integer booknum, String email);
+    void deleteByStorybookAndMember(StorybookEntity storybook, MemberEntity member);
 
 }

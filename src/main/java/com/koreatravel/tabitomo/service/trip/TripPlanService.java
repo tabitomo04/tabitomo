@@ -29,9 +29,9 @@ public class TripPlanService {
     private final ScheduleRepository scheduleRepository;
 
     @Transactional
-    public Long saveTripPlan(TripPlan tripPlan, String username) {
-        MemberEntity member = memberRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다: " + username));
+    public Long saveTripPlan(TripPlan tripPlan, Long id) {
+        MemberEntity member = memberRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다: " + id));
 
         Place accommodationPlace = null;
         if (tripPlan.getAccommodation() != null && tripPlan.getAccommodation().getPlaceName() != null) {
@@ -73,12 +73,12 @@ public class TripPlanService {
     }
 
     @Transactional
-    public void updateTripPlan(TripPlan updatedTripPlan, String username) {
+    public void updateTripPlan(TripPlan updatedTripPlan, Long id) {
         log.info("Updating trip plan with ID: {}", updatedTripPlan.getId());
         Trip trip = tripRepository.findById(updatedTripPlan.getId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 여행을 찾을 수 없습니다."));
 
-        if (!trip.getMember().getUsername().equals(username)) {
+        if (!trip.getMember().getId().equals(id)) {
             throw new SecurityException("이 여행 계획을 수정할 권한이 없습니다.");
         }
 
@@ -139,16 +139,14 @@ public class TripPlanService {
     }
 
     @Transactional(readOnly = true)
-    public List<Trip> findTripsByUsername(String username) {
-        MemberEntity member = memberRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다: " + username));
-        return tripRepository.findByMemberId(member.getId());
+    public List<Trip> findTripsByUserId(Long id) {
+        return tripRepository.findByMemberId(id);
     }
 
     @Transactional(readOnly = true)
-    public Optional<Trip> findTripByIdAndUsername(Long tripId, String username) {
+    public Optional<Trip> findTripByIdAndUserId(Long tripId, Long id) {
         return tripRepository.findByIdWithMember(tripId)
-                .filter(trip -> trip.getMember().getUsername().equals(username));
+                .filter(trip -> trip.getMember().getId().equals(id));
     }
 
     @Transactional(readOnly = true)

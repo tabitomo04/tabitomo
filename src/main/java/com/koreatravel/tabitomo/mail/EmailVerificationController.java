@@ -7,7 +7,7 @@ import java.util.HashMap;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.koreatravel.tabitomo.domain.dto.auth.MemberDTO;
+import com.koreatravel.tabitomo.domain.dto.member.MemberProfileDTO;
 
 @RestController
 @RequestMapping("/api/email")
@@ -17,7 +17,7 @@ public class EmailVerificationController {
     private final GmailService gmailService;
 
     @PostMapping("/send-verification")
-    public ResponseEntity<?> sendVerificationEmail(@RequestBody MemberDTO member) {
+    public ResponseEntity<?> sendVerificationEmail(@RequestBody MemberProfileDTO member) {
         try {
             String verificationCode = String.format("%06d", (int) (Math.random() * 1000000));
             gmailService.sendVerificationEmail(member.getEmail(), verificationCode);

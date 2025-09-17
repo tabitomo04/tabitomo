@@ -4,10 +4,15 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
-public class MainController {
+public class WebController {
+
     @GetMapping("/")
-    public String main() {
-        // 메인 페이지 관련 로직 추가 예정
+    public String index() {
         return "index";
+    }
+
+    @GetMapping("/menu")
+    public String menu() {
+        return "menu";
     }
 }

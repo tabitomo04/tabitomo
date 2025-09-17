@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+import com.koreatravel.tabitomo.domain.dto.member.MemberProfileDTO;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
@@ -15,7 +17,7 @@ public class LikedbookDTO {
 
     private Integer likeId;
     private Integer booknum;
-    private String email;
+    private MemberProfileDTO member;
     private LocalDateTime createDate;
 }
 

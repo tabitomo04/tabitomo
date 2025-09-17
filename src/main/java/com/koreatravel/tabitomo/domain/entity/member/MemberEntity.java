@@ -1,15 +1,14 @@
 package com.koreatravel.tabitomo.domain.entity.member;
 
 import jakarta.persistence.*;
-import lombok.*;
-import org.hibernate.annotations.UuidGenerator;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.Past;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.UUID;
+
+import lombok.*;
 
 @Entity
 @Table(name = "member",
@@ -17,17 +16,28 @@ import java.util.UUID;
         @UniqueConstraint(columnNames = "email"),
         @UniqueConstraint(columnNames = "nickname")
     })
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class MemberEntity {
+    
+    @Builder
+    public MemberEntity(String email, LocalDate dateOfBirth, String password, String nickname, Integer gender) {
+        this.email = email;
+        this.dateOfBirth = dateOfBirth;
+        this.password = password;
+        this.nickname = nickname;
+        this.gender = gender;
+        this.active = true;
+        this.questionnaireCompleted = false;
+        this.role = "ROLE_USER";
+    }
 
-    @Id
-    @GeneratedValue
-    @UuidGenerator(style = UuidGenerator.Style.TIME)
-    @Column(columnDefinition = "BINARY(16)")
-    private UUID id;
+    @EmbeddedId
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private MemberId id;
 
     @Email
     @NotBlank
@@ -64,32 +74,36 @@ public class MemberEntity {
     private LocalDateTime updatedAt;
 
     @Column(name = "questionnaire_completed")
-    private boolean questionnaireCompleted = false;
+    private boolean questionnaireCompleted;
 
     @Column(name = "role")
-    private String role = "ROLE_USER";
+    private String role;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "country_id", referencedColumnName = "country_id")
     private CountryEntity country;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "preferred_language_id", referencedColumnName = "language_id")
+    @JoinColumn(name = "preferred_language_id")
     private LanguageEntity preferredLanguage;
 
-    public void setCountry(CountryEntity country) {
-        this.country = country;
-    }
-
-    public void setLanguage(LanguageEntity language) {
-        this.preferredLanguage = language;
-    }
-
+    /**
+     * countryId로 CountryEntity를 설정하는 편의 메서드
+     */
     public void setCountry(int countryId) {
+        if (this.country == null) {
+            this.country = new CountryEntity();
+        }
         this.country.setCountryId(countryId);
     }
 
+    /**
+     * languageId로 LanguageEntity를 설정하는 편의 메서드
+     */
     public void setLanguage(int languageId) {
+        if (this.preferredLanguage == null) {
+            this.preferredLanguage = new LanguageEntity();
+        }
         this.preferredLanguage.setLanguageId(languageId);
     }
 }

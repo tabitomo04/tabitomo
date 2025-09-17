@@ -1,17 +1,27 @@
 package com.koreatravel.tabitomo.config;
 
+import com.koreatravel.tabitomo.config.security.UserDetailsServiceImpl;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final UserDetailsServiceImpl userDetailsService;
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
@@ -24,21 +34,30 @@ public class SecurityConfig {
         http
                 // CSRF 보호 비활성화 (개발 편의를 위해)
                 .csrf(csrf -> csrf.disable())
-                // 모든 요청을 인증 없이 허용 (개발 편의를 위해)
+                // 세션 정책 설정
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                )
+                // 권한 설정
                 .authorizeHttpRequests(authorize -> authorize
-                        .anyRequest().permitAll()
+                        .requestMatchers("/login", "/signup", "/api/**").permitAll()
+                        .anyRequest().authenticated()
                 )
-                // 폼 로그인 기능은 다시 활성화
-                .formLogin(formLogin -> formLogin
-                        .loginPage("/login") // 사용자 정의 로그인 페이지
-                        .defaultSuccessUrl("/") // 로그인 성공 후 이동할 페이지
-                        .permitAll() // 로그인 페이지 자체는 모두 접근 가능
+                // 폼 로그인 설정
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/")
+                        .permitAll()
                 )
-                // 로그아웃 기능도 다시 활성화
+                // 로그아웃 설정
                 .logout(logout -> logout
-                        .logoutSuccessUrl("/") // 로그아웃 성공 후 이동할 페이지
+                        .logoutSuccessUrl("/login?logout")
                         .invalidateHttpSession(true)
-                );
+                        .deleteCookies("JSESSIONID")
+                        .permitAll()
+                )
+                // 사용자 세션 관리
+                .userDetailsService(userDetailsService);
 
         return http.build();
     }
@@ -46,5 +65,10 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
 }

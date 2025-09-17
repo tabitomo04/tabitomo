@@ -27,6 +27,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class EditorService {
@@ -397,23 +398,24 @@ public class EditorService {
     /**
      * 좋아요 토글
      * @param booknum 해당 글 번호
-     * @param email 유저 이메일
+     * @param id 유저 ID
      * @return
      */
     @Transactional
-    public int likeBook(Integer booknum, String email) {
+    public int likeBook(Integer booknum, UUID id) {
         StorybookEntity bookentity = storybookRepository.findById(booknum)
                 .orElseThrow(() -> new RuntimeException("해당 booknum 존재하지 않음"));
 
         bookentity.setLikes(bookentity.getLikes() + 1);
         storybookRepository.save(bookentity);
 
-        if (!likedbookRepository.existsByBooknumAndEmail(booknum, email)) {
+        Long memberId = id.getMostSignificantBits() & Long.MAX_VALUE;
+        if (!likedbookRepository.existsByBooknumAndMemberId(booknum, memberId)) {
             LikedbookEntity liked = LikedbookEntity.builder()
                     .booknum(booknum)
-                    .email(email)
                     .createDate(LocalDateTime.now())
                     .build();
+            liked.setMemberId(id.getMostSignificantBits() & Long.MAX_VALUE);
             likedbookRepository.save(liked);
         }
 
@@ -423,18 +425,19 @@ public class EditorService {
     /**
      * 좋아요 취소
      * @param booknum 해당 글 번호
-     * @param email 유저 이메일
+     * @param id 유저 ID
      * @return
      */
     @Transactional
-    public int unlikeBook(Integer booknum, String email) {
+    public int unlikeBook(Integer booknum, UUID id) {
         StorybookEntity bookentity = storybookRepository.findById(booknum)
                 .orElseThrow(() -> new RuntimeException("해당 booknum 존재하지 않음"));
 
         bookentity.setLikes(Math.max(bookentity.getLikes() - 1, 0));
         storybookRepository.save(bookentity);
-        if (likedbookRepository.existsByBooknumAndEmail(booknum, email)) {
-            likedbookRepository.deleteByBooknumAndEmail(booknum, email);
+        Long memberId = id.getMostSignificantBits() & Long.MAX_VALUE;
+        if (likedbookRepository.existsByBooknumAndMemberId(booknum, memberId)) {
+            likedbookRepository.deleteByBooknumAndMemberId(booknum, memberId);
         }
         return bookentity.getLikes();
     }
@@ -442,12 +445,12 @@ public class EditorService {
     /**
      * 좋아요 유무 확인
      * @param booknum 해당 글번호
-     * @param email 유저 이메일
+     * @param id 유저 ID
      * @return
      */
     @Transactional
-    public boolean isLiked(Integer booknum, String email) {
-        return likedbookRepository.existsByBooknumAndEmail(booknum, email);
+    public boolean isLiked(Integer booknum, UUID id) {
+        return likedbookRepository.existsByBooknumAndMemberId(booknum, id.getMostSignificantBits() & Long.MAX_VALUE);
     }
 
     /**

@@ -4,9 +4,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import com.koreatravel.tabitomo.config.security.UserDetailsImpl;
 import com.koreatravel.tabitomo.domain.dto.trip.ScheduleInfo;
 import com.koreatravel.tabitomo.domain.dto.trip.TripPlan;
 import com.koreatravel.tabitomo.domain.dto.trip.TourRecommendation;
@@ -15,7 +17,6 @@ import com.koreatravel.tabitomo.service.trip.GeminiAIService;
 import com.koreatravel.tabitomo.service.trip.LocationService;
 import com.koreatravel.tabitomo.service.trip.TripPlanService;
 
-import java.security.Principal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -204,27 +205,39 @@ public class TripRecommendationController {
 
     @PostMapping("/update")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> updateTripPlan(@RequestBody TripPlan tripPlan, Principal principal) {
-        if (principal == null) {
-            return ResponseEntity.status(401).body(Map.of("status", "error", "message", "로그인이 필요합니다."));
+    public ResponseEntity<Map<String, Object>> updateTripPlan(
+            @RequestBody TripPlan tripPlan,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        
+        if (userDetails == null) {
+            return ResponseEntity.status(401)
+                    .body(Map.of("status", "error", "message", "로그인이 필요합니다."));
         }
+        
         try {
-            tripPlanService.updateTripPlan(tripPlan, principal.getName());
-            return ResponseEntity.ok(Map.of("status", "success", "message", "여행 계획이 성공적으로 업데이트되었습니다."));
+            tripPlanService.updateTripPlan(tripPlan, userDetails.getMemberId());
+            return ResponseEntity.ok(
+                    Map.of("status", "success", "message", "여행 계획이 성공적으로 업데이트되었습니다."));
         } catch (Exception e) {
             log.error("여행 계획 업데이트 중 오류 발생", e);
-            return ResponseEntity.internalServerError().body(Map.of("status", "error", "message", "업데이트 중 오류가 발생했습니다: " + e.getMessage()));
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("status", "error", "message", 
+                            "업데이트 중 오류가 발생했습니다: " + e.getMessage()));
         }
     }
 
     @PostMapping("/save")
     @ResponseBody
-    public Map<String, Object> saveTripPlan(@RequestBody TripPlan tripPlan, Principal principal) {
-        if (principal == null) {
+    public Map<String, Object> saveTripPlan(
+            @RequestBody TripPlan tripPlan,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+                
+        if (userDetails == null) {
             return Map.of("status", "error", "message", "로그인이 필요합니다.");
         }
+        
         try {
-            Long tripId = tripPlanService.saveTripPlan(tripPlan, principal.getName());
+            Long tripId = tripPlanService.saveTripPlan(tripPlan, userDetails.getMemberId());
             return Map.of("status", "success", "message", "여행 계획이 저장되었습니다.", "tripId", tripId);
         } catch (Exception e) {
             log.error("여행 계획 저장 중 오류 발생", e);

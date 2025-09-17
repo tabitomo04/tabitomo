@@ -8,12 +8,15 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+import com.koreatravel.tabitomo.domain.dto.member.MemberProfileDTO;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
 @Builder
 public class StorybookDTO {
     private Integer booknum;
+    private MemberProfileDTO member;
     private String title;
     private String subtitle;
     private String content;

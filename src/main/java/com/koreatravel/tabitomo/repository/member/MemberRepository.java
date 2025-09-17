@@ -1,11 +1,19 @@
 package com.koreatravel.tabitomo.repository.member;
 
 import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
+import com.koreatravel.tabitomo.domain.entity.member.MemberId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
-import java.util.UUID;
 
-public interface MemberRepository extends JpaRepository<MemberEntity, UUID> {
+public interface MemberRepository extends JpaRepository<MemberEntity, MemberId> {
     Optional<MemberEntity> findByEmail(String email);
-    Optional<MemberEntity> findByUsername(String username);
+    
+    @Override
+    Optional<MemberEntity> findById(MemberId id);
+    
+    default Optional<MemberEntity> findById(Long id) {
+        return findById(new MemberId(id));
+    }
+    
+    Optional<MemberEntity> findByNickname(String nickname);
 }

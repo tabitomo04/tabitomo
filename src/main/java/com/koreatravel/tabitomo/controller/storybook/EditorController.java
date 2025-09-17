@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @Controller
@@ -181,32 +182,11 @@ public class EditorController {
     @GetMapping(PathConstants.STORYBOOK_TEMPDELETE)
     public String tempdel(@RequestParam("tempId") Integer tempId){
         editorService.tempdel(tempId);
-        return "redirect:/mypage";
+        return "redirect:/member/mypage?all=true";
     }
 
     /**
-     * 마이페이지 불러오기
-     * @return 마이페이지
-     */
-    @GetMapping("/mypage")
-    public String mypage(Model model,@RequestParam(defaultValue = "false") boolean all){
-        // 스토리북 리스트
-        // 스토리북 리스트
-        List<StorybookListDTO> storybookList = editorService.getMyStorybookList();
-        if (!all) {
-            storybookList = storybookList.stream().limit(3).toList();
-        }
-        model.addAttribute("storylist", storybookList);
-        model.addAttribute("all", all);
-
-        // 임시저장 리스트
-        List<TempsaveDTO> tempsaveList = editorService.getTempsaveList();
-        model.addAttribute("templist",tempsaveList);
-        return "mypage";
-    }
-
-
-    /**
+     * 좋아요 토글 on
      *  좋아요 토글 on
      * @param booknum
      * @param email
@@ -215,9 +195,9 @@ public class EditorController {
     @PostMapping("/like")
     public ResponseEntity<Map<String, Object>> like(
             @RequestParam Integer booknum,
-            @RequestParam String email) {
+            @RequestParam UUID id) {
 
-        int likes = editorService.likeBook(booknum, email);
+        int likes = editorService.likeBook(booknum, id);
         return ResponseEntity.ok(Map.of("likes", likes, "liked", true));
     }
 
@@ -230,9 +210,9 @@ public class EditorController {
     @PostMapping("/unlike")
     public ResponseEntity<Map<String, Object>> unlike(
             @RequestParam Integer booknum,
-            @RequestParam String email) {
+            @RequestParam UUID id) {
 
-        int likes = editorService.unlikeBook(booknum, email);
+        int likes = editorService.unlikeBook(booknum, id);
         return ResponseEntity.ok(Map.of("likes", likes, "liked", false));
     }
 
@@ -245,9 +225,9 @@ public class EditorController {
     @GetMapping("/isLiked")
     public ResponseEntity<Map<String, Object>> isLiked(
             @RequestParam Integer booknum,
-            @RequestParam String email) {
+            @RequestParam UUID id) {
 
-        boolean liked = editorService.isLiked(booknum, email);
+        boolean liked = editorService.isLiked(booknum, id);
         return ResponseEntity.ok(Map.of("liked", liked));
     }
 

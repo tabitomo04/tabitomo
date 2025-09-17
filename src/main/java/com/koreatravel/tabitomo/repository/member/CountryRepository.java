@@ -8,7 +8,7 @@ import java.util.List;
 
 @Repository
 public interface CountryRepository extends JpaRepository<CountryEntity, Integer> {
-    List<CountryEntity> findAllByOrderByCountryNameKoAsc();
+    List<CountryEntity> findAllByOrderByCountryNameAsc();
 
     CountryEntity findById(int id);
 }

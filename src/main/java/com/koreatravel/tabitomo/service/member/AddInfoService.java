@@ -41,8 +41,7 @@ public class AddInfoService {
     public void saveMemberAddInfo(UUID memberId, int infoHighNum, int infoLowNum) {
         MemberAddInfoEntity memberAddInfo = MemberAddInfoEntity.builder()
                 .memberId(memberId)
-                .infoHighNum(infoHighNum)
-                .infoLowNum(infoLowNum)
+                .addInfo(addInfoRepository.findByInfoHighNumAndInfoLowNum(infoHighNum, infoLowNum))
                 .build();
                 
         memberAddInfoRepository.save(memberAddInfo);

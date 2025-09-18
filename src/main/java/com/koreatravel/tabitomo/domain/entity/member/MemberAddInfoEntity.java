@@ -20,28 +20,28 @@ public class MemberAddInfoEntity {
     @Column(name = "member_id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID memberId;
     
-    @Id
-    @Column(name = "info_high_num", nullable = false)
-    private Integer infoHighNum;
-    
-    @Id
-    @Column(name = "info_low_num", nullable = false)
-    private Integer infoLowNum;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumns({
+        @JoinColumn(
+            name = "info_high_num",
+            referencedColumnName = "info_high_num",
+            insertable = false,
+            updatable = false
+        ),
+        @JoinColumn(
+            name = "info_low_num",
+            referencedColumnName = "info_low_num",
+            insertable = false,
+            updatable = false
+        )
+    })
+    private AddInfoEntity addInfo;
     
     @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdAt;
     
-    @Column(name = "updated_at", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
-    private LocalDateTime updatedAt;
-    
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
-    
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
     }
 }

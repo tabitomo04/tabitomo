@@ -10,4 +10,5 @@ import java.util.List;
 @Repository
 public interface AddInfoRepository extends JpaRepository<AddInfoEntity, AddInfoId> {
     List<AddInfoEntity> findByInfoHighNum(int infoHighNum);
+    AddInfoEntity findByInfoHighNumAndInfoLowNum(int infoHighNum, int infoLowNum);
 }

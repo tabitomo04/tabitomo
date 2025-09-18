@@ -38,10 +38,10 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class EditorService {
-
 
 
     @Autowired
@@ -234,17 +234,18 @@ public class EditorService {
         TempsaveEntity entity = tempsaveRepository.findById(tempId)
                 .orElseThrow(() -> new EntityNotFoundException(tempId + " : 해당번호 없음"));
 
-
         // 글 + 미디어 DTO로 변환
-        TempsaveDTO dto = TempsaveDTO.builder()
+        return TempsaveDTO.builder()
                 .tempId(entity.getTempId())
                 .title(entity.getTitle())
                 .subtitle(entity.getSubtitle())
                 .content(entity.getContent())
                 .tags(entity.getTags())
+                .memberId(entity.getMember().getId())
+                .nickname(entity.getMember().getNickname())
+                .createDate(entity.getCreateDate())
+                .updateDate(entity.getUpdateDate())
                 .build();
-
-        return dto;
     }
 
     /**
@@ -397,60 +398,64 @@ public class EditorService {
      * @param booknum 게시글 번호
      * @param content 미디어 포함 컨텐츠 내용
      */
-    @Transactional
-    public void saveMedia(Integer booknum, String content) {
-        Document doc = Jsoup.parse(content);
-        Elements images = doc.select("img");
-        Elements videos = doc.select("div[data-oembed-url]");
+@Transactional
+public void saveMedia(Integer booknum, String content) {
+    Document doc = Jsoup.parse(content);
+    Elements images = doc.select("img");
+    Elements videos = doc.select("div[data-oembed-url]");
 
-        // image 저장
-        for (Element img : images) {
-            MediaEntity media = MediaEntity.builder()
-                    .num(booknum)
-                    .status("upload")
-                    .mediaUrl(img.attr("src"))
-                    .mediaType("image")
-                    .uploadTime(LocalDateTime.now())
-                    .build();
-            mediaRepository.save(media);
-        }
-
-        // video 저장
-        for (Element video : videos) {
-            MediaEntity media = MediaEntity.builder()
-                    .num(booknum)
-                    .status("upload")
-                    .mediaUrl(video.attr("data-oembed-url"))
-                    .mediaType("video")
-                    .uploadTime(LocalDateTime.now())
-                    .build();
-            mediaRepository.save(media);
-        }
+    // image 저장
+    for (Element img : images) {
+        MediaEntity media = MediaEntity.builder()
+                .num(booknum)
+                .status("upload")
+                .mediaUrl(img.attr("src"))
+                .mediaType("image")
+                .uploadTime(LocalDateTime.now())
+                .build();
+        mediaRepository.save(media);
     }
 
-    @Transactional
-    public void tempdel(Integer tempId) {
-        // 미디어 조회
-        List<MediaEntity> mediaList = mediaRepository.findByNumAndStatus(tempId, "temp");
+    // video 저장
+    for (Element video : videos) {
+        MediaEntity media = MediaEntity.builder()
+                .num(booknum)
+                .status("upload")
+                .mediaUrl(video.attr("data-oembed-url"))
+                .mediaType("video")
+                .uploadTime(LocalDateTime.now())
+                .build();
+        mediaRepository.save(media);
+    }
+}
 
-        // 서버 파일 삭제
-        for (MediaEntity media : mediaList) {
-            // mediaUrl: /uploadedImages/파일명
-            String fileName = Paths.get(media.getMediaUrl()).getFileName().toString();
-            String filePath = "C:/workspace1/editorTest/uploadedImages/" + fileName;
+/**
+ * 임시저장 글 삭제
+ * @param tempId 삭제할 임시저장 글 ID
+ */
+@Transactional
+public void tempdel(Integer tempId) {
+    // 미디어 조회
+    List<MediaEntity> mediaList = mediaRepository.findByNumAndStatus(tempId, "temp");
 
-            File file = new File(filePath);
-            if (file.exists()) {
-                boolean deleted = file.delete();
-                if (!deleted) {
-                    System.out.println("파일 삭제 실패: " + filePath);
-                }
+    // 서버 파일 삭제
+    for (MediaEntity media : mediaList) {
+        // mediaUrl: /uploadedImages/파일명
+        String fileName = Paths.get(media.getMediaUrl()).getFileName().toString();
+        String filePath = "C:/workspace1/editorTest/uploadedImages/" + fileName;
+
+        File file = new File(filePath);
+        if (file.exists()) {
+            boolean deleted = file.delete();
+            if (!deleted) {
+                System.out.println("파일 삭제 실패: " + filePath);
             }
         }
+    }
         // 미디어 데이터 삭제
         mediaRepository.deleteByNum(tempId);
 
-        // 스토리북 삭제
+        // 임시저장 글 삭제
         TempsaveEntity entity = tempsaveRepository.findById(tempId).orElse(null);
         if (entity != null) {
             tempsaveRepository.delete(entity);
@@ -459,30 +464,23 @@ public class EditorService {
 
     /**
      * 임시저장 리스트 가져오기
-     * @return
+     * @return 임시저장된 글 목록
      */
     public List<TempsaveDTO> getTempsaveList() {
-        List<TempsaveEntity> listEntity = tempsaveRepository.findAll();
-        List<TempsaveDTO> listDTO = new ArrayList<>();
-
-        for(TempsaveEntity entity : listEntity) {
-            TempsaveDTO dto = TempsaveDTO.builder()
-                    .tempId(entity.getTempId())
-                    .title(entity.getTitle())
-                    .subtitle(entity.getSubtitle())
-                    .updateDate(entity.getUpdateDate())
-                    .build();
-            listDTO.add(dto);
-        }
-        return listDTO;
+        return tempsaveRepository.findAll().stream()
+                .map(entity -> TempsaveDTO.builder()
+                        .tempId(entity.getTempId())
+                        .title(entity.getTitle())
+                        .subtitle(entity.getSubtitle())
+                        .content(entity.getContent())
+                        .tags(entity.getTags())
+                        .memberId(entity.getMember().getId())
+                        .nickname(entity.getMember().getNickname())
+                        .createDate(entity.getCreateDate())
+                        .updateDate(entity.getUpdateDate())
+                        .build())
+                .collect(Collectors.toList());
     }
-
-    /**
-     * 좋아요 토글
-     * @param booknum 해당 글 번호
-     * @param memberId 유저 memberId
-     * @return
-     */
     @Transactional
     public int likeBook(Integer booknum, UUID memberId) {
         StorybookEntity bookentity = storybookRepository.findById(booknum)

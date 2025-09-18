@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.UUID;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,4 +21,5 @@ public class SaveRequestDTO {
     private String title;
     private String subtitle;
     private String content;
+    private UUID memberId;  // Added memberId as UUID
 }

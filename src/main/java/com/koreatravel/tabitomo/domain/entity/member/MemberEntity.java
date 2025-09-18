@@ -40,9 +40,6 @@ public class MemberEntity {
     @Column(name = "date_of_birth", nullable = false)
     private LocalDate dateOfBirth;
 
-    @Column(name = "age")
-    private Integer age;
-
     @Column(nullable = false, length = 60)
     private String password;
 

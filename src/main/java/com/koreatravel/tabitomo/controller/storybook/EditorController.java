@@ -121,6 +121,10 @@ public class EditorController {
                             @RequestParam(name = "page", defaultValue = "0") int page,
                             @RequestParam(name = "size", defaultValue = "6") int size){
 
+        // 임시저장 리스트
+        List<TempsaveDTO> tempsaveList = editorService.getTempsaveList();
+        model.addAttribute("templist",tempsaveList);
+
         if(sort == null) sort = "random";
 
         if("random".equals(sort)) {

@@ -80,6 +80,7 @@ public class AuthService {
                 .nickname(dto.getNickname())
                 .dateOfBirth(dto.getDateOfBirth())
                 .gender(dto.getGender())
+                .active(true)
                 .role("ROLE_USER")  // Set default role
                 .build();
         

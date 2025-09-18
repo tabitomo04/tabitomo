@@ -52,8 +52,31 @@ public class SecurityConfig {
                             "/api/**", 
                             "/member/api/**"
                         ).permitAll()
+                        // 공개적으로 접근 가능한 페이지들
+                        .requestMatchers(
+                            "/member/info/**",       // 다른 사용자 정보 페이지
+                            "/member/saved-spots/**"  // 저장한 여행지 리스트
+                        ).permitAll()
+                        // 스토리북 관련 경로 설정
+                        .requestMatchers(
+                            "/storybook/list",        // 스토리북 목록
+                            "/storybook/detail/**"    // 스토리북 상세 보기
+                        ).permitAll()
+                        // 인증이 필요한 경로
+                        .requestMatchers(
+                            "/mypage/**",            // 마이페이지
+                            "/storybook/write",       // 스토리북 작성
+                            "/storybook/editor/**"    // 스토리북 에디터
+                        ).authenticated()
                         // 그 외 모든 요청은 인증 필요
                         .anyRequest().authenticated()
+                )
+                // 인증 예외 처리
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            // 인증되지 않은 사용자가 보호된 리소스에 접근할 때 로그인 페이지로 리다이렉트
+                            response.sendRedirect("/auth/login?error=unauthorized");
+                        })
                 )
                 // 폼 로그인 설정
                 .formLogin(form -> form

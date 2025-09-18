@@ -338,35 +338,53 @@ document.addEventListener('DOMContentLoaded', function() {
         passwordModal.addEventListener('show.bs.modal', resetPasswordModal);
         
         // 다음 버튼 클릭 이벤트
-        document.getElementById('nextStepBtn').addEventListener('click', function() {
-            if (currentStep === 2) {
-                if (!verifyCode()) return;
-            }
-            goToNextStep();
-        });
+        const nextStepBtn = document.getElementById('nextStepBtn');
+        if (nextStepBtn) {
+            nextStepBtn.addEventListener('click', function() {
+                if (currentStep === 2) {
+                    if (!verifyCode()) return;
+                }
+                goToNextStep();
+            });
+        }
         
         // 이전 버튼 클릭 이벤트
-        document.getElementById('prevStepBtn').addEventListener('click', goToPrevStep);
+        const prevStepBtn = document.getElementById('prevStepBtn');
+        if (prevStepBtn) {
+            prevStepBtn.addEventListener('click', goToPrevStep);
+        }
         
         // 인증번호 발송 버튼 클릭 이벤트
-        document.getElementById('sendVerificationBtn').addEventListener('click', sendVerificationCode);
+        const sendVerificationBtn = document.getElementById('sendVerificationBtn');
+        if (sendVerificationBtn) {
+            sendVerificationBtn.addEventListener('click', sendVerificationCode);
+        }
         
         // 인증번호 재전송 버튼 클릭 이벤트
-        document.getElementById('resendCodeBtn').addEventListener('click', sendVerificationCode);
+        const resendCodeBtn = document.getElementById('resendCodeBtn');
+        if (resendCodeBtn) {
+            resendCodeBtn.addEventListener('click', sendVerificationCode);
+        }
         
         // 비밀번호 재설정 버튼 클릭 이벤트
-        document.getElementById('resetPasswordBtn').addEventListener('click', resetPassword);
+        const resetPasswordBtn = document.getElementById('resetPasswordBtn');
+        if (resetPasswordBtn) {
+            resetPasswordBtn.addEventListener('click', resetPassword);
+        }
         
         // 엔터 키로 폼 제출 방지
-        document.getElementById('verificationCode').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                if (currentStep === 2) {
-                    if (verifyCode()) {
-                        goToNextStep();
+        const verificationCodeInput = document.getElementById('verificationCode');
+        if (verificationCodeInput) {
+            verificationCodeInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (currentStep === 2) {
+                        if (verifyCode()) {
+                            goToNextStep();
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
     }
 });

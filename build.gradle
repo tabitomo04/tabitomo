@@ -13,6 +13,15 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
     }
+    
+    // Enable parameter name retention for Spring MVC
+    compileJava {
+        options.compilerArgs << '-parameters'
+    }
+    
+    compileTestJava {
+        options.compilerArgs << '-parameters'
+    }
 }
 
 configurations {

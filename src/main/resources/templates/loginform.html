@@ -2,10 +2,17 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="ko">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#2e4c4c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>로그인 - 타비토모</title>
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Fixes -->
+  <link href="/css/bootstrap-fixes.css" rel="stylesheet">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -15,6 +22,37 @@
       --accent-color: #ff6b6b;
       --light-gray: #f8f9fa;
       --dark-gray: #343a40;
+      --error-bg: #f8d7da;
+      --error-text: #721c24;
+      --error-border: #f5c6cb;
+    }
+    
+    .error-message {
+      display: block !important;
+      margin-bottom: 20px;
+      padding: 12px;
+      border-radius: 6px;
+      background-color: var(--error-bg);
+      color: var(--error-text);
+      border: 1px solid var(--error-border);
+    }
+    
+    .error-message div {
+      font-weight: 500;
+    }
+    
+    .step-line-progress {
+      width: 0%;
+    }
+    
+    .step-content {
+      display: none;
+    }
+    
+    #nextStepBtn,
+    #resetPasswordBtn,
+    #prevStepBtn {
+      display: none;
     }
     
     body {
@@ -264,20 +302,23 @@
   
   <div class="login-body">
     <!-- 오류 메시지 표시 -->
-    <div th:if="${param.error}" class="alert alert-danger" role="alert">
-        <span th:if="${param.error == 'true'}">
-            <span th:if="${session.SPRING_SECURITY_LAST_EXCEPTION != null}">
-                <span th:if="${session.SPRING_SECURITY_LAST_EXCEPTION.message == '비활성화된 계정입니다. 관리자에게 문의해주세요.'}">
-                    비활성화된 계정입니다. 관리자에게 문의해주세요.
-                </span>
-                <span th:unless="${session.SPRING_SECURITY_LAST_EXCEPTION.message == '비활성화된 계정입니다. 관리자에게 문의해주세요.'}">
-                    이메일 또는 비밀번호가 일치하지 않습니다.
-                </span>
-            </span>
-            <span th:unless="${session.SPRING_SECURITY_LAST_EXCEPTION != null}">
-                이메일 또는 비밀번호가 일치하지 않습니다.
-            </span>
-        </span>
+    <div th:if="${param.error}" class="error-message" role="alert">
+        <div th:if="${param.error == 'unaired'}">
+            <i class="fas fa-exclamation-circle me-2" aria-hidden="true"></i>로그인이 필요한 서비스입니다. 로그인 후 이용해주세요.
+        </div>
+        <div th:if="${param.error == 'true'}">
+            <div th:if="${session.SPRING_SECURITY_LAST_EXCEPTION != null}">
+                <div th:if="${session.SPRING_SECURITY_LAST_EXCEPTION.message == '비활성화된 계정입니다. 관리자에게 문의해주세요.'}">
+                    <i class="fas fa-exclamation-circle me-2" aria-hidden="true"></i>비활성화된 계정입니다. 관리자에게 문의해주세요.
+                </div>
+                <div th:unless="${session.SPRING_SECURITY_LAST_EXCEPTION.message == '비활성화된 계정입니다. 관리자에게 문의해주세요.'}">
+                    <i class="fas fa-exclamation-circle me-2" aria-hidden="true"></i>이메일 또는 비밀번호가 일치하지 않습니다.
+                </div>
+            </div>
+            <div th:unless="${session.SPRING_SECURITY_LAST_EXCEPTION != null}">
+                <i class="fas fa-exclamation-circle me-2" aria-hidden="true"></i>이메일 또는 비밀번호가 일치하지 않습니다.
+            </div>
+        </div>
     </div>
     
     <!-- 이메일 로그인 폼 -->
@@ -289,168 +330,194 @@
       </div>
       
       <div class="mb-3">
-        <div class="d-flex justify-content-between">
-          <label for="password" class="form-label">비밀번호</label>
-          <a href="#" class="text-decoration-none small" data-bs-toggle="modal" data-bs-target="#passwordModal">
-            비밀번호 찾기
-          </a>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <label for="password" class="form-label mb-0">비밀번호</label>
+          <a href="#" id="forgotPassword" class="text-decoration-none small">비밀번호 찾기</a>
         </div>
         <div class="input-group">
-          <input type="password" class="form-control" id="password" name="password" placeholder="비밀번호를 입력하세요" required>
-          <button class="btn btn-outline-secondary" type="button" id="togglePassword">
-            <i class="far fa-eye"></i>
+          <input type="password" class="form-control" id="password" name="password" placeholder="비밀번호를 입력하세요" required
+                 autocomplete="current-password" aria-describedby="passwordHelp">
+          <button class="btn btn-outline-secondary" type="button" id="togglePassword" 
+                  aria-label="비밀번호 표시/숨기기" aria-pressed="false">
+            <i class="fas fa-eye" aria-hidden="true"></i>
+            <span class="visually-hidden">비밀번호 표시/숨기기</span>
           </button>
         </div>
+        <div id="passwordHelp" class="form-text">대소문자, 숫자, 특수문자를 조합하여 8자 이상 입력해주세요.</div>
       </div>
-      
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" id="rememberMe" name="remember-me">
-          <label class="form-check-label small" for="rememberMe">
-            로그인 상태 유지
-          </label>
-        </div>
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" id="autoLogin" name="auto-login">
-          <label class="form-check-label small" for="autoLogin">
-            자동 로그인
-          </label>
-        </div>
+
+      <!-- 로그인 상태 유지 및 자동 로그인 -->
+      <div class="mb-3 form-check">
+        <input type="checkbox" class="form-check-input" id="rememberMe" name="remember-me">
+        <label class="form-check-label" for="rememberMe">로그인 상태 유지</label>
       </div>
-      
-      <button type="submit" class="btn btn-primary btn-login w-100 mb-3" id="loginBtn">
-        로그인
+      <div class="mb-4 form-check">
+        <input type="checkbox" class="form-check-input" id="autoLogin" name="auto-login">
+        <label class="form-check-label" for="autoLogin">자동 로그인</label>
+        <div class="form-text small text-muted">공용 컴퓨터에서는 사용을 권장하지 않습니다.</div>
+      </div>
+
+      <!-- 로그인 버튼 -->
+      <button type="submit" class="btn btn-primary w-100 py-2 mb-3" id="loginButton">
+        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="loginSpinner"></span>
+        <span id="loginText">로그인</span>
       </button>
-      
-      <div class="login-footer">
-        아직 회원이 아니신가요? 
-        <a th:href="@{/auth/signup}" class="fw-bold">회원가입</a>
+
+      <!-- 회원가입 링크 -->
+      <div class="text-center mt-4">
+        <p class="mb-0">아직 회원이 아니신가요? <a href="/auth/signup" class="text-primary text-decoration-none">회원가입</a></p>
       </div>
     </form>
   </div>
 </div>
 
-<!-- 비밀번호 찾기 모달 -->
-<div class="modal fade" id="passwordModal" tabindex="-1" aria-hidden="true">
+<!-- 비밀번호 재설정 모달 -->
+<div class="modal fade" id="passwordModal" tabindex="-1" aria-labelledby="passwordModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title fw-bold">비밀번호 재설정</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h5 class="modal-title" id="passwordModalLabel">비밀번호 재설정</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
       </div>
-      <div class="modal-body p-4">
-        <!-- 단계 표시기 -->
-        <div class="step-indicator mb-4">
-          <div class="step active" id="step1">1</div>
-          <div class="step" id="step2">2</div>
-          <div class="step" id="step3">3</div>
-          <div class="step-line">
-            <div class="step-line-progress" id="stepProgress" style="width: 0%"></div>
-          </div>
-        </div>
-        
-        <!-- 1단계: 이메일 입력 -->
-        <div id="step1Content">
-          <p class="text-muted mb-4">가입하신 이메일 주소를 입력해주세요. 비밀번호 재설정을 위한 인증번호가 발송됩니다.</p>
+      <div class="modal-body">
+        <form id="passwordResetForm">
           <div class="mb-3">
             <label for="resetEmail" class="form-label">이메일 주소</label>
-            <div class="input-group">
-              <input type="email" class="form-control" id="resetEmail" placeholder="example@example.com" required>
-              <button class="btn btn-outline-primary" type="button" id="sendVerificationBtn">
-                인증번호 발송
-              </button>
-            </div>
-            <div id="emailError" class="invalid-feedback"></div>
+            <input type="email" class="form-control" id="resetEmail" required>
           </div>
-        </div>
-        
-        <!-- 2단계: 인증번호 확인 -->
-        <div id="step2Content" style="display: none;">
-          <p class="text-muted mb-4">이메일로 전송된 6자리 인증번호를 입력해주세요. <span id="countdown" class="countdown">03:00</span></p>
-          <div class="mb-3">
-            <label for="verificationCode" class="form-label">인증번호</label>
-            <div class="input-group">
-              <input type="text" class="form-control text-center verification-code" id="verificationCode" 
-                     maxlength="6" placeholder="000000" autocomplete="off">
-            </div>
-            <div class="d-flex justify-content-between mt-2">
-              <div id="codeError" class="text-danger small"></div>
-              <button type="button" class="btn btn-link p-0 text-decoration-none" id="resendCodeBtn">
-                인증번호 재전송
-              </button>
-            </div>
-          </div>
-        </div>
-        
-        <!-- 3단계: 새 비밀번호 설정 -->
-        <div id="step3Content" style="display: none;">
-          <p class="text-muted mb-4">새로운 비밀번호를 설정해주세요.</p>
-          <div class="mb-3">
-            <label for="newPassword" class="form-label">새 비밀번호</label>
-            <div class="input-group">
-              <input type="password" class="form-control" id="newPassword" placeholder="8자 이상 입력해주세요">
-              <button class="btn btn-outline-secondary" type="button" id="toggleNewPassword">
-                <i class="far fa-eye"></i>
-              </button>
-            </div>
-            <div class="form-text small text-muted">영문, 숫자, 특수문자를 조합하여 8자 이상 입력해주세요.</div>
-          </div>
-          <div class="mb-3">
-            <label for="confirmNewPassword" class="form-label">비밀번호 확인</label>
-            <div class="input-group">
-              <input type="password" class="form-control" id="confirmNewPassword" placeholder="비밀번호를 다시 입력해주세요">
-              <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
-                <i class="far fa-eye"></i>
-              </button>
-            </div>
-            <div id="passwordError" class="invalid-feedback"></div>
-          </div>
-        </div>
-        
-        <!-- 버튼 영역 -->
-        <div class="d-grid gap-2 mt-4">
-          <button type="button" class="btn btn-primary" id="nextStepBtn" style="display: none;">다음</button>
-          <button type="button" class="btn btn-primary" id="resetPasswordBtn" style="display: none;">비밀번호 재설정</button>
-          <button type="button" class="btn btn-outline-secondary" id="prevStepBtn" style="display: none;">이전</button>
-        </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+        <button type="button" class="btn btn-primary" id="sendResetLink">링크 발송</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 // DOM이 완전히 로드된 후 실행
 function handleLoginSubmit(event) {
     event.preventDefault();
     
-    const email = document.getElementById('email').value;
+    const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
-    const rememberMe = document.getElementById('rememberMe').checked;
-    const autoLogin = document.getElementById('autoLogin').checked;
+    const loginButton = document.getElementById('loginButton');
+    const loginSpinner = document.getElementById('loginSpinner');
+    const loginText = document.getElementById('loginText');
     
     // 간단한 유효성 검사
-    if (!email || !password) {
-        alert('이메일과 비밀번호를 모두 입력해주세요.');
+    if (!email) {
+        showError('이메일을 입력해주세요.', 'email');
         return false;
     }
     
+    if (!password) {
+        showError('비밀번호를 입력해주세요.', 'password');
+        return false;
+    }
+    
+    // 로딩 상태 표시
+    loginButton.disabled = true;
+    loginSpinner.classList.remove('d-none');
+    loginText.textContent = '로그인 중...';
+    
     // 폼 제출
     event.target.submit();
+    
+    return true;
+}
+
+function showError(message, fieldId) {
+    // 기존 에러 메시지 제거
+    const existingError = document.querySelector(`#${fieldId} ~ .invalid-feedback`);
+    if (existingError) {
+        existingError.remove();
+    }
+    
+    // 새 에러 메시지 추가
+    const input = document.getElementById(fieldId);
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'invalid-feedback d-block';
+    errorDiv.textContent = message;
+    
+    input.classList.add('is-invalid');
+    input.parentNode.insertBefore(errorDiv, input.nextSibling);
+    
+    // 포커스 이동
+    input.focus();
+    
+    // 5초 후 에러 메시지 제거
+    setTimeout(() => {
+        input.classList.remove('is-invalid');
+        if (errorDiv.parentNode) {
+            errorDiv.remove();
+        }
+    }, 5000);
 }
 
 document.addEventListener('DOMContentLoaded', function() {
     // 비밀번호 보이기/숨기기 토글
     const togglePassword = document.querySelector('#togglePassword');
     const password = document.querySelector('#password');
+    const loginForm = document.querySelector('#loginForm');
+    const loginButton = document.querySelector('#loginButton');
+    const loginSpinner = document.querySelector('#loginSpinner');
+    const forgotPassword = document.querySelector('#forgotPassword');
+    const passwordModal = new bootstrap.Modal(document.getElementById('passwordModal'));
+    const loginText = document.querySelector('#loginText');
     
+    // 로그인 폼 제출 시 로딩 상태 표시
+    if (loginForm) {
+      loginForm.addEventListener('submit', function() {
+        loginButton.disabled = true;
+        loginSpinner.classList.remove('d-none');
+        loginText.textContent = '로그인 중...';
+      });
+    }
+    
+    // 비밀번호 표시/숨기기 토글
     if (togglePassword) {
         togglePassword.addEventListener('click', function() {
             const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            const isPasswordVisible = type === 'text';
+            
             password.setAttribute('type', type);
-            this.querySelector('i').classList.toggle('fa-eye');
-            this.querySelector('i').classList.toggle('fa-eye-slash');
+            
+            // 아이콘 업데이트
+            const icon = this.querySelector('i');
+            icon.classList.toggle('fa-eye', !isPasswordVisible);
+            icon.classList.toggle('fa-eye-slash', isPasswordVisible);
+            
+            // ARIA 속성 업데이트
+            this.setAttribute('aria-pressed', isPasswordVisible);
+            this.setAttribute('aria-label', isPasswordVisible ? '비밀번호 숨기기' : '비밀번호 표시');
+        });
+    }
+    
+    // 비밀번호 찾기 모달 열기
+    if (forgotPassword) {
+        forgotPassword.addEventListener('click', function(e) {
+            e.preventDefault();
+            passwordModal.show();
+        });
+    }
+    
+    // 폼 유효성 검사 초기화
+    if (loginForm) {
+        // 입력 필드의 유효성 검사 상태 초기화
+        const inputs = loginForm.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('input', function() {
+                if (this.checkValidity()) {
+                    this.classList.remove('is-invalid');
+                    const errorMessage = this.nextElementSibling;
+                    if (errorMessage && errorMessage.classList.contains('invalid-feedback')) {
+                        errorMessage.remove();
+                    }
+                }
+            });
         });
     }
     

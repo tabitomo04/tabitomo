@@ -78,8 +78,9 @@ public class AuthService {
                 .email(dto.getEmail())
                 .password(passwordEncoder.encode(dto.getPassword()))
                 .nickname(dto.getNickname())
-                .dateOfBirth(dto.getBirthDate())
+                .dateOfBirth(dto.getDateOfBirth())
                 .gender(dto.getGender())
+                .role("ROLE_USER")  // Set default role
                 .build();
         
         // Set country and language using their repositories

@@ -169,6 +169,15 @@
           <div id="nicknameCheckResult" class="validation-message"></div>
         </div>
 
+        <!-- 생년월일 입력 -->
+        <div class="mb-4">
+          <label for="dateOfBirth" class="form-label">생년월일</label>
+          <input type="date" class="form-control" id="dateOfBirth" name="dateOfBirth" th:field="*{dateOfBirth}" required
+                 max="" onchange="setMaxDate()">
+          <div class="form-text">만 14세 이상만 가입 가능합니다.</div>
+          <div id="dateOfBirthError" class="text-danger"></div>
+        </div>
+
         <!-- 국가 선택 -->
         <div class="mb-4">
           <label for="countryId" class="form-label">국가</label>
@@ -208,9 +217,16 @@
           </div>
         </div>
 
-        <!-- 회원가입 버튼 -->
+        <!-- 회원가입 및 취소 버튼 -->
         <div class="d-grid gap-2">
-          <button type="submit" class="btn btn-primary btn-lg">회원가입 완료</button>
+          <div class="row g-2">
+            <div class="col-6">
+              <button type="submit" class="btn btn-primary btn-lg w-100">회원가입 완료</button>
+            </div>
+            <div class="col-6">
+              <a href="/" class="btn btn-outline-secondary btn-lg w-100">취소</a>
+            </div>
+          </div>
         </div>
       </form>
     </div>

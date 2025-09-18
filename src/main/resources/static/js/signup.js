@@ -334,26 +334,42 @@ function verifyEmail() {
     });
 }
 
+// 폼 제출 시 로딩 상태 설정
+function setLoading(isLoading) {
+    const submitBtn = document.querySelector('button[type="submit"]');
+    const cancelBtn = document.querySelector('a.btn-outline-secondary');
+    
+    if (isLoading) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 처리 중...';
+        if (cancelBtn) cancelBtn.classList.add('disabled');
+    } else {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '회원가입 완료';
+        if (cancelBtn) cancelBtn.classList.remove('disabled');
+    }
+}
+
 // 폼 제출 시 유효성 검사
 function handleSubmit(event) {
+    // 기본 제출 방지 (수동으로 폼을 제출하기 위함)
+    event.preventDefault();
+    
     // 이메일 검증
     if (!combineEmail()) {
         showMessage('emailCheckResult', '이메일을 입력해주세요.', 'error');
-        event.preventDefault();
         return false;
     }
     
     // 이메일 중복 확인 여부 검증
     if (!isEmailChecked) {
         showMessage('emailCheckResult', '이메일 중복 확인을 해주세요.', 'error');
-        event.preventDefault();
         return false;
     }
     
     // 이메일 인증 여부 검증
     if (!isEmailVerified) {
         showMessage('emailCheckResult', '이메일 인증을 완료해주세요.', 'error');
-        event.preventDefault();
         return false;
     }
     
@@ -361,7 +377,6 @@ function handleSubmit(event) {
     const password = document.getElementById('password').value;
     if (!password) {
         showMessage('password', '비밀번호를 입력해주세요.', 'error');
-        event.preventDefault();
         return false;
     }
     
@@ -369,7 +384,6 @@ function handleSubmit(event) {
     const confirmPassword = document.getElementById('confirmPassword').value;
     if (password !== confirmPassword) {
         showMessage('confirmPassword', '비밀번호가 일치하지 않습니다.', 'error');
-        event.preventDefault();
         return false;
     }
     
@@ -377,14 +391,12 @@ function handleSubmit(event) {
     const nickname = document.getElementById('nickname').value.trim();
     if (!nickname) {
         showMessage('nicknameCheckResult', '닉네임을 입력해주세요.', 'error');
-        event.preventDefault();
         return false;
     }
     
     // 닉네임 중복 확인 여부 검증
     if (!isNicknameChecked) {
         showMessage('nicknameCheckResult', '닉네임 중복 확인을 해주세요.', 'error');
-        event.preventDefault();
         return false;
     }
     
@@ -392,7 +404,6 @@ function handleSubmit(event) {
     const countryId = document.getElementById('countryId').value;
     if (!countryId) {
         alert('국가를 선택해주세요.');
-        event.preventDefault();
         return false;
     }
     
@@ -400,7 +411,6 @@ function handleSubmit(event) {
     const languageId = document.getElementById('languageId').value;
     if (!languageId) {
         alert('선호 언어를 선택해주세요.');
-        event.preventDefault();
         return false;
     }
     
@@ -408,11 +418,42 @@ function handleSubmit(event) {
     const gender = document.querySelector('input[name="gender"]:checked');
     if (!gender) {
         alert('성별을 선택해주세요.');
-        event.preventDefault();
         return false;
     }
     
-    return true;
+    // 모든 검증 통과 시 폼 제출
+    setLoading(true);
+    
+    // 폼 제출
+    const form = event.target;
+    const formData = new FormData(form);
+    
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'Accept': 'text/html',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (response.redirected) {
+            window.location.href = response.url;
+        } else {
+            return response.text().then(html => {
+                document.documentElement.innerHTML = html;
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('회원가입 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
+    })
+    .finally(() => {
+        setLoading(false);
+    });
+    
+    return false;
 }
 
 // Handle country selection
@@ -426,10 +467,70 @@ function handleCountryChange() {
     }
 }
 
+// Set maximum date to today for date of birth
+function setMaxDate() {
+    const dateOfBirthInput = document.getElementById('dateOfBirth');
+    if (!dateOfBirthInput) return;
+    
+    if (!dateOfBirthInput.max) {
+        // Set max date to today
+        const today = new Date();
+        const dd = String(today.getDate()).padStart(2, '0');
+        const mm = String(today.getMonth() + 1).padStart(2, '0'); // January is 0!
+        const yyyy = today.getFullYear();
+        
+        // Set max date to today
+        dateOfBirthInput.max = `${yyyy}-${mm}-${dd}`;
+        
+        // Set min date to 100 years ago
+        const minDate = new Date();
+        minDate.setFullYear(yyyy - 100);
+        const minYyyy = minDate.getFullYear();
+        dateOfBirthInput.min = `${minYyyy}-01-01`;
+    }
+    
+    // Validate age (at least 14 years old)
+    validateAge();
+}
+
+// Validate that user is at least 14 years old
+function validateAge() {
+    const dateOfBirthInput = document.getElementById('dateOfBirth');
+    const errorElement = document.getElementById('dateOfBirthError');
+    
+    if (!dateOfBirthInput.value) {
+        errorElement.textContent = '생년월일을 선택해주세요.';
+        dateOfBirthInput.setCustomValidity('생년월일을 선택해주세요.');
+        return false;
+    }
+    
+    const selectedDate = new Date(dateOfBirthInput.value);
+    const today = new Date();
+    let age = today.getFullYear() - selectedDate.getFullYear();
+    const monthDiff = today.getMonth() - selectedDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < selectedDate.getDate())) {
+        age--;
+    }
+    
+    if (age < 14) {
+        errorElement.textContent = '만 14세 이상만 가입 가능합니다.';
+        dateOfBirthInput.setCustomValidity('만 14세 이상만 가입 가능합니다.');
+        return false;
+    } else {
+        errorElement.textContent = '';
+        dateOfBirthInput.setCustomValidity('');
+        return true;
+    }
+}
+
 // 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize country select
     const countrySelect = document.getElementById('countryId');
+    
+    // Initialize date of birth field
+    setMaxDate();
     if (countrySelect) {
         countrySelect.addEventListener('change', handleCountryChange);
         

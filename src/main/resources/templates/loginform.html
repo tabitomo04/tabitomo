@@ -402,6 +402,32 @@
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// DOM이 완전히 로드된 후 실행
+document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.onsubmit = handleLoginSubmit;
+    }
+    
+    // 자동 로그인 체크박스 이벤트 리스너
+    const autoLoginCheckbox = document.getElementById('autoLogin');
+    const rememberMeCheckbox = document.getElementById('rememberMe');
+    
+    if (autoLoginCheckbox && rememberMeCheckbox) {
+        autoLoginCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                rememberMeCheckbox.checked = true;
+            }
+        });
+        
+        // 자동 로그인이 체크되어 있으면 로그인 상태 유지도 체크
+        if (autoLoginCheckbox.checked) {
+            rememberMeCheckbox.checked = true;
+        }
+    }
+});
+</script>
 <script src="/js/login.js"></script>
 </body>
 </html>

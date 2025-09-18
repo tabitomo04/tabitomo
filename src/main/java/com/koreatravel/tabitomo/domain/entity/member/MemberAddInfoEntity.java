@@ -20,6 +20,14 @@ public class MemberAddInfoEntity {
     @Column(name = "member_id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID memberId;
     
+    @Id
+    @Column(name = "info_high_num", nullable = false)
+    private Integer infoHighNum;
+    
+    @Id
+    @Column(name = "info_low_num", nullable = false)
+    private Integer infoLowNum;
+    
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumns({
         @JoinColumn(
@@ -43,5 +51,24 @@ public class MemberAddInfoEntity {
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
+    }
+    
+    // AddInfoEntity의 이름 가져오기
+    public String getInfoName() {
+        return this.addInfo != null ? this.addInfo.getInfoName() : null;
+    }
+    
+    // AddInfoEntity의 컨텐츠 가져오기
+    public String getContent() {
+        return this.addInfo != null ? this.addInfo.getContent() : null;
+    }
+    
+    // AddInfoEntity의 정보 업데이트
+    public void updateAddInfo(AddInfoEntity addInfo) {
+        if (addInfo != null) {
+            this.infoHighNum = addInfo.getInfoHighNum();
+            this.infoLowNum = addInfo.getInfoLowNum();
+            this.addInfo = addInfo;
+        }
     }
 }

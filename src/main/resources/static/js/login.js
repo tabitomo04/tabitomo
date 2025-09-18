@@ -1,5 +1,5 @@
 // 로그인 폼 처리
-function handleLoginSubmit(event) {
+window.handleLoginSubmit = function(event) {
     event.preventDefault();
     const form = event.target;
     const submitBtn = form.querySelector('button[type="submit"]');

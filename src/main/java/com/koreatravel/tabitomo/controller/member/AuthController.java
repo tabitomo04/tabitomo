@@ -8,7 +8,13 @@ import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
 import com.koreatravel.tabitomo.service.member.AuthService;
 import com.koreatravel.tabitomo.service.member.MemberService;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
+import java.util.List;
+import java.util.UUID;
+
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.authentication.BadCredentialsException;
@@ -21,9 +27,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.List;
 import org.springframework.validation.BindingResult;
-import jakarta.validation.Valid;
 
 @Controller
 @RequiredArgsConstructor
@@ -78,7 +82,10 @@ public class AuthController {
     public String login(
             @RequestParam("email") String email,
             @RequestParam("password") String password,
+            @RequestParam(value = "remember-me", required = false) Boolean rememberMe,
+            @RequestParam(value = "auto-login", required = false) Boolean autoLogin,
             HttpSession session,
+            HttpServletResponse response,
             RedirectAttributes redirectAttributes) {
 
         try {
@@ -88,6 +95,42 @@ public class AuthController {
             // 세션에 사용자 프로필 저장
             session.setAttribute("user", memberProfile);
             session.setAttribute("authenticatedEmail", email);
+            
+            // 로그인 상태 유지 설정 (30일)
+            if (Boolean.TRUE.equals(rememberMe) || Boolean.TRUE.equals(autoLogin)) {
+                // 세션 만료 시간 설정 (30일)
+                session.setMaxInactiveInterval(60 * 60 * 24 * 30); // 30일
+                
+                // 자동 로그인 쿠키 설정 (30일 유지)
+                if (Boolean.TRUE.equals(autoLogin)) {
+                    String token = UUID.randomUUID().toString();
+                    // 토큰을 DB에 저장하는 로직 추가 (예: memberService.saveAutoLoginToken(email, token))
+                    
+                    // 쿠키 설정
+                    Cookie autoLoginCookie = new Cookie("autoLogin", token);
+                    autoLoginCookie.setMaxAge(60 * 60 * 24 * 30); // 30일
+                    autoLoginCookie.setPath("/");
+                    autoLoginCookie.setHttpOnly(true);
+                    // HTTPS 사용 시에만 secure 플래그 설정
+                    // autoLoginCookie.setSecure(true);
+                    response.addCookie(autoLoginCookie);
+                } else {
+                    // remember-me만 체크된 경우 쿠키 삭제
+                    Cookie autoLoginCookie = new Cookie("autoLogin", null);
+                    autoLoginCookie.setMaxAge(0);
+                    autoLoginCookie.setPath("/");
+                    response.addCookie(autoLoginCookie);
+                }
+            } else {
+                // 기본 세션 시간 (30분)
+                session.setMaxInactiveInterval(60 * 30);
+                
+                // 쿠키 삭제
+                Cookie autoLoginCookie = new Cookie("autoLogin", null);
+                autoLoginCookie.setMaxAge(0);
+                autoLoginCookie.setPath("/");
+                response.addCookie(autoLoginCookie);
+            }
             
             // 사용자 정보 조회
             MemberEntity member = memberService.findByEmail(email);

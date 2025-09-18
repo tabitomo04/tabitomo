@@ -10,55 +10,59 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="/" th:classappend="${request.requestURI == '/' ? 'active' : ''}">
-                        <i class="fas fa-home"></i> <span th:text="#{menu.home}">Home</span>
+                    <a class="nav-link" th:href="@{/}" th:classappend="${#strings.equals(requestURI, '/')}">
+                        <i class="fas fa-home"></i> <span data-translatable>Home</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/tripselect/step1" th:classappend="${request.requestURI.startsWith('/tripselect') ? 'active' : ''}">
-                        <i class="fas fa-route"></i> <span th:text="#{menu.travel}">여행지 추천</span>
+                    <a class="nav-link" th:href="@{/tripselect/step1}" th:classappend="${#strings.startsWith(requestURI, '/tripselect')} ? 'active' : ''">
+                        <i class="fas fa-route"></i> <span data-translatable>여행지 추천</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/accommodation" th:classappend="${request.requestURI.startsWith('/accommodation') ? 'active' : ''}">
-                        <i class="fas fa-hotel"></i> <span th:text="#{menu.accommodation}">숙소</span>
+                    <a class="nav-link" th:href="@{/trips/public}" th:classappend="${#strings.startsWith(requestURI, '/trips/public')} ? 'active' : ''">
+                        <i class="fas fa-globe"></i> <span data-translatable>모두의 여행</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/restaurant" th:classappend="${request.requestURI.startsWith('/restaurant') ? 'active' : ''}">
-                        <i class="fas fa-utensils"></i> <span th:text="#{menu.restaurant}">맛집</span>
+                    <a class="nav-link" th:href="@{/tripinformation}" th:classappend="${#strings.startsWith(requestURI, '/tripinformation')} ? 'active' : ''">
+                        <i class="fas fa-info-circle"></i> <span data-translatable>국내여행정보</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/tripinformation" th:classappend="${request.requestURI.startsWith('/tripinformation') ? 'active' : ''}">
-                        <i class="fas fa-info-circle"></i> <span>국내 여행 정보</span>
+                    <a class="nav-link" th:href="@{/community}" th:classappend="${#strings.startsWith(requestURI, '/community')} ? 'active' : ''">
+                        <i class="fas fa-users"></i> <span data-translatable>스토리북</span>
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/community" th:classappend="${request.requestURI.startsWith('/community') ? 'active' : ''}">
-                        <i class="fas fa-users"></i> <span th:text="#{menu.community}">스토리북</span>
+                <li class="nav-item" sec:authorize="hasAuthority('admin')">
+                    <a class="nav-link" th:href="@{/admin}" th:classappend="${#strings.startsWith(requestURI, '/admin')} ? 'active' : ''">
+                        <i class="fas fa-user-shield"></i> <span data-translatable>관리자 페이지</span>
                     </a>
                 </li>
             </ul>
+            
+            <!-- When Not Authenticated -->
             <div class="d-flex" sec:authorize="!isAuthenticated()">
-                <a href="/auth/login" class="btn btn-outline-light me-2">
-                    <i class="fas fa-sign-in-alt"></i> <span th:text="#{menu.login}">로그인</span>
+                <a th:href="@{/login}" class="btn btn-outline-light me-2">
+                    <i class="fas fa-sign-in-alt"></i> <span data-translatable>로그인</span>
                 </a>
-                <a href="/auth/signup" class="btn btn-primary">
-                    <i class="fas fa-user-plus"></i> <span th:text="#{menu.register}">회원가입</span>
+                <a th:href="@{/signup}" class="btn btn-primary">
+                    <i class="fas fa-user-plus"></i> <span data-translatable>회원가입</span>
                 </a>
             </div>
             
+            <!-- When Authenticated -->
             <div class="d-flex align-items-center" sec:authorize="isAuthenticated()">
-                <a th:href="@{/member/mypage}" class="btn btn-outline-light me-3">
-                    <i class="fas fa-user-circle"></i> 마이페이지
+                <a th:href="@{/mypage}" class="btn btn-outline-light me-3">
+                    <i class="fas fa-user-circle"></i> <span data-translatable>마이페이지</span>
                 </a>
                 <span class="navbar-text me-3">
-                    <i class="fas fa-user"></i> <span sec:authentication="name">users</span>님
+                    <i class="fas fa-user"></i> 
+                    <span sec:authentication="principal.nickname">Nickname</span><span data-translatable>님</span>
                 </span>
                 <form th:action="@{/logout}" method="post" class="d-inline">
                     <button type="submit" class="btn btn-outline-light">
-                        <i class="fas fa-sign-out-alt"></i> <span th:text="#{menu.logout}">로그아웃</span>
+                        <i class="fas fa-sign-out-alt"></i> <span data-translatable>로그아웃</span>
                     </button>
                 </form>
             </div>

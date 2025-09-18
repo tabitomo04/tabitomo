@@ -9,10 +9,36 @@ group = 'com.koreatravel'
 version = '0.0.1-SNAPSHOT'
 description = 'Tabitomo Travel Platform'
 
+// Configure Java compilation for all tasks
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-parameters'
+    options.compilerArgs << '-Xlint:unchecked'
+    options.compilerArgs << '-Xlint:deprecation'
+}
+
+tasks.withType(Test) {
+    jvmArgs += ['-Dspring.test.constructor.autowire.mode=all']
+}
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
     }
+    
+    // For Spring Boot 3.x
+    sourceCompatibility = '17'
+    targetCompatibility = '17'
+}
+
+// Ensure the parameters are available at runtime
+tasks.named('compileJava') {
+    inputs.files(tasks.named('processResources'))
+    options.compilerArgs << '-parameters'
+}
+
+tasks.named('compileTestJava') {
+    options.compilerArgs << '-parameters'
 }
 
 configurations {

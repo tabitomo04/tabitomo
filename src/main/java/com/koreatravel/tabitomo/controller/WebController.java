@@ -15,4 +15,10 @@ public class WebController {
     public String menu() {
         return "menu";
     }
+
+    @GetMapping("/chat")
+    public String chat() {
+        return "chat";
+    }
+
 }

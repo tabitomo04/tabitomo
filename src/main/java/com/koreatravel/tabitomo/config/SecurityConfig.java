@@ -58,11 +58,14 @@ public class SecurityConfig {
                 // 폼 로그인 설정
                 .formLogin(form -> form
                         .loginPage("/auth/login")
-                        .loginProcessingUrl("/auth/login") // 로그인 처리 URL 명시적 설정
-                        .usernameParameter("email") // 사용자 이름 파라미터 (이메일로 로그인)
-                        .passwordParameter("password") // 비밀번호 파라미터
-                        .defaultSuccessUrl("/", true) // 로그인 성공 후 리다이렉트 URL
-                        .failureUrl("/auth/login?error=true") // 로그인 실패 시 URL
+                        .loginProcessingUrl("/auth/login")
+                        .usernameParameter("email")
+                        .passwordParameter("password")
+                        .defaultSuccessUrl("/", true)
+                        .failureHandler((request, response, exception) -> {
+                            request.getSession().setAttribute("SPRING_SECURITY_LAST_EXCEPTION", exception);
+                            response.sendRedirect("/auth/login?error=true");
+                        })
                         .permitAll()
                 )
                 // 로그아웃 설정

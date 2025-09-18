@@ -263,13 +263,24 @@
   </div>
   
   <div class="login-body">
-    <!-- 이메일 로그인 폼 -->
-    <form id="loginForm" th:action="@{/auth/login}" method="post" th:if="${param.error}" class="alert alert-danger">
-        <div class="alert alert-danger" th:if="${param.error}">
-            이메일 또는 비밀번호가 일치하지 않습니다.
-        </div>
-    </form>
+    <!-- 오류 메시지 표시 -->
+    <div th:if="${param.error}" class="alert alert-danger" role="alert">
+        <span th:if="${param.error == 'true'}">
+            <span th:if="${session.SPRING_SECURITY_LAST_EXCEPTION != null}">
+                <span th:if="${session.SPRING_SECURITY_LAST_EXCEPTION.message == '비활성화된 계정입니다. 관리자에게 문의해주세요.'}">
+                    비활성화된 계정입니다. 관리자에게 문의해주세요.
+                </span>
+                <span th:unless="${session.SPRING_SECURITY_LAST_EXCEPTION.message == '비활성화된 계정입니다. 관리자에게 문의해주세요.'}">
+                    이메일 또는 비밀번호가 일치하지 않습니다.
+                </span>
+            </span>
+            <span th:unless="${session.SPRING_SECURITY_LAST_EXCEPTION != null}">
+                이메일 또는 비밀번호가 일치하지 않습니다.
+            </span>
+        </span>
+    </div>
     
+    <!-- 이메일 로그인 폼 -->
     <form id="loginForm" th:action="@{/auth/login}" method="post" onsubmit="return handleLoginSubmit(event)">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
       <div class="mb-3">

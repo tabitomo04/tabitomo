@@ -4,6 +4,7 @@ import lombok.*;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 @Getter
@@ -21,26 +22,22 @@ public class MemberAddInfoEntity {
     private UUID memberId;
     
     @Id
-    @Column(name = "info_high_num", nullable = false)
+    @Column(name = "info_high_num", nullable = false, insertable = false, updatable = false)
     private Integer infoHighNum;
     
     @Id
-    @Column(name = "info_low_num", nullable = false)
+    @Column(name = "info_low_num", nullable = false, insertable = false, updatable = false)
     private Integer infoLowNum;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumns({
         @JoinColumn(
             name = "info_high_num",
-            referencedColumnName = "info_high_num",
-            insertable = false,
-            updatable = false
+            referencedColumnName = "info_high_num"
         ),
         @JoinColumn(
             name = "info_low_num",
-            referencedColumnName = "info_low_num",
-            insertable = false,
-            updatable = false
+            referencedColumnName = "info_low_num"
         )
     })
     private AddInfoEntity addInfo;
@@ -50,6 +47,10 @@ public class MemberAddInfoEntity {
     
     @PrePersist
     protected void onCreate() {
+        if (this.addInfo != null) {
+            this.infoHighNum = this.addInfo.getInfoHighNum();
+            this.infoLowNum = this.addInfo.getInfoLowNum();
+        }
         this.createdAt = LocalDateTime.now();
     }
     

@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.Past;
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -23,7 +24,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class MemberEntity {
+public class MemberEntity implements Serializable {
+    private static final long serialVersionUID = 1L;
     
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -96,6 +98,26 @@ public class MemberEntity {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+    
+    // Additional getter for isActive to match the field name
+    public boolean isActive() {
+        return active;
+    }
+    
+    // Setter for active
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+    
+    // Getter for questionnaireCompleted
+    public boolean isQuestionnaireCompleted() {
+        return questionnaireCompleted;
+    }
+    
+    // Setter for questionnaireCompleted
+    public void setQuestionnaireCompleted(boolean questionnaireCompleted) {
+        this.questionnaireCompleted = questionnaireCompleted;
     }
 
     public void setLanguage(Integer languageId) {

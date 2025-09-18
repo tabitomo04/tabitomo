@@ -86,7 +86,13 @@ document.addEventListener('click', function(e) {
     </div>
     <div class="actions">
       <button class="urlbtn" data-tooltip="복사되었습니다!" onclick="clip()">URL 공유</button>
-      <button id="likeBtn" onclick="toggleLike()"><span>❤   </span><span id="like-count" th:text="${post.likes}"></span></button>
+      <!-- 로그인 상태에 따라 좋아요 버튼 표시 -->
+      <div th:if="${#authentication?.isAuthenticated()}">
+        <button id="likeBtn" onclick="toggleLike()"><span>❤</span><span id="like-count" th:text="${post.likes}"></span></button>
+      </div>
+      <div th:unless="${#authentication?.isAuthenticated()}" class="like-login-prompt">
+        <button id="likeBtn" onclick="showLoginPrompt()"><span>❤</span><span id="like-count" th:text="${post.likes}"></span></button>
+      </div>
     </div>
   </div>
   <hr class="line">
@@ -96,11 +102,34 @@ document.addEventListener('click', function(e) {
     </div>
   </div>
 </div>
+<!-- 로그인 상태 확인을 위한 hidden input -->
+<input type="hidden" id="isAuthenticated" th:value="${#authentication?.isAuthenticated() ? 'true' : 'false'}">
+
 <script>
   let liked = false;
+  
+  // 로그인 프롬프트 표시
+  function showLoginPrompt() {
+    if (confirm('로그인이 필요한 서비스입니다. 로그인 페이지로 이동하시겠습니까?')) {
+      // 현재 페이지 URL을 저장한 후 로그인 페이지로 리다이렉트
+      const currentUrl = window.location.href;
+      window.location.href = '/auth/login?redirect=' + encodeURIComponent(currentUrl);
+    }
+  }
+  
+  // 로그인 상태 확인
+  function checkLogin() {
+    return document.getElementById('isAuthenticated').value === 'true';
+  }
 
 // 좋아요 버튼 클릭 시
 function toggleLike() {
+    // 로그인 상태 확인
+    if (!checkLogin()) {
+        showLoginPrompt();
+        return;
+    }
+    
     const booknum = $("#booknum").val();
     const email = $("#email").val();
     const btn = $("#likeBtn");
@@ -127,6 +156,11 @@ function toggleLike() {
 
 // 페이지 로드 시 현재 사용자가 이미 좋아요 눌렀는지 확인
 $(document).ready(function() {
+    // 로그인한 사용자에 대해서만 좋아요 상태 확인
+    if (!checkLogin()) {
+        return;
+    }
+    
     const booknum = $("#booknum").val();
     const email = $("#email").val();
 

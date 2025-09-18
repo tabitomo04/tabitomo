@@ -1,0 +1,133 @@
+/* Scoped styles for tripselect pages */
+
+/* The body rule is removed as it causes global conflicts. */
+
+/* Container inside the scope */
+#tripselect-content .container {
+    max-width: 1200px;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+    margin-top: 20px;
+    margin-bottom: 40px;
+}
+
+/* Progress Bar */
+#tripselect-content .progress {
+    height: 10px;
+    border-radius: 5px;
+    margin: 30px 0;
+}
+
+#tripselect-content .progress-bar {
+    background-color: #4e73df;
+    transition: width 0.6s ease;
+}
+
+/* Form Elements */
+#tripselect-content .form-control, 
+#tripselect-content .form-select {
+    padding: 12px 15px;
+    border-radius: 8px;
+    border: 1px solid #d1d3e2;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+#tripselect-content .form-control:focus, 
+#tripselect-content .form-select:focus {
+    border-color: #bac8f3;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+/* Buttons */
+#tripselect-content .btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+#tripselect-content .btn-primary {
+    background-color: #4e73df;
+    border-color: #4e73df;
+}
+
+#tripselect-content .btn-primary:hover {
+    background-color: #2e59d9;
+    border-color: #2653d4;
+    transform: translateY(-1px);
+}
+
+#tripselect-content .btn-outline-primary {
+    color: #4e73df;
+    border-color: #4e73df;
+}
+
+#tripselect-content .btn-outline-primary:hover {
+    background-color: #4e73df;
+    border-color: #4e73df;
+}
+
+/* Cards */
+#tripselect-content .card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    margin-bottom: 20px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+#tripselect-content .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 2rem 0 rgba(58, 59, 69, 0.2);
+}
+
+#tripselect-content .card-header {
+    background-color: #f8f9fc;
+    border-bottom: 1px solid #e3e6f0;
+    font-weight: 600;
+    padding: 1rem 1.35rem;
+}
+
+/* Navigation */
+#tripselect-content .nav-pills .nav-link {
+    color: #5a5c69;
+    font-weight: 600;
+    padding: 0.5rem 1.5rem;
+    margin-right: 0.5rem;
+    border-radius: 20px;
+    transition: all 0.2s;
+}
+
+#tripselect-content .nav-pills .nav-link.active {
+    background-color: #4e73df;
+    color: white;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    #tripselect-content .container {
+        padding: 15px;
+        margin-top: 10px;
+    }
+    
+    #tripselect-content .btn {
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+    
+    #tripselect-content .card-body {
+        padding: 1rem;
+    }
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+#tripselect-content .fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+}

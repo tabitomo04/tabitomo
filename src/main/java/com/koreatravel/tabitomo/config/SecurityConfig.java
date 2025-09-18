@@ -26,8 +26,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // CSRF 보호 비활성화 (개발 편의를 위해)
-                .csrf(csrf -> csrf.disable())
+                // CSRF 보호 활성화 (API 요청에 대해서는 CSRF 보호 비활성화)
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/api/**")
+                )
                 // 세션 정책 설정
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
@@ -56,7 +58,11 @@ public class SecurityConfig {
                 // 폼 로그인 설정
                 .formLogin(form -> form
                         .loginPage("/auth/login")
-                        .defaultSuccessUrl("/")
+                        .loginProcessingUrl("/auth/login") // 로그인 처리 URL 명시적 설정
+                        .usernameParameter("email") // 사용자 이름 파라미터 (이메일로 로그인)
+                        .passwordParameter("password") // 비밀번호 파라미터
+                        .defaultSuccessUrl("/", true) // 로그인 성공 후 리다이렉트 URL
+                        .failureUrl("/auth/login?error=true") // 로그인 실패 시 URL
                         .permitAll()
                 )
                 // 로그아웃 설정

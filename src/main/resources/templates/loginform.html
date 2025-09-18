@@ -265,6 +265,9 @@
   <div class="login-body">
     <!-- 오류 메시지 표시 -->
     <div th:if="${param.error}" class="alert alert-danger" role="alert">
+        <span th:if="${param.error == 'unauthorized'}">
+            로그인이 필요한 서비스입니다. 로그인 후 이용해주세요.
+        </span>
         <span th:if="${param.error == 'true'}">
             <span th:if="${session.SPRING_SECURITY_LAST_EXCEPTION != null}">
                 <span th:if="${session.SPRING_SECURITY_LAST_EXCEPTION.message == '비활성화된 계정입니다. 관리자에게 문의해주세요.'}">

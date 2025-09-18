@@ -52,8 +52,17 @@ public class SecurityConfig {
                             "/api/**", 
                             "/member/api/**"
                         ).permitAll()
+                        // 마이페이지는 인증 필요
+                        .requestMatchers("/mypage/**").authenticated()
                         // 그 외 모든 요청은 인증 필요
                         .anyRequest().authenticated()
+                )
+                // 인증 예외 처리
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            // 인증되지 않은 사용자가 보호된 리소스에 접근할 때 로그인 페이지로 리다이렉트
+                            response.sendRedirect("/auth/login?error=unauthorized");
+                        })
                 )
                 // 폼 로그인 설정
                 .formLogin(form -> form

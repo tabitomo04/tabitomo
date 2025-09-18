@@ -112,37 +112,57 @@ public class EditorController {
 
     /**
      * 스토리북 리스트 불러오기
-     * @param model
-     * @return
+     * @param model 모델 객체
+     * @param sort 정렬 기준 (random, hot, new)
+     * @param page 페이지 번호 (0부터 시작)
+     * @param size 페이지 당 항목 수
+     * @return 스토리북 목록 뷰
      */
     @GetMapping(PathConstants.STORYBOOK_LIST)
-    public String storylist(Model model,
-                            @RequestParam(defaultValue = "random") String sort,
-                            @RequestParam(name = "page", defaultValue = "0") int page,
-                            @RequestParam(name = "size", defaultValue = "6") int size){
-
-        if(sort == null) sort = "random";
-
-        if("random".equals(sort)) {
-            List<StorybookListDTO> storybookList = editorService.getStorybookList(sort);
-            model.addAttribute("storylist", storybookList);
-            model.addAttribute("pagelist", null);
+    public String storylist(
+            Model model,
+            @RequestParam(value = "sort", required = false, defaultValue = "random") String sort,
+            @RequestParam(value = "page", required = false, defaultValue = "0") int page,
+            @RequestParam(value = "size", required = false, defaultValue = "6") int size) {
+        
+        try {
+            // Ensure page is at least 0
+            page = Math.max(0, page);
+            // Ensure size is between 1 and 100
+            size = Math.min(100, Math.max(1, size));
+            
+            log.info("Loading storybook list - sort: {}, page: {}, size: {}", sort, page, size);
+            
+            if (sort == null || "random".equals(sort)) {
+                // 랜덤 정렬의 경우
+                List<StorybookListDTO> storybookList = editorService.getStorybookList("random");
+                model.addAttribute("storylist", storybookList);
+                model.addAttribute("pagelist", null);
+            } else {
+                // 인기순(hot) 또는 최신순(new) 정렬의 경우
+                Page<StorybookListDTO> hotORnewList = editorService.gethotORnewList(sort, page, size);
+                
+                // 모델에 데이터 추가
+                model.addAttribute("pagelist", hotORnewList.getContent());
+                model.addAttribute("storylist", null);
+                model.addAttribute("sort", sort);
+                
+                // 페이징 정보 추가
+                model.addAttribute("currentPage", page);
+                model.addAttribute("size", size);
+                model.addAttribute("totalPages", hotORnewList.getTotalPages());
+                model.addAttribute("totalElement", hotORnewList.getTotalElements());
+                model.addAttribute("hasNext", hotORnewList.hasNext());
+                model.addAttribute("hasPrevious", hotORnewList.hasPrevious());
+            }
+            
+            return "storylist";
+            
+        } catch (Exception e) {
+            log.error("Error occurred while loading storybook list", e);
+            model.addAttribute("error", "스토리북 목록을 불러오는 중 오류가 발생했습니다.");
+            return "error/error";
         }
-        else {
-            Page<StorybookListDTO> hotORnewList = editorService.gethotORnewList(sort, page, size);
-            model.addAttribute("pagelist", hotORnewList.getContent());
-            model.addAttribute("sort", sort);
-            //페이징
-            model.addAttribute("currentPage", page);
-            model.addAttribute("size", size);
-            model.addAttribute("totalPages", hotORnewList.getTotalPages());
-            model.addAttribute("totalElement", hotORnewList.getTotalElements());
-            model.addAttribute("hasNext", hotORnewList.hasNext());
-            model.addAttribute("hasPrevious", hotORnewList.hasPrevious());
-
-        }
-        return "storylist";
-
     }
 
     /**

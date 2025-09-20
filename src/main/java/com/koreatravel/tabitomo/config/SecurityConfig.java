@@ -9,11 +9,13 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import com.koreatravel.tabitomo.config.security.CustomAuthenticationSuccessHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -22,6 +24,12 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final UserDetailsServiceImpl userDetailsService;
+    private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
+
+    // AJAX 요청인지 확인하는 헬퍼 메서드
+    private boolean isAjaxRequest(HttpServletRequest request) {
+        return "XMLHttpRequest".equals(request.getHeader("X-Requested-With"));
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -33,6 +41,48 @@ public class SecurityConfig {
                 // 세션 정책 설정
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .invalidSessionUrl("/auth/login?expired")
+                        .maximumSessions(1)
+                        .maxSessionsPreventsLogin(true)
+                        .expiredUrl("/auth/login?expired")
+                )
+                // Form Login 설정
+                .formLogin(form -> form
+                    .loginPage("/auth/login")
+                    .loginProcessingUrl("/auth/login")
+                    .usernameParameter("email")
+                    .passwordParameter("password")
+                    .successHandler(customAuthenticationSuccessHandler)
+                    .failureHandler((request, response, exception) -> {
+                        request.getSession().setAttribute("SPRING_SECURITY_LAST_EXCEPTION", exception);
+                        response.sendRedirect("/auth/login?error=true");
+                    })
+                    .permitAll()
+                )
+                // 로그아웃 설정
+                .logout(logout -> logout
+                    .logoutUrl("/auth/logout")
+                    .logoutSuccessUrl("/")
+                    .invalidateHttpSession(true)
+                    .deleteCookies("JSESSIONID")
+                    .permitAll()
+                )
+                // 예외 처리
+                .exceptionHandling(exception -> exception
+                    .authenticationEntryPoint((request, response, authException) -> {
+                        if (isAjaxRequest(request)) {
+                            response.sendError(HttpStatus.UNAUTHORIZED.value(), "Unauthorized");
+                        } else {
+                            response.sendRedirect("/auth/login?error=unauthorized");
+                        }
+                    })
+                    .accessDeniedHandler((request, response, accessDeniedException) -> {
+                        if (isAjaxRequest(request)) {
+                            response.sendError(HttpStatus.FORBIDDEN.value(), "Access Denied");
+                        } else {
+                            response.sendRedirect("/auth/access-denied");
+                        }
+                    })
                 )
                 // 권한 설정
                 .authorizeHttpRequests(authorize -> authorize
@@ -41,7 +91,7 @@ public class SecurityConfig {
                             "/", 
                             "/css/**", 
                             "/js/**", 
-                            "/image/**", 
+                            "/images/**", 
                             "/images/**", 
                             "/favicon.ico", 
                             "/error"
@@ -92,7 +142,7 @@ public class SecurityConfig {
                         .loginProcessingUrl("/auth/login")
                         .usernameParameter("email")
                         .passwordParameter("password")
-                        .defaultSuccessUrl("/", true)
+                        .successHandler(customAuthenticationSuccessHandler)
                         .failureHandler((request, response, exception) -> {
                             request.getSession().setAttribute("SPRING_SECURITY_LAST_EXCEPTION", exception);
                             response.sendRedirect("/auth/login?error=true");

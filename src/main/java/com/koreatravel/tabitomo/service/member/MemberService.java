@@ -382,15 +382,6 @@ public class MemberService {
     }
 
     /**
-     * 회원 프로필 조회
-     */
-    @Transactional(readOnly = true)
-    public MemberProfileDTO getMemberProfile(UUID memberId) {
-        MemberEntity member = findById(memberId);
-        return convertToDTO(member);
-    }
-
-    /**
      * MemberEntity를 MemberProfileDTO로 변환
      */
     private MemberProfileDTO convertToDTO(MemberEntity member) {
@@ -421,6 +412,43 @@ public class MemberService {
     /**
      * 닉네임 사용 가능 여부 확인
      */
+    /**
+     * 회원의 설문조사 완료 상태를 업데이트합니다.
+     * @param memberId 회원 ID
+     * @param completed 완료 여부
+     */
+    @Transactional
+    public void updateQuestionnaireStatus(UUID memberId, boolean completed) {
+        MemberEntity member = memberRepository.findById(memberId)
+            .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+        member.setQuestionnaireCompleted(completed);
+        memberRepository.save(member);
+    }
+
+    /**
+     * 회원 ID로 프로필 정보를 조회합니다.
+     * @param memberId 조회할 회원 ID
+     * @return MemberProfileDTO 회원 프로필 정보
+     */
+    @Transactional(readOnly = true)
+    public MemberProfileDTO getMemberProfile(UUID memberId) {
+        MemberEntity member = memberRepository.findById(memberId)
+            .orElseThrow(() -> new ResourceNotFoundException("회원을 찾을 수 없습니다."));
+            
+        return MemberProfileDTO.builder()
+            .id(member.getId())
+            .email(member.getEmail())
+            .nickname(member.getNickname())
+            .profileImageUrl(member.getProfileImageUrl())
+            .dateOfBirth(member.getDateOfBirth())
+            .gender(member.getGender())
+            .questionnaireCompleted(member.isQuestionnaireCompleted())
+            .createdAt(member.getCreatedAt())
+            .updatedAt(member.getUpdatedAt())
+            .isActive(member.isActive())
+            .build();
+    }
+
     @Transactional(readOnly = true)
     public boolean isNicknameAvailable(String nickname, UUID currentUserId) {
         if (nickname == null || nickname.trim().isEmpty()) {

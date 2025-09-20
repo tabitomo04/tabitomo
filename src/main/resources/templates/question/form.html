@@ -10,46 +10,172 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         .question-container {
-            max-width: 800px;
-            margin: 2rem auto;
+            max-width: 900px;
+            margin: 0 auto;
             padding: 2rem;
-            background-color: #fff;
+            background: white;
             border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
         }
+        
         .question-section {
-            margin-bottom: 3rem;
-            padding: 1.5rem;
-            border: 1px solid #e3e6f0;
-            border-radius: 8px;
-            background-color: #f8f9fc;
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        .question-section.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .progress-container {
+            margin-bottom: 2rem;
+        }
+        
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        .progress {
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            transition: width 0.3s ease;
         }
         .question-title {
             color: #4e73df;
             margin-bottom: 1.5rem;
             font-weight: 600;
         }
-        .option-label {
-            display: block;
-            padding: 0.75rem 1.25rem;
-            margin-bottom: 0.5rem;
-            background-color: white;
-            border: 1px solid #d1d3e2;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .option-label:hover {
-            border-color: #b7b9cc;
-            background-color: #f8f9fc;
-        }
-        .form-check-input:checked + .option-label {
-            background-color: #eaecf4;
-            border-color: #4e73df;
-            color: #4e73df;
-        }
+        /* 체크박스와 라디오 버튼을 화면에서 숨기되, 접근성을 위해 유지 */
         .form-check-input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        /* 옵션 라벨 스타일 */
+        .option-label {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.4rem 1rem;
+            margin: 0.25rem 0.15rem;
+            background-color: #f8f9fc;
+            border: 2px solid #d1d3e2;
+            border-radius: 50px;
+            color: #4e73df;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        /* MBTI 섹션 스타일 */
+        #mbti-section {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        /* MBTI 그리드 컨테이너 */
+        #mbti-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        /* MBTI 버튼 스타일 */
+        #mbti-section .option-label {
+            width: 100%;
+            padding: 1rem 0.5rem;
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-align: center;
+            min-height: 0;
+            height: 100%;
+            aspect-ratio: 2/1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+            border-radius: 12px;
+            background-color: #f0f2f5;
+            border: 1px solid #d1d3e2;
+        }
+        
+        /* MBTI 버튼 호버 효과 */
+        #mbti-section .option-label:hover {
+            background-color: #e2e6ea;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        /* 선택된 MBTI 버튼 */
+        #mbti-section .form-check-input:checked + .option-label {
+            background-color: #4e73df;
+            border-color: #4e73df;
+            color: white;
+            transform: translateY(0);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        /* MBTI 라디오 버튼 숨김 */
+        #mbti-section .form-check-input {
             display: none;
+        }
+
+        /* 호버 효과 */
+        .option-label:hover {
+            background-color: #e9ecef;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* 체크/선택된 상태 */
+        .form-check-input:checked + .option-label,
+        input[type="checkbox"]:checked + .option-label,
+        input[type="radio"]:checked + .option-label {
+            background-color: #4e73df;
+            border-color: #4e73df;
+            color: white;
+            font-weight: 500;
+        }
+
+        /* 포커스 상태 */
+        .form-check-input:focus-visible + .option-label {
+            outline: 3px solid #4e73df;
+            outline-offset: 2px;
+        }
+        .form-check-inline {
+            margin-right: 0.05rem;
+            margin-bottom: 0.3rem;
+            padding: 0 0.05rem;
+        }
+        
+        .d-flex.flex-wrap {
+            margin: 0.5rem -0.2rem;
+            justify-content: center;
         }
         .progress {
             height: 10px;
@@ -61,23 +187,31 @@
     <div th:replace="fragments/header :: header"></div>
     
     <div class="container">
-        <form th:action="@{/question/submit}" th:object="${questionAnswers}" method="post" class="question-container">
-            <div class="text-center mb-4">
+        <form th:action="@{/question/form}" th:object="${questionAnswers}" method="post" class="question-container">
+            <div class="text-center mb-5">
                 <h2>여행 취향 설문 조사</h2>
                 <p class="text-muted">당신의 여행 스타일을 알려주시면 더 나은 추천을 드릴 수 있어요!</p>
-                <div class="progress">
-                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                
+                <div class="progress-container">
+                    <div class="progress-text">
+                        <span>진행률</span>
+                        <span id="progress-text">1/5</span>
+                    </div>
+                    <div class="progress">
+                        <div id="progress-bar" class="progress-bar bg-primary progress-bar-striped progress-bar-animated" 
+                             role="progressbar" style="width: 20%" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
                 </div>
             </div>
 
             <!-- 취미/관심사 (다중 선택) -->
-            <div class="question-section" id="hobbies-section">
+            <div class="question-section active" id="hobbies-section">
                 <h4 class="question-title">1. 어떤 활동에 관심이 있으신가요? (다중 선택 가능)</h4>
-                <div class="row">
-                    <div th:each="hobby : ${questionsByCategory.get(1)}" class="col-md-6 mb-2">
-                        <input type="checkbox" th:field="*{hobbies}" th:value="${hobby.infoLowNum}" class="form-check-input" id="hobby-${hobby.infoLowNum}">
+                <div class="d-flex flex-wrap">
+                    <div th:each="hobby : ${questionsByCategory.get(1)}" class="form-check form-check-inline">
+                        <input type="checkbox" th:field="*{hobbies}" th:value="${hobby.infoLowNum}" class="form-check-input" th:id="'hobby-' + ${hobby.infoLowNum}">
                         <label th:for="${'hobby-' + hobby.infoLowNum}" class="option-label">
-                            <i class="fas me-2" th:classappend="'fa-' + ${hobby.content}"></i>
+                            <i class="fas me-1" th:classappend="'fa-' + ${hobby.content}"></i>
                             <span th:text="${hobby.infoName}"></span>
                         </label>
                     </div>
@@ -87,10 +221,10 @@
             <!-- MBTI (단일 선택) -->
             <div class="question-section" id="mbti-section">
                 <h4 class="question-title">2. 당신의 MBTI는 무엇인가요? (선택사항)</h4>
-                <div class="row">
-                    <div th:each="mbti : ${questionsByCategory.get(2)}" class="col-6 col-md-3 mb-2">
+                <div id="mbti-grid">
+                    <div th:each="mbti : ${questionsByCategory.get(2)}" class="form-check">
                         <input type="radio" th:field="*{mbti}" th:value="${mbti.infoName}" class="form-check-input" th:id="'mbti-' + ${mbti.infoLowNum}">
-                        <label th:for="${'mbti-' + mbti.infoLowNum}" class="option-label text-center">
+                        <label th:for="${'mbti-' + mbti.infoLowNum}" class="option-label">
                             <span th:text="${mbti.infoName}"></span>
                         </label>
                     </div>
@@ -100,11 +234,11 @@
             <!-- 여행 스타일 (다중 선택) -->
             <div class="question-section" id="travel-style-section">
                 <h4 class="question-title">3. 선호하는 여행 스타일은 무엇인가요? (다중 선택 가능)</h4>
-                <div class="row">
-                    <div th:each="style : ${questionsByCategory.get(3)}" class="col-md-6 mb-2">
+                <div class="d-flex flex-wrap">
+                    <div th:each="style : ${questionsByCategory.get(3)}" class="form-check form-check-inline">
                         <input type="checkbox" th:field="*{travelStyles}" th:value="${style.infoLowNum}" class="form-check-input" th:id="'style-' + ${style.infoLowNum}">
                         <label th:for="${'style-' + style.infoLowNum}" class="option-label">
-                            <i class="fas me-2" th:classappend="'fa-' + ${style.content}"></i>
+                            <i class="fas me-1" th:classappend="'fa-' + ${style.content}"></i>
                             <span th:text="${style.infoName}"></span>
                         </label>
                     </div>
@@ -114,11 +248,11 @@
             <!-- 동반자 (다중 선택) -->
             <div class="question-section" id="companions-section">
                 <h4 class="question-title">4. 주로 누구와 여행을 가시나요? (다중 선택 가능)</h4>
-                <div class="row">
-                    <div th:each="companion : ${questionsByCategory.get(4)}" class="col-md-6 mb-2">
+                <div class="d-flex flex-wrap">
+                    <div th:each="companion : ${questionsByCategory.get(4)}" class="form-check form-check-inline">
                         <input type="checkbox" th:field="*{companions}" th:value="${companion.infoLowNum}" class="form-check-input" th:id="'companion-' + ${companion.infoLowNum}">
                         <label th:for="${'companion-' + companion.infoLowNum}" class="option-label">
-                            <i class="fas me-2" th:classappend="'fa-' + ${companion.content}"></i>
+                            <i class="fas me-1" th:classappend="'fa-' + ${companion.content}"></i>
                             <span th:text="${companion.infoName}"></span>
                         </label>
                     </div>
@@ -128,24 +262,38 @@
             <!-- 음식 선호도 (다중 선택) -->
             <div class="question-section" id="food-section">
                 <h4 class="question-title">5. 선호하는 음식은 무엇인가요? (다중 선택 가능)</h4>
-                <div class="row">
-                    <div th:each="food : ${questionsByCategory.get(5)}" class="col-md-6 mb-2">
+                <div class="d-flex flex-wrap">
+                    <div th:each="food : ${questionsByCategory.get(5)}" class="form-check form-check-inline">
                         <input type="checkbox" th:field="*{foodPreferences}" th:value="${food.infoLowNum}" class="form-check-input" th:id="'food-' + ${food.infoLowNum}">
                         <label th:for="${'food-' + food.infoLowNum}" class="option-label">
-                            <i class="fas me-2" th:classappend="'fa-' + ${food.content}"></i>
+                            <i class="fas me-1" th:classappend="'fa-' + ${food.content}"></i>
                             <span th:text="${food.infoName}"></span>
                         </label>
                     </div>
                 </div>
             </div>
 
-            <div class="d-flex justify-content-between mt-5">
-                <a th:href="@{/question/start}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left me-2"></i> 이전으로
+            <!-- 네비게이션 버튼 -->
+            <div class="d-flex justify-content-between align-items-center mt-5">
+                <div>
+                    <button type="button" id="prev-btn" class="btn btn-outline-secondary" style="display: none; min-width: 100px;">
+                        <i class="fas fa-arrow-left me-2"></i>이전
+                    </button>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" id="next-btn" class="btn btn-primary" style="min-width: 100px;">
+                        다음 <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                    <button type="submit" id="submit-btn" class="btn btn-success" style="display: none; min-width: 120px;">
+                        제출하기 <i class="fas fa-paper-plane ms-2"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <a th:href="@{/question/start}" class="text-muted">
+                    <i class="fas fa-arrow-left me-1"></i> 이전 화면으로 돌아가기
                 </a>
-                <button type="submit" class="btn btn-primary">
-                    제출하기 <i class="fas fa-arrow-right ms-2"></i>
-                </button>
             </div>
         </form>
     </div>
@@ -154,43 +302,232 @@
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // 프로그레스 바 업데이트
-        function updateProgress() {
-            const sections = document.querySelectorAll('.question-section');
-            const currentSection = document.querySelector('.question-section:target') || sections[0];
-            const currentIndex = Array.from(sections).indexOf(currentSection);
-            const progress = ((currentIndex + 1) / sections.length) * 100;
-            document.querySelector('.progress-bar').style.width = progress + '%';
-            document.querySelector('.progress-bar').setAttribute('aria-valuenow', progress);
-        }
-
-        // 섹션 스크롤 애니메이션
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const targetId = this.getAttribute('href');
-                if (targetId === '#') return;
+        // 라벨 클릭 시 체크박스/라디오 상태 토글
+        document.addEventListener('DOMContentLoaded', function() {
+            // 라벨 클릭 이벤트 위임
+            document.addEventListener('click', function(e) {
+                // 클릭된 요소가 라벨인지 확인
+                let label = e.target.closest('.option-label');
+                if (!label) return;
                 
-                document.querySelector(targetId).scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
+                // 기본 동작 방지
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const inputId = label.getAttribute('for');
+                if (!inputId) return;
+                
+                const input = document.getElementById(inputId);
+                if (!input) return;
+                
+                // 체크박스인 경우 토글, 라디오인 경우 선택
+                if (input.type === 'checkbox') {
+                    input.checked = !input.checked;
+                } else if (input.type === 'radio' && !input.checked) {
+                    // 라디오 버튼의 경우 다른 버튼 선택 해제
+                    const radioName = input.name;
+                    document.querySelectorAll(`input[type="radio"][name="${radioName}"]`).forEach(radio => {
+                        radio.checked = false;
+                        updateCheckState(radio);
+                    });
+                    input.checked = true;
+                }
+                
+                // 스타일 업데이트
+                updateCheckState(input);
+                
+                // 변경 이벤트 발생
+                const event = new Event('change', { bubbles: true });
+                input.dispatchEvent(event);
+            });
+            
+            // 인풋 직접 클릭 시에도 스타일 업데이트
+            document.addEventListener('change', function(e) {
+                if (e.target.matches('.form-check-input')) {
+                    updateCheckState(e.target);
+                }
+            });
+            
+            // 체크 상태에 따른 스타일 업데이트
+            function updateCheckState(input = null) {
+                const inputs = input ? [input] : document.querySelectorAll('.form-check-input');
+                
+                inputs.forEach(input => {
+                    const label = document.querySelector(`label[for="${input.id}"]`);
+                    if (!label) return;
+                    
+                    if (input.checked) {
+                        label.style.backgroundColor = '#4e73df';
+                        label.style.borderColor = '#4e73df';
+                        label.style.color = 'white';
+                    } else {
+                        label.style.backgroundColor = '#f8f9fc';
+                        label.style.borderColor = '#d1d3e2';
+                        label.style.color = '#4e73df';
+                    }
+                });
+            }
+            
+            // 초기 상태 업데이트
+            updateCheckState();
+            
+            // 폼 제출 시 체크된 항목 확인
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    const checkedInputs = document.querySelectorAll('.form-check-input:checked');
+                    if (checkedInputs.length === 0) {
+                        e.preventDefault();
+                        alert('하나 이상의 항목을 선택해주세요.');
+                    }
+                });
+            }
+            
+            // 페이지네이션 관련 코드
+            const sections = document.querySelectorAll('.question-section');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const submitBtn = document.getElementById('submit-btn');
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+            let currentSection = 0;
+            
+            // 섹션 초기화
+            function initSections() {
+                sections.forEach((section, index) => {
+                    if (index === 0) {
+                        section.classList.add('active');
+                    } else {
+                        section.classList.remove('active');
+                    }
+                });
+                updateButtons();
+                updateProgress();
+            }
+            
+            // 버튼 상태 업데이트
+            function updateButtons() {
+                // 이전 버튼
+                if (currentSection === 0) {
+                    prevBtn.style.display = 'none';
+                } else {
+                    prevBtn.style.display = 'inline-block';
+                }
+                
+                // 다음/제출 버튼
+                if (currentSection === sections.length - 1) {
+                    nextBtn.style.display = 'none';
+                    submitBtn.style.display = 'inline-block';
+                } else {
+                    nextBtn.style.display = 'inline-block';
+                    submitBtn.style.display = 'none';
+                }
+            }
+            
+            // 진행률 업데이트
+            function updateProgress() {
+                const progress = ((currentSection + 1) / sections.length) * 100;
+                progressBar.style.width = `${progress}%`;
+                progressBar.setAttribute('aria-valuenow', progress);
+                progressText.textContent = `${currentSection + 1}/${sections.length}`;
+                
+                // 페이지 제목 업데이트
+                document.title = `여행 취향 설문 (${currentSection + 1}/${sections.length})`;
+            }
+            
+            // 섹션 전환
+            function goToSection(index) {
+                if (index < 0 || index >= sections.length) return;
+                
+                // 현재 섹션 숨기기
+                sections[currentSection].classList.remove('active');
+                
+                // 새 섹션 표시
+                currentSection = index;
+                sections[currentSection].classList.add('active');
+                
+                // 상단으로 스크롤
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                
+                // 버튼 및 진행률 업데이트
+                updateButtons();
+                updateProgress();
+            }
+            
+            // 이전 버튼 클릭 이벤트
+            prevBtn.addEventListener('click', function() {
+                if (currentSection > 0) {
+                    goToSection(currentSection - 1);
+                }
+            });
+            
+            // 다음 버튼 클릭 이벤트
+            nextBtn.addEventListener('click', function() {
+                if (validateCurrentSection()) {
+                    if (currentSection < sections.length - 1) {
+                        goToSection(currentSection + 1);
+                    }
+                } else {
+                    alert('하나 이상의 항목을 선택해주세요.');
+                }
+            });
+            
+            // 현재 섹션의 필수 입력 항목 검증
+            function validateCurrentSection() {
+                const currentSectionEl = sections[currentSection];
+                const checkboxes = currentSectionEl.querySelectorAll('input[type="checkbox"]:checked');
+                const radios = currentSectionEl.querySelectorAll('input[type="radio"]:checked');
+                
+                // MBTI 섹션은 선택사항이므로 항상 통과
+                if (currentSectionEl.id === 'mbti-section') {
+                    return true;
+                }
+                
+                // 체크박스나 라디오 버튼이 하나라도 선택되었는지 확인
+                return checkboxes.length > 0 || radios.length > 0;
+            }
+            
+            // 폼 제출 시 전체 유효성 검사
+            document.querySelector('form').addEventListener('submit', function(e) {
+                // 마지막 섹션의 유효성 검사
+                if (!validateCurrentSection()) {
+                    e.preventDefault();
+                    alert('하나 이상의 항목을 선택해주세요.');
+                    return false;
+                }
+                
+                // 모든 필수 섹션 검사 (MBTI 제외)
+                const requiredSections = ['hobbies-section', 'travel-style-section', 'companions-section', 'food-section'];
+                let isValid = true;
+                
+                requiredSections.forEach(sectionId => {
+                    const section = document.getElementById(sectionId);
+                    if (section) {
+                        const hasChecked = section.querySelector('input[type="checkbox"]:checked') !== null ||
+                                        section.querySelector('input[type="radio"]:checked') !== null;
+                        
+                        if (!hasChecked) {
+                            isValid = false;
+                            section.style.borderColor = '#dc3545';
+                            setTimeout(() => {
+                                section.style.borderColor = '#e3e6f0';
+                            }, 2000);
+                        }
+                    }
                 });
                 
-                updateProgress();
+                if (!isValid) {
+                    e.preventDefault();
+                    alert('모든 질문에 답변해주세요.');
+                    return false;
+                }
+                
+                return true;
             });
+            
+            // 초기화
+            initSections();
         });
-
-        // 폼 제출 시 유효성 검사
-        document.querySelector('form').addEventListener('submit', function(e) {
-            const checkboxes = this.querySelectorAll('input[type="checkbox"]:checked');
-            if (checkboxes.length === 0) {
-                e.preventDefault();
-                alert('하나 이상의 항목을 선택해주세요.');
-            }
-        });
-
-        // 페이지 로드 시 프로그레스 바 초기화
-        document.addEventListener('DOMContentLoaded', updateProgress);
     </script>
 </body>
 </html>

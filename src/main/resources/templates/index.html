@@ -165,10 +165,291 @@
     </section>
 </main>
 
+<!-- 설문조사 안내 모달 -->
+<div id="surveyModal" class="modal fade" tabindex="-1" aria-labelledby="surveyModalLabel" aria-hidden="true" th:if="${session.authenticatedEmail != null}">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="surveyModalLabel" data-translatable>환영합니다! 🎉</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p data-translatable>여행 취향을 파악하기 위한 간단한 설문조사에 참여해주세요.</p>
+                <p data-translatable>설문조사를 완료하시면 맞춤형 여행 추천을 받아보실 수 있습니다.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-translatable>나중에 하기</button>
+                <button type="button" class="btn btn-primary" onclick="goToSurvey()" data-translatable>설문조사 하러 가기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 챗봇 버튼 -->
+<div class="chatbot-button" id="chatbotButton">
+    <i class="fas fa-comment-dots"></i>
+</div>
+
+<!-- 챗봇 모달 -->
+<div class="chatbot-modal" id="chatbotModal">
+    <div class="chatbot-header">
+        <h5 data-translatable>Tabitomo 챗봇</h5>
+        <button type="button" class="btn-close" onclick="closeChatbot()"></button>
+    </div>
+    <div class="chatbot-body" id="chatbotBody">
+        <div class="chatbot-message">
+            <div class="chatbot-avatar">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="chatbot-text">
+                <p data-translatable>안녕하세요! Tabitomo 챗봇입니다. 어떤 여행에 대해 궁금하신가요? 😊</p>
+            </div>
+        </div>
+    </div>
+    <div class="chatbot-input">
+        <input type="text" id="userMessage" placeholder="메시지를 입력하세요..." onkeypress="handleKeyPress(event)">
+        <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+    </div>
+</div>
+
 <!-- Footer -->
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 
+<!-- Styles for modal and chatbot -->
+<style>
+    /* 설문조사 모달 스타일 */
+    .modal-content {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    
+    .modal-header {
+        border-bottom: 1px solid #eee;
+        background-color: #f8f9fa;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+    }
+    
+    .modal-title {
+        color: #333;
+        font-weight: 600;
+    }
+    
+    /* 챗봇 버튼 스타일 */
+    .chatbot-button {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 60px;
+        height: 60px;
+        background-color: #4e73df;
+        border-radius: 50%;
+        color: white;
+        text-align: center;
+        line-height: 60px;
+        font-size: 24px;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        z-index: 1000;
+        transition: all 0.3s ease;
+    }
+    
+    .chatbot-button:hover {
+        background-color: #3a5ccc;
+        transform: scale(1.1);
+    }
+    
+    /* 챗봇 모달 스타일 */
+    .chatbot-modal {
+        display: none;
+        position: fixed;
+        bottom: 100px;
+        right: 30px;
+        width: 350px;
+        height: 500px;
+        background-color: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+        z-index: 1001;
+        flex-direction: column;
+    }
+    
+    .chatbot-header {
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #4e73df;
+        color: white;
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+    }
+    
+    .chatbot-header h5 {
+        margin: 0;
+        font-weight: 600;
+    }
+    
+    .chatbot-body {
+        flex: 1;
+        padding: 15px;
+        overflow-y: auto;
+        background-color: #f8f9fa;
+    }
+    
+    .chatbot-message {
+        display: flex;
+        margin-bottom: 15px;
+    }
+    
+    .chatbot-avatar {
+        width: 36px;
+        height: 36px;
+        background-color: #4e73df;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 10px;
+        flex-shrink: 0;
+    }
+    
+    .chatbot-text {
+        max-width: 80%;
+    }
+    
+    .chatbot-text p {
+        background-color: white;
+        padding: 10px 15px;
+        border-radius: 18px;
+        margin: 0;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    
+    .chatbot-input {
+        display: flex;
+        padding: 15px;
+        border-top: 1px solid #eee;
+        background-color: white;
+        border-bottom-left-radius: 15px;
+        border-bottom-right-radius: 15px;
+    }
+    
+    .chatbot-input input {
+        flex: 1;
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        padding: 10px 15px;
+        outline: none;
+    }
+    
+    .chatbot-input button {
+        background: none;
+        border: none;
+        color: #4e73df;
+        margin-left: 10px;
+        cursor: pointer;
+        font-size: 20px;
+    }
+</style>
+
 <!-- Scripts -->
+<script th:inline="javascript">
+    // 설문조사 모달 표시
+    document.addEventListener('DOMContentLoaded', function() {
+        // 설문조사 모달 표시 (로그인 상태이고, 아직 설문을 완료하지 않은 경우)
+        const questionnaireCompleted = /*[[${session.questionnaireCompleted}]]*/ false;
+        const authenticated = /*[[${session.authenticatedEmail != null}]]*/ false;
+        
+        if (authenticated && questionnaireCompleted === false) {
+            const surveyModal = new bootstrap.Modal(document.getElementById('surveyModal'));
+            surveyModal.show();
+        }
+        
+        // 챗봇 버튼 이벤트 리스너
+        document.getElementById('chatbotButton').addEventListener('click', function() {
+            document.getElementById('chatbotModal').style.display = 'flex';
+            this.style.display = 'none';
+        });
+    });
+    
+    // 설문조사 페이지로 이동
+    function goToSurvey() {
+        window.location.href = '/question/start';
+    }
+    
+    // 챗봇 닫기
+    function closeChatbot() {
+        document.getElementById('chatbotModal').style.display = 'none';
+        document.getElementById('chatbotButton').style.display = 'block';
+    }
+    
+    // 엔터 키로 메시지 전송
+    function handleKeyPress(event) {
+        if (event.key === 'Enter') {
+            sendMessage();
+        }
+    }
+    
+    // 챗봇 메시지 전송
+    function sendMessage() {
+        const userInput = document.getElementById('userMessage');
+        const message = userInput.value.trim();
+        
+        if (message === '') return;
+        
+        // 사용자 메시지 표시
+        appendMessage('user', message);
+        userInput.value = '';
+        
+        // 간단한 응답 (실제로는 서버와 통신해야 함)
+        setTimeout(() => {
+            const responses = [
+                "여행 관련 질문이 있으시면 언제든지 물어보세요!",
+                "도움이 필요하시면 말씀해 주세요.",
+                "더 자세한 정보가 필요하시면 문의해 주세요.",
+                "죄송합니다. 아직 학습 중이에요. 더 나은 답변을 드릴 수 있도록 노력하겠습니다!"
+            ];
+            const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+            appendMessage('bot', randomResponse);
+        }, 1000);
+    }
+    
+    // 메시지 추가
+    function appendMessage(sender, text) {
+        const chatBody = document.getElementById('chatbotBody');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `chatbot-message ${sender}-message`;
+        
+        if (sender === 'user') {
+            messageDiv.style.justifyContent = 'flex-end';
+            messageDiv.innerHTML = `
+                <div class="chatbot-text">
+                    <p style="background-color: #e3f2fd;">${text}</p>
+                </div>
+                <div class="chatbot-avatar" style="background-color: #6c757d; margin-right: 0; margin-left: 10px;">
+                    <i class="fas fa-user"></i>
+                </div>
+            `;
+        } else {
+            messageDiv.innerHTML = `
+                <div class="chatbot-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="chatbot-text">
+                    <p>${text}</p>
+                </div>
+            `;
+        }
+        
+        chatBody.appendChild(messageDiv);
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }
+</script>
+
 <script>
     // Initialize tooltips
     document.addEventListener('DOMContentLoaded', function() {

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/header :: head}">
+    <title>여행 계획 관리</title>
+</head>
+
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+<div th:replace="~{fragments/menu :: menu}"></div>
+
+<div class="container mt-5">
+    <h1>여행 계획 관리</h1>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>제목</th>
+                <th>작성자</th>
+                <th>생성일</th>
+                <th>공개 여부</th>
+                <th>액션</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="trip : ${trips}">
+                <td th:text="${trip.id}"></td>
+                <td th:text="${trip.title}"></td>
+                <td th:text="${trip.member.nickname}"></td>
+                <td th:text="${#temporals.format(trip.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
+                <td th:text="${'PUBLIC'.equals(trip.visibility) ? '공개' : '비공개'}"></td>
+                <td>
+                    <form th:action="@{/admin/trips/delete/{id}(id=${trip.id})}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('정말로 이 여행 계획을 삭제하시겠습니까?');">삭제</button>
+                    </form>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <a th:href="@{/admin}" class="btn btn-secondary">관리자 페이지로 돌아가기</a>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

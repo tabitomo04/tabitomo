@@ -8,7 +8,7 @@ import java.util.UUID;
 import com.koreatravel.tabitomo.domain.dto.storybook.LikedbookDTO;
 import com.koreatravel.tabitomo.domain.dto.storybook.StorybookDTO;
 import com.koreatravel.tabitomo.domain.dto.storybook.TempsaveDTO;
-import com.koreatravel.tabitomo.domain.dto.trip.TripPlan;
+import com.koreatravel.tabitomo.domain.entity.trip.TripPlan;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Past;

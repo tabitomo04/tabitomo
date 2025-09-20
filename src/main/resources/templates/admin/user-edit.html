@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/header :: head}">
+    <title>회원 정보 수정</title>
+</head>
+
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+<div th:replace="~{fragments/menu :: menu}"></div>
+
+<div class="container mt-5">
+    <h1>회원 정보 수정</h1>
+    <form th:action="@{/admin/users/edit}" th:object="${member}" method="post">
+        <!-- 이메일은 고유 ID이므로 수정하지 않고 숨겨서 전달합니다. -->
+        <input type="hidden" th:field="*{email}" />
+
+        <div class="mb-3">
+            <label for="email-display" class="form-label">이메일 (ID)</label>
+            <input type="text" id="email-display" class="form-control" th:value="*{email}" disabled />
+        </div>
+
+        <div class="mb-3">
+            <label for="nickname" class="form-label">닉네임</label>
+            <input type="text" id="nickname" class="form-control" th:field="*{nickname}" />
+        </div>
+
+        <div class="mb-3">
+            <label for="role" class="form-label">권한</label>
+            <select id="role" class="form-select" th:field="*{role}">
+                <option value="user">user</option>
+                <option value="admin">admin</option>
+            </select>
+        </div>
+
+        <div class="mb-3 form-check">
+            <input type="checkbox" id="isActive" class="form-check-input" th:field="*{isActive}" />
+            <label for="isActive" class="form-check-label">계정 활성화</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">수정 완료</button>
+        <a th:href="@{/admin/users}" class="btn btn-secondary">취소</a>
+    </form>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

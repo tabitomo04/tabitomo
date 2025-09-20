@@ -196,7 +196,7 @@ public class EditorController {
      * 마이페이지 불러오기
      * @return 마이페이지
      */
-    @GetMapping("/mypage")
+    @GetMapping("/mypage/storybooks")
     public String mypage(Model model,@RequestParam(defaultValue = "false") boolean all){
 
         // 스토리북 리스트

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head}"></head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<div th:replace="~{fragments/menu :: menu}"></div>
+
+<main class="py-5">
+    <div class="container">
+        <h1 data-translatable>Contact</h1>
+        <p data-translatable>문의사항이 있으시면 다음으로 연락주세요
+        </p>
+        <div class="mt-3">
+            <p><i class="fas fa-envelope me-2"></i> tabitomo04@gmai.com</p>
+            <p><i class="fas fa-phone me-2"></i> +82-51-442-5739</p>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

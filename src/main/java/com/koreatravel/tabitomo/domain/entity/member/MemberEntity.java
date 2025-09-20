@@ -49,6 +49,7 @@ public class MemberEntity implements Serializable {
     private String nickname;
 
     @Column(name = "is_active", nullable = false, columnDefinition = "BOOLEAN DEFAULT true")
+    @Builder.Default
     private boolean active = true;
 
     @Column(name = "gender")
@@ -58,6 +59,7 @@ public class MemberEntity implements Serializable {
     private String profileImageUrl;
     
     @Column(name = "questionnaire_completed", nullable = false)
+    @Builder.Default
     private boolean questionnaireCompleted = false;
     
     @Column(name = "created_at", updatable = false)

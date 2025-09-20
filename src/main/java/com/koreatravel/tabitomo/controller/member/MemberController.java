@@ -2,10 +2,13 @@ package com.koreatravel.tabitomo.controller.member;
 
 import com.koreatravel.tabitomo.config.security.UserDetailsImpl;
 import com.koreatravel.tabitomo.domain.dto.member.MemberProfileDTO;
+import com.koreatravel.tabitomo.domain.dto.storybook.StorybookListDTO;
+import com.koreatravel.tabitomo.domain.dto.storybook.TempsaveDTO;
 import com.koreatravel.tabitomo.domain.entity.trip.FavoritePlace;
 import com.koreatravel.tabitomo.domain.entity.trip.Schedule;
 import com.koreatravel.tabitomo.domain.entity.trip.Trip;
 import com.koreatravel.tabitomo.service.member.MemberService;
+import com.koreatravel.tabitomo.service.storybook.EditorService;
 import com.koreatravel.tabitomo.service.trip.FavoritePlaceService;
 import com.koreatravel.tabitomo.service.trip.TripPlanService;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +36,7 @@ public class MemberController {
     private final MemberService memberService;
     private final TripPlanService tripPlanService;
     private final FavoritePlaceService favoritePlaceService;
+    private final EditorService editorService;
 
     @GetMapping("/register")
     public String registerPage(Model model) {
@@ -45,6 +49,7 @@ public class MemberController {
     public String myPage(@AuthenticationPrincipal UserDetailsImpl userDetails,
                          @RequestParam(value = "tripPage", defaultValue = "0") int tripPage,
                          @RequestParam(value = "favPage", defaultValue = "0") int favPage,
+                         @RequestParam(defaultValue = "false") boolean all,
                          Model model) {
         if (userDetails == null) {
             return "redirect:/login";
@@ -77,6 +82,20 @@ public class MemberController {
             model.addAttribute("startFavPage", startFavPage);
             model.addAttribute("endFavPage", endFavPage);
         }
+
+        // 내 스토리북 리스트
+        List<StorybookListDTO> storybookList = editorService.getMyStorybookList();
+        if (!all) {
+            storybookList = storybookList.stream().limit(3).toList();
+        }
+        model.addAttribute("storylist", storybookList);
+        model.addAttribute("all", all);
+
+        // 임시저장 리스트
+        List<TempsaveDTO> tempsaveList = editorService.getTempsaveList();
+        model.addAttribute("templist", tempsaveList);
+
+
 
         return "member/mypage";
     }

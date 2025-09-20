@@ -26,9 +26,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // CSRF 보호 활성화 (API 요청에 대해서는 CSRF 보호 비활성화)
+                // CSRF 보호 활성화 (여행 추천 및 API 요청에 대해서는 CSRF 보호 비활성화)
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/**")
+                        .ignoringRequestMatchers("/api/favorites/**", "/api/**", "/trip/**", "/api/translate/**")
                 )
                 // 세션 정책 설정
                 .sessionManagement(session -> session
@@ -46,6 +46,14 @@ public class SecurityConfig {
                             "/favicon.ico", 
                             "/error"
                         ).permitAll()
+                        .requestMatchers(
+                                "/trips/public", "/tripinformation",
+                                "/tripinformation/places", "/about", "/contact", "/privacy", "/terms",
+                                "/api/favorites/status", "/api/translate/**",
+                                "/trip/**" // 여행 추천 관련 경로는 모두 허용
+                        ).permitAll()
+
+
                         // API 및 인증 관련 경로 허용
                         .requestMatchers(
                             "/auth/**", 

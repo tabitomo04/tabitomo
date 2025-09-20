@@ -5,7 +5,7 @@ import com.deepl.api.Translator;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-@Service
+@Service("chatTranslationService")
 public class TranslationService {
 
     private final Translator translator;

@@ -54,6 +54,7 @@ public class StorybookEntity {
     private int likes;
 
     @OneToMany(mappedBy = "storybook", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Builder.Default
     private List<StoryTagEntity> tags = new ArrayList<>();
     
     // Helper method to add a tag

@@ -1,15 +1,18 @@
 package com.koreatravel.tabitomo.domain.entity.trip;
-
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Place {
+public class Place implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "place_id")
@@ -22,9 +25,9 @@ public class Place {
 
     private String address;
 
-    private String city; //사용안함.
+    private String city;
 
-    private String region; // 사용안함
+    private String region;
 
     private Double latitude;
 
@@ -35,26 +38,19 @@ public class Place {
     @Lob
     private String description;
 
-    private String restDate; // 사용안함
-
-    private String useTime; // 사용안함
-
     private String priceRange;
 
-
     @Builder
-    public Place(String name, String categoryCode, String address, String city, String region, Double latitude, Double longitude, String imageUrl, String description, String restDate, String useTime, String priceRange) {
+    public Place(String name, String categoryCode, String address, String city, String region, Double latitude, Double longitude, String imageUrl, String description, String priceRange) {
         this.name = name;
         this.categoryCode = categoryCode;
         this.address = address;
-        this.city = city;  // 사용안함
-        this.region = region;  // 사용안함
+        this.city = city;
+        this.region = region;
         this.latitude = latitude;
         this.longitude = longitude;
         this.imageUrl = imageUrl;
         this.description = description;
-        this.restDate = restDate;  // 사용안함
-        this.useTime = useTime; // 사용안함
         this.priceRange = priceRange;
     }
 }

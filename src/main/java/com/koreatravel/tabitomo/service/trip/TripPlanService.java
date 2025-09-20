@@ -1,18 +1,22 @@
 package com.koreatravel.tabitomo.service.trip;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import com.koreatravel.tabitomo.domain.dto.trip.TripPlan;
+import com.koreatravel.tabitomo.domain.dto.trip.TripPlanDTO;
 import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
 import com.koreatravel.tabitomo.domain.entity.trip.Place;
 import com.koreatravel.tabitomo.domain.entity.trip.Schedule;
 import com.koreatravel.tabitomo.domain.entity.trip.Trip;
+import com.koreatravel.tabitomo.domain.entity.trip.TripPlan;
 import com.koreatravel.tabitomo.repository.member.MemberRepository;
 import com.koreatravel.tabitomo.repository.trip.PlaceRepository;
 import com.koreatravel.tabitomo.repository.trip.ScheduleRepository;
+import com.koreatravel.tabitomo.repository.trip.TripPlanRepository;
 import com.koreatravel.tabitomo.repository.trip.TripRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,9 +32,10 @@ public class TripPlanService {
     private final TripRepository tripRepository;
     private final PlaceRepository placeRepository;
     private final ScheduleRepository scheduleRepository;
+    private final TripPlanRepository tripPlanRepository;
 
     @Transactional
-    public UUID saveTripPlan(TripPlan tripPlan, UUID memberId) {
+    public Long saveTripPlan(TripPlanDTO tripPlan, UUID memberId) {
         MemberEntity member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다: " + memberId));
 
@@ -54,8 +59,8 @@ public class TripPlanService {
         tripRepository.save(trip);
 
         if (tripPlan.getDailySchedules() != null) {
-            for (TripPlan.DailySchedule dailySchedule : tripPlan.getDailySchedules()) {
-                for (TripPlan.ScheduleItem item : dailySchedule.getSchedules()) {
+            for (TripPlanDTO.DailySchedule dailySchedule : tripPlan.getDailySchedules()) {
+                for (TripPlanDTO.ScheduleItem item : dailySchedule.getSchedules()) {
                     Place place = findOrCreatePlaceFromDto(item);
                     Schedule schedule = Schedule.builder()
                             .trip(trip)
@@ -74,18 +79,22 @@ public class TripPlanService {
     }
 
     @Transactional
-    public void updateTripPlan(TripPlan updatedTripPlan, UUID memberId) {
+    public void updateTripPlan(TripPlanDTO updatedTripPlan, UUID memberId) {
         log.info("Updating trip plan with ID: {}", updatedTripPlan.getId());
-        Trip trip = tripRepository.findByIdAndMemberId(updatedTripPlan.getId(), memberId)
-                .orElseThrow(() -> new SecurityException("해당 여행을 찾을 수 없거나 수정 권한이 없습니다."));
+        Trip trip = tripRepository.findById(updatedTripPlan.getId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 여행을 찾을 수 없습니다."));
+
+        if (!trip.getMember().getId().equals(memberId)) {
+            throw new SecurityException("이 여행 계획을 수정할 권한이 없습니다.");
+        }
 
         trip.updateTitle(updatedTripPlan.getPlanName());
 
         trip.getSchedules().clear();
 
         if (updatedTripPlan.getDailySchedules() != null) {
-            for (TripPlan.DailySchedule dailySchedule : updatedTripPlan.getDailySchedules()) {
-                for (TripPlan.ScheduleItem item : dailySchedule.getSchedules()) {
+            for (TripPlanDTO.DailySchedule dailySchedule : updatedTripPlan.getDailySchedules()) {
+                for (TripPlanDTO.ScheduleItem item : dailySchedule.getSchedules()) {
                     Place place = findOrCreatePlaceFromDto(item);
 
                     Schedule newSchedule = Schedule.builder()
@@ -104,8 +113,39 @@ public class TripPlanService {
         log.info("Successfully updated trip plan with ID: {}", trip.getId());
     }
 
-    private Place findOrCreatePlaceFromDto(TripPlan.Accommodation accDto) {
-        return placeRepository.findByName(accDto.getPlaceName())
+    @Transactional
+    public void deleteTripPlan(Long tripId, UUID memberId) {
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 여행 계획을 찾을 수 없습니다."));
+
+        if (!trip.getMember().getId().equals(memberId)) {
+            throw new SecurityException("이 여행 계획을 삭제할 권한이 없습니다.");
+        }
+
+        tripRepository.delete(trip);
+    }
+
+    @Transactional
+    public void deleteTripPlanByAdmin(Long tripPlanId) {
+        TripPlan tripPlan = tripPlanRepository.findById(tripPlanId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 여행 계획을 찾을 수 없습니다: " + tripPlanId));
+        tripPlanRepository.delete(tripPlan);
+    }
+
+    @Transactional
+    public void toggleTripVisibility(Long tripId, UUID memberId) {
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 여행 계획을 찾을 수 없습니다."));
+
+        if (!trip.getMember().getId().equals(memberId)) {
+            throw new SecurityException("이 여행 계획의 공개 상태를 변경할 권한이 없습니다.");
+        }
+
+        trip.toggleVisibility();
+    }
+
+    private Place findOrCreatePlaceFromDto(TripPlanDTO.Accommodation accDto) {
+        return placeRepository.findFirstByName(accDto.getPlaceName())
                 .orElseGet(() -> {
                     Place newPlace = Place.builder()
                             .name(accDto.getPlaceName())
@@ -121,8 +161,8 @@ public class TripPlanService {
                 });
     }
 
-    private Place findOrCreatePlaceFromDto(TripPlan.ScheduleItem itemDto) {
-        return placeRepository.findByName(itemDto.getPlace())
+    private Place findOrCreatePlaceFromDto(TripPlanDTO.ScheduleItem itemDto) {
+        return placeRepository.findFirstByName(itemDto.getPlace())
                 .orElseGet(() -> {
                     Place newPlace = Place.builder()
                             .name(itemDto.getPlace())
@@ -136,17 +176,48 @@ public class TripPlanService {
     }
 
     @Transactional(readOnly = true)
-    public List<Trip> findTripsByUserId(UUID userId) {
-        return tripRepository.findByMemberId(userId);
+    public List<Trip> findTripsByEmail(String email) {
+        return tripRepository.findByMemberEmail(email);
     }
 
     @Transactional(readOnly = true)
-    public Optional<Trip> findTripByIdAndUserId(UUID tripId, UUID userId) {
-        return tripRepository.findByIdAndMemberId(tripId, userId);
+    public Page<Trip> findTripsByEmail(String email, Pageable pageable) {
+        return tripRepository.findByMemberEmail(email, pageable);
     }
 
     @Transactional(readOnly = true)
-    public List<Schedule> findSchedulesByTripId(UUID tripId) {
+    public Optional<Trip> findTripById(Long tripId) {
+        return tripRepository.findById(tripId);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Trip> findTripByIdAndMemberId(Long tripId, UUID memberId) {
+        return tripRepository.findById(tripId)
+                .filter(trip -> trip.getMember().getId().equals(memberId));
+    }
+
+    @Transactional(readOnly = true)
+    public List<Schedule> findSchedulesByTripId(Long tripId) {
         return scheduleRepository.findByTripIdWithPlace(tripId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Trip> findAllPublicTrips() {
+        return tripRepository.findAllByVisibility("PUBLIC");
+    }
+
+    @Transactional(readOnly = true)
+    public List<Trip> findAllTrips() {
+        return tripRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<TripPlan> findAllTripPlans() {
+        return tripPlanRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Trip> findPublicTripsByNickname(String nickname) {
+        return tripRepository.findByMemberNicknameAndVisibility(nickname, "PUBLIC");
     }
 }

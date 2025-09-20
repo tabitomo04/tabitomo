@@ -7,6 +7,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.Serial;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.Collection;
@@ -18,6 +19,10 @@ import java.util.UUID;
 @Getter
 public class UserDetailsImpl implements UserDetails {
 
+    // Re-applying the correct serialVersionUID to resolve session deserialization issues.
+    @Serial
+    private static final long serialVersionUID = 4215309437416150371L;
+
     private final MemberEntity member;
     private final List<MemberAddInfoEntity> additionalInfo;
     private final Collection<? extends GrantedAuthority> authorities;
@@ -28,6 +33,14 @@ public class UserDetailsImpl implements UserDetails {
         this.authorities = Collections.singletonList(
             new SimpleGrantedAuthority(member.getRole())
         );
+    }
+
+    public String getEmail() {
+        return member.getEmail();
+    }
+
+    public String getNickname() {
+        return member.getNickname();
     }
 
     @Override

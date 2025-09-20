@@ -1,5 +1,6 @@
 package com.koreatravel.tabitomo.controller.trip;
 
+import com.koreatravel.tabitomo.config.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,11 +9,12 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import com.koreatravel.tabitomo.config.security.UserDetailsImpl;
 import com.koreatravel.tabitomo.domain.dto.trip.ScheduleInfo;
-import com.koreatravel.tabitomo.domain.dto.trip.TripPlan;
+import com.koreatravel.tabitomo.domain.dto.trip.TripPlanDTO;
 import com.koreatravel.tabitomo.domain.dto.trip.TourRecommendation;
+import com.koreatravel.tabitomo.domain.entity.trip.FavoritePlace;
 import com.koreatravel.tabitomo.domain.entity.trip.Place;
+import com.koreatravel.tabitomo.service.trip.FavoritePlaceService;
 import com.koreatravel.tabitomo.service.trip.GeminiAIService;
 import com.koreatravel.tabitomo.service.trip.LocationService;
 import com.koreatravel.tabitomo.service.trip.TripPlanService;
@@ -23,7 +25,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -36,13 +37,14 @@ public class TripRecommendationController {
     private final GeminiAIService geminiAIService;
     private final LocationService locationService;
     private final TripPlanService tripPlanService;
+    private final FavoritePlaceService favoritePlaceService;
 
     @Value("${kakao.js.key}")
     private String kakaoJsKey;
 
     @ModelAttribute("tripPlan")
-    public TripPlan setUpTripForm() {
-        return new TripPlan();
+    public TripPlanDTO setUpTripForm() {
+        return new TripPlanDTO();
     }
 
     @GetMapping("/step1")
@@ -52,7 +54,7 @@ public class TripRecommendationController {
 
     @PostMapping("/step2")
     public String processStep1(
-            @ModelAttribute("tripPlan") TripPlan tripPlan,
+            @ModelAttribute("tripPlan") TripPlanDTO tripPlan,
             @RequestParam(name = "destination") String destination,
             @RequestParam(name = "startDate") String startDate,
             @RequestParam(name = "nights") int nights,
@@ -81,7 +83,7 @@ public class TripRecommendationController {
 
     @PostMapping("/step3")
     public String processStep2(
-            @ModelAttribute("tripPlan") TripPlan tripPlan,
+            @ModelAttribute("tripPlan") TripPlanDTO tripPlan,
             @RequestParam("styles") List<String> styles,
             @RequestParam(name = "budget") String budget) {
 
@@ -102,7 +104,7 @@ public class TripRecommendationController {
 
         if (tourRecommendation != null && tourRecommendation.getAccommodation() != null) {
             Place accPlace = tourRecommendation.getAccommodation();
-            TripPlan.Accommodation accommodation = new TripPlan.Accommodation();
+            TripPlanDTO.Accommodation accommodation = new TripPlanDTO.Accommodation();
             accommodation.setPlaceName(accPlace.getName());
             accommodation.setDescription(accPlace.getDescription());
             accommodation.setPriceRange(accPlace.getPriceRange());
@@ -113,20 +115,20 @@ public class TripRecommendationController {
             tripPlan.setAccommodation(accommodation);
         }
 
-        List<TripPlan.DailySchedule> dailySchedules = new ArrayList<>();
+        List<TripPlanDTO.DailySchedule> dailySchedules = new ArrayList<>();
         if (tourRecommendation != null && tourRecommendation.getItinerary() != null && !tourRecommendation.getItinerary().isEmpty()) {
             Map<Integer, List<ScheduleInfo>> dayGrouped = tourRecommendation.getItinerary().stream()
                 .collect(Collectors.groupingBy(ScheduleInfo::getDay, LinkedHashMap::new, Collectors.toList()));
 
             for (Map.Entry<Integer, List<ScheduleInfo>> entry : dayGrouped.entrySet()) {
-                TripPlan.DailySchedule dailySchedule = new TripPlan.DailySchedule();
+                TripPlanDTO.DailySchedule dailySchedule = new TripPlanDTO.DailySchedule();
                 dailySchedule.setDay(entry.getKey());
-                List<TripPlan.ScheduleItem> schedulesForDay = new ArrayList<>();
+                List<TripPlanDTO.ScheduleItem> schedulesForDay = new ArrayList<>();
                 List<String> placesForDay = new ArrayList<>();
                 for (ScheduleInfo scheduleInfo : entry.getValue()) {
                     Place place = scheduleInfo.getPlace();
                     if (place != null) {
-                        TripPlan.ScheduleItem scheduleItem = new TripPlan.ScheduleItem();
+                        TripPlanDTO.ScheduleItem scheduleItem = new TripPlanDTO.ScheduleItem();
                         
                         String startTimeStr = scheduleInfo.getStartTime();
                         if (startTimeStr != null && startTimeStr.contains("~")) {
@@ -165,13 +167,13 @@ public class TripRecommendationController {
     }
 
     @PostMapping("/step4")
-    public String processStep3(@ModelAttribute("tripPlan") TripPlan tripPlan, Model model) {
+    public String processStep3(@ModelAttribute("tripPlan") TripPlanDTO tripPlan, Model model) {
         model.addAttribute("tripPlan", tripPlan);
         return "tripselect/step4";
     }
 
     @GetMapping("/step5")
-    public String showStep5(@ModelAttribute("tripPlan") TripPlan tripPlan, Model model) {
+    public String showStep5(@ModelAttribute("tripPlan") TripPlanDTO tripPlan, Model model, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         log.info("======================================================");
         log.info("Entering showStep5 method for /trip/step5");
         if (tripPlan == null || tripPlan.getDestination() == null) {
@@ -180,6 +182,16 @@ public class TripRecommendationController {
             log.info("TripPlan object from session is NOT NULL. Data: {}", tripPlan.toString());
         }
         log.info("======================================================");
+
+        if (userDetails != null) {
+            String email = userDetails.getEmail();
+            List<FavoritePlace> favoritePlaces = favoritePlaceService.getFavorites(email);
+            model.addAttribute("favoritePlaces", favoritePlaces);
+            log.info("Loaded {} favorite places for user {}", favoritePlaces.size(), email);
+        } else {
+            model.addAttribute("favoritePlaces", Collections.emptyList());
+            log.info("No principal found, no favorite places loaded.");
+        }
 
         model.addAttribute("tripPlan", tripPlan);
         model.addAttribute("kakaoJsKey", kakaoJsKey);
@@ -206,40 +218,28 @@ public class TripRecommendationController {
 
     @PostMapping("/update")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> updateTripPlan(
-            @RequestBody TripPlan tripPlan,
-            @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        
+    public ResponseEntity<Map<String, Object>> updateTripPlan(@RequestBody TripPlanDTO tripPlan, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         if (userDetails == null) {
-            return ResponseEntity.status(401)
-                    .body(Map.of("status", "error", "message", "로그인이 필요합니다."));
+            return ResponseEntity.status(401).body(Map.of("status", "error", "message", "로그인이 필요합니다."));
         }
-        
         try {
-tripPlanService.updateTripPlan(tripPlan, userDetails.getId());
-            return ResponseEntity.ok(
-                    Map.of("status", "success", "message", "여행 계획이 성공적으로 업데이트되었습니다."));
+            tripPlanService.updateTripPlan(tripPlan, userDetails.getId());
+            return ResponseEntity.ok(Map.of("status", "success", "message", "여행 계획이 성공적으로 업데이트되었습니다."));
         } catch (Exception e) {
             log.error("여행 계획 업데이트 중 오류 발생", e);
-            return ResponseEntity.internalServerError()
-                    .body(Map.of("status", "error", "message", 
-                            "업데이트 중 오류가 발생했습니다: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("status", "error", "message", "업데이트 중 오류가 발생했습니다: " + e.getMessage()));
         }
     }
 
     @PostMapping("/save")
     @ResponseBody
-    public Map<String, Object> saveTripPlan(
-            @RequestBody TripPlan tripPlan,
-            @AuthenticationPrincipal UserDetailsImpl userDetails) {
-                
+    public Map<String, Object> saveTripPlan(@RequestBody TripPlanDTO tripPlan, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         if (userDetails == null) {
             return Map.of("status", "error", "message", "로그인이 필요합니다.");
         }
-        
         try {
-            UUID tripId = tripPlanService.saveTripPlan(tripPlan, userDetails.getId());
-            return Map.of("status", "success", "message", "여행 계획이 저장되었습니다.", "tripId", tripId.toString());
+            Long tripId = tripPlanService.saveTripPlan(tripPlan, userDetails.getId());
+            return Map.of("status", "success", "message", "여행 계획이 저장되었습니다.", "tripId", tripId);
         } catch (Exception e) {
             log.error("여행 계획 저장 중 오류 발생", e);
             return Map.of("status", "error", "message", "저장 중 오류가 발생했습니다: " + e.getMessage());

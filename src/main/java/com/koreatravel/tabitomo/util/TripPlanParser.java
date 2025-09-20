@@ -10,10 +10,10 @@ import java.util.regex.Pattern;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.koreatravel.tabitomo.domain.dto.trip.TripPlan;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import com.koreatravel.tabitomo.domain.dto.trip.TripPlanDTO;
 
 @Slf4j
 @Component
@@ -26,16 +26,16 @@ public class TripPlanParser {
     private static final Pattern PLACE_PATTERN = Pattern.compile("- (\\d{1,2}:\\d{2}): (.*?) \\((.*?)\\s*(?:- (.*?))?\\s*(?=\\n- \\d|\\Z)", Pattern.DOTALL);
     private static final Pattern COORDINATE_PATTERN = Pattern.compile("위도: (\\d+\\.\\d+), 경도: (\\d+\\.\\d+)");
     
-    public TripPlan parseAiResponse(String aiResponse, TripPlan tripPlan) {
+    public TripPlanDTO parseAiResponse(String aiResponse, TripPlanDTO tripPlan) {
         try {
-            List<TripPlan.DailySchedule> dailySchedules = new ArrayList<>();
+            List<TripPlanDTO.DailySchedule> dailySchedules = new ArrayList<>();
             Matcher dayMatcher = DAY_PATTERN.matcher(aiResponse);
             
             while (dayMatcher.find()) {
                 int dayNumber = Integer.parseInt(dayMatcher.group(1));
                 String dayContent = dayMatcher.group(2).trim();
                 
-                List<TripPlan.ScheduleItem> scheduleItems = new ArrayList<>();
+                List<TripPlanDTO.ScheduleItem> scheduleItems = new ArrayList<>();
                 List<String> places = new ArrayList<>();
                 
                 Matcher placeMatcher = PLACE_PATTERN.matcher(dayContent);
@@ -59,7 +59,7 @@ public class TripPlanParser {
                         }
                     }
                     
-                    TripPlan.ScheduleItem item = new TripPlan.ScheduleItem();
+                    TripPlanDTO.ScheduleItem item = new TripPlanDTO.ScheduleItem();
                     item.setStartTime(time);
                     item.setPlace(placeName);
                     item.setDescription(description);
@@ -70,10 +70,10 @@ public class TripPlanParser {
                     places.add(placeName);
                 }
                 
-                TripPlan.DailySchedule dailySchedule = new TripPlan.DailySchedule();
+                TripPlanDTO.DailySchedule dailySchedule = new TripPlanDTO.DailySchedule();
                 dailySchedule.setDay(dayNumber);
                 dailySchedule.setSchedules(scheduleItems);
-                dailySchedule.setPlaces(places);
+                // dailySchedule.setPlaces(places);
                 
                 dailySchedules.add(dailySchedule);
             }

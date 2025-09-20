@@ -1,13 +1,12 @@
 package com.koreatravel.tabitomo.domain.entity.trip;
 
+import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-
-import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
 
 import java.time.LocalDateTime;
 
@@ -21,7 +20,7 @@ public class TripPlan {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false)
+    @JoinColumn(name = "email", referencedColumnName = "email", nullable = false)
     private MemberEntity member;
 
     @Column(nullable = false)

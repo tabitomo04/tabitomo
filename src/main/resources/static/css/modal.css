@@ -54,14 +54,16 @@
          }
      .templistModal-content {
            background-color: #fff;
-           margin: 10% auto;
            padding: 20px;
            border-radius: 8px;
            width: 600px;
            max-height: 50%;
            overflow-y: auto;
            text-align: center;
-           position : relative;
+           position: fixed;
+           top: 50%;
+           left: 50%;
+           transform: translate(-50%, -50%);
          }
      .col-select { width: 10%; }
      .col-title { width: 30%; }

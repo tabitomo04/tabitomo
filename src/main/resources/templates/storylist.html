@@ -9,6 +9,14 @@
   <link rel="stylesheet" th:href= "@{/css/paging.css}">
   <link rel="stylesheet" th:href="@{/css/modal.css}">
 
+  <!-- header, footer css-->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script th:src="@{/js/translation.js}"></script>
+
   <script th:src="@{/js/jquery-3.7.1.min.js}"></script>
   <script>
     window.addEventListener('load', () => {
@@ -20,13 +28,22 @@
   </script>
 </head>
 <body>
-<div class="container">
-  <h1>당신의 여행 이야기를 들려주세요</h1>
 
-  <div class="search-box">
-    <input type="text" placeholder="검색어를 입력하세요" />
-    <button>검색</button>
-  </div>
+<!-- Header -->
+<div th:insert="~{fragments/header :: header}"></div>
+
+<!-- Navigation Menu -->
+<div th:insert="~{fragments/menu :: menu}"></div>
+
+
+<div class="container">
+  <section class="py-5">
+  <h1 id="listtitle">당신의 여행 이야기를 들려주세요</h1>
+
+    <form id="searchForm" action="/storybook/list" method="get" class="search-box">
+      <input type="text" name="keyword" id="keyword" placeholder="검색어를 입력하세요"/>
+      <button type="submit">검색</button>
+    </form>
 
 
   <div class="filters">
@@ -35,18 +52,20 @@
       <button th:onclick="|location.href='@{/storybook/list(sort = new)}'|">NEW</button>
     </div>
     <div class="rightbutton">
-      <a class="btn" id="templistBtn">임시저장본</a>
-      <a class="btn primary" onclick="checkTemp()" th:href="@{'/storybook/write'}">새 스토리 작성</a>
+      <a class="storylistbtn" id="templistBtn">임시저장본</a>
+      <a class="storylistbtn primary" onclick="checkTemp()" th:href="@{'/storybook/write'}">새 스토리 작성</a>
     </div>
   </div>
+  </section>
 
+ <div id="story-container">
   <div class="grid" th:if="${storylist != null}">
     <div th:if="${storylist}" th:each="storylist, status: ${storylist}">
       <a class="link" th:href="@{'/storybook/detail?booknum=' + ${storylist.booknum}}">
         <div class="card">
           <div class="likes">❤ <span th:text="${storylist.likes}"></span></div>
           <div class="thumbnail">
-            <img th:src="@{${storylist.thumbnail}}" alt="썸네일">
+            <img th:src="@{${storylist.thumbnail} ?: '/image/tomo.png'}" alt="썸네일">
           </div>
           <h3 th:text="${storylist.title}"></h3>
           <p th:text="${storylist.subtitle}"></p>
@@ -59,13 +78,20 @@
     </div>
   </div>
 
+
+
+  <div th:if="${pagelist == null or pagelist.isEmpty()}" class="no-results">
+    <img th:src="@{/images/pabicone.png}" alt="검색결과 없음" >
+    <p>검색 결과가 없습니다.</p>
+  </div>
+
   <div class="grid" th:if="${pagelist != null}">
     <div th:if="${pagelist}" th:each="pagelist, status: ${pagelist}">
       <a class="link" th:href="@{'/storybook/detail?booknum=' + ${pagelist.booknum}}">
         <div class="card">
           <div class="likes">❤ <span th:text="${pagelist.likes}"></span></div>
           <div class="thumbnail">
-            <img th:src="@{${pagelist.thumbnail}}" alt="썸네일">
+            <img th:src="@{${pagelist.thumbnail}} ?: '/image/tomo.png'}" alt="썸네일">
           </div>
           <h3 th:text="${pagelist.title}"></h3>
           <p th:text="${pagelist.subtitle}"></p>
@@ -77,11 +103,11 @@
       </a>
     </div>
   </div>
+ </div>
 
-</div>
 
 <!-- 페이징 네비게이션 -->
-<div class="pagination-container" th:if="${pagelist != null}">
+<div class="pagination-container"th:if="${pagelist != null and totalPages > 0}">
   <ul class="pagination">
     <!-- 이전 페이지 버튼 -->
     <li>
@@ -89,8 +115,11 @@
     </li>
 
     <!-- 페이지 번호들 -->
-    <li th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}">
-      <a th:href="@{/storybook/list(sort=${sort},page=${pageNum}, size=${size})}" th:text="${pageNum + 1}" th:classappend="${pageNum == currentPage} ? 'current'" class="page-btn"></a>
+    <li th:each="pageNum : ${#numbers.sequence(pageGroupStart, pageGroupEnd)}">
+      <a th:href="@{/storybook/list(sort=${sort}, page=${pageNum}, size=${size})}"
+         th:text="${pageNum + 1}"
+         th:classappend="${pageNum == currentPage} ? 'current'"
+         class="page-btn"></a>
     </li>
 
     <!-- 다음 페이지 버튼 -->
@@ -99,14 +128,18 @@
     </li>
   </ul>
 </div>
+</div>
 
 <!-- 모달창 -->
 <div id="templistModal" class="templistModal" style="display:none;">
   <div class="templistModal-content">
     <span id="closeBtn" class="close">&times;</span>
-    <h2>임시저장본 리스트</h2>
+    <h2 th:if="${templist != null and !templist.isEmpty()}">임시저장본 리스트</h2>
 
-    <div th:if="${templist == null or templist.isEmpty()}">임시저장한 스토리북이 존재하지 않습니다.</div>
+    <div th:if="${templist == null or templist.isEmpty()}">
+      <img th:src="@{/image/pabicone.png}" alt="임시저장 없음" style="display:block; margin:0 auto 10px; width:100px; height:auto;">
+      <p>임시저장한 스토리북이 존재하지 않습니다.</p>
+    </div>
 
     <div th:if="${templist != null and !templist.isEmpty()}">
     <form action="/storybook/update" method="get" onsubmit="return checkRadio()">
@@ -162,6 +195,23 @@
     }
     return true; // 통과하면 제출됨
   }
+
+  // 엔터로 검색
+
+  const input = document.getElementById("keyword");
+input.addEventListener("keydown", function(e) {
+    if(e.key === "Enter") {
+        e.preventDefault();
+        const keyword = input.value.trim();
+        if(keyword) {
+            window.location.href = `/storybook/list?keyword=${encodeURIComponent(keyword)}`;
+        }
+    }
+});
 </script>
+
+<!-- Footer -->
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
 </body>
 </html>

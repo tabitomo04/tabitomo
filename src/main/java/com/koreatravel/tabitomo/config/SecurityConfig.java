@@ -46,6 +46,12 @@ public class SecurityConfig {
                         .maxSessionsPreventsLogin(true)
                         .expiredUrl("/auth/login?expired")
                 )
+                // X-Frame-Options 설정 (iframe 내에서의 로딩을 허용)
+                .headers(headers -> headers
+                        .frameOptions(frameOptions -> frameOptions
+                                .sameOrigin()
+                        )
+                )
                 // Form Login 설정
                 .formLogin(form -> form
                     .loginPage("/auth/login")

@@ -1,4 +1,4 @@
-package com.koreantravel.tabitomo.util;
+package com.koreatravel.tabitomo.util;
 
 import java.util.LinkedHashSet;
 import java.util.List;

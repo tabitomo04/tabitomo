@@ -1,4 +1,4 @@
-package com.koreantravel.tabitomo.util;
+package com.koreatravel.tabitomo.util;
 
 import java.util.List;
 import java.util.Map;

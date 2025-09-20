@@ -1,4 +1,4 @@
-package com.koreantravel.tabitomo.config;
+package com.koreatravel.tabitomo.config;
 
 import org.springframework.context.annotation.Configuration;
 

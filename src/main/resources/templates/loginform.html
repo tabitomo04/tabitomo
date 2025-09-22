@@ -326,7 +326,7 @@
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
       <div class="mb-3">
         <label for="email" class="form-label">이메일</label>
-        <input type="email" class="form-control" id="email" name="email" placeholder="이메일을 입력하세요" required>
+        <input type="email" class="form-control" id="email" name="email" placeholder="이메일을 입력하세요" th:value="${savedEmail}" required>
       </div>
       
       <div class="mb-3">
@@ -346,13 +346,13 @@
         <div id="passwordHelp" class="form-text">대소문자, 숫자, 특수문자를 조합하여 8자 이상 입력해주세요.</div>
       </div>
 
-      <!-- 로그인 상태 유지 및 자동 로그인 -->
+      <!-- 이메일 저장 및 자동 로그인 -->
       <div class="mb-3 form-check">
-        <input type="checkbox" class="form-check-input" id="rememberMe" name="remember-me">
-        <label class="form-check-label" for="rememberMe">로그인 상태 유지</label>
+        <input type="checkbox" class="form-check-input" id="rememberEmail" name="remember-email" th:checked="${rememberEmail != null ? rememberEmail : false}">
+        <label class="form-check-label" for="rememberEmail">이메일 저장</label>
       </div>
       <div class="mb-4 form-check">
-        <input type="checkbox" class="form-check-input" id="autoLogin" name="auto-login">
+        <input type="checkbox" class="form-check-input" id="autoLogin" name="remember-me">
         <label class="form-check-label" for="autoLogin">자동 로그인</label>
         <div class="form-text small text-muted">공용 컴퓨터에서는 사용을 권장하지 않습니다.</div>
       </div>
@@ -458,6 +458,15 @@ function showError(message, fieldId) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // 저장된 이메일이 있으면 포커스 이동
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    if (emailInput.value) {
+        passwordInput.focus();
+    } else {
+        emailInput.focus();
+    }
+    
     // 비밀번호 보이기/숨기기 토글
     const togglePassword = document.querySelector('#togglePassword');
     const password = document.querySelector('#password');

@@ -66,7 +66,7 @@ public class MemberController {
         model.addAttribute("tripsPage", tripsPage);
 
         Pageable favPageable = PageRequest.of(favPage, 5);
-        Page<FavoritePlace> favoritePlacesPage = favoritePlaceService.getFavorites(email, favPageable);
+        Page<FavoritePlace> favoritePlacesPage = favoritePlaceService.getFavorites(userDetails.getId(), favPageable);
         model.addAttribute("favoritePlacesPage", favoritePlacesPage);
 
         int totalTripPages = tripsPage.getTotalPages();

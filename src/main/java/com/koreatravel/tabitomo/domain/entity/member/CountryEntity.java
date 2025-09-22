@@ -32,12 +32,6 @@ public class CountryEntity {
     @Column(name = "name_en", nullable = false, length = 50)
     private String nameEn;  // 영어 국가명
     
-    @Column(name = "region", length = 50)
-    private String region;
-    
-    @Column(name = "iso_code", length = 3)
-    private String isoCode;  // ISO 3166-1 alpha-3 (e.g., KOR, USA, JPN)
-    
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -68,22 +62,12 @@ public class CountryEntity {
         return countryCode;
     }
     
-    public String getIsoCode() {
-        return isoCode;
-    }
-    
-    public String getRegion() {
-        return region;
-    }
-    
     // 생성 메서드
-    public static CountryEntity createCountry(String countryCode, String nameKr, String nameEn, String region, String isoCode) {
+    public static CountryEntity createCountry(String countryCode, String nameKr, String nameEn) {
         return CountryEntity.builder()
                 .countryCode(countryCode)
                 .nameKr(nameKr)
                 .nameEn(nameEn)
-                .region(region)
-                .isoCode(isoCode)
                 .build();
     }
 }

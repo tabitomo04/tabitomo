@@ -1,0 +1,11 @@
+<div class="chatbot-container" sec:authorize="isAuthenticated()" th:fragment="chatbot-container">
+  <button id="chatbotToggle" class="chatbot-toggle">
+    <i class="fas fa-comment-dots"></i>
+  </button>
+  <div id="chatbotIframeContainer" class="chatbot-iframe-container">
+    <iframe id="chatbotIframe" src="/chat" class="chatbot-iframe" frameborder="0"></iframe>
+  </div>
+  <button id="closeChatbot" class="chatbot-close-btn" title="챗봇 닫기" style="display: none;">
+    <i class="fas fa-times"></i>
+  </button>
+</div>

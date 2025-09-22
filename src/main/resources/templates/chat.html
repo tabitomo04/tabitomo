@@ -12,552 +12,7 @@
         const API_BASE_URL = /*[[${@environment.getProperty('api.base-url')}]]*/ 'http://localhost:8080';
         /*]]>*/
     </script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
-
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background-color: #e5e7eb;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-        }
-
-        .chat-container {
-            width: 100%;
-            max-width: 640px;
-            height: 90vh;
-            border-radius: 1rem;
-            display: flex;
-            flex-direction: column;
-            background: white;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            position: relative;
-            font-size: 1rem;
-        }
-
-        .chat-header {
-            background: #2563eb;
-            color: white;
-            padding: 1rem;
-            font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .chat-header .header-title {
-            flex-grow: 0;
-            text-align: left;
-            font-size: 1.25rem;
-            margin-right: auto;
-        }
-
-        .language-select-container {
-            margin-right: 10px;
-        }
-
-        #language-select {
-            padding: 4px 8px;
-            border-radius: 9999px;
-            border: 1px solid white;
-            background-color: transparent;
-            color: white;
-            font-size: 0.9em;
-            cursor: pointer;
-            outline: none;
-        }
-
-        #language-select option {
-            color: black;
-        }
-
-        .feedback-area.top-header {
-            position: relative;
-            bottom: initial;
-            border-top: none;
-            padding: 10px;
-            background-color: #f1f5f9;
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            font-size: 0.9em;
-            border-bottom: 1px solid #ddd;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .feedback-area.top-header p {
-            margin: 0;
-            margin-right: 10px;
-            white-space: nowrap;
-        }
-
-        .feedback-area.top-header .feedback-buttons button {
-            background-color: transparent;
-            color: #4b5563;
-            border: 1px solid #d1d5db;
-            padding: 4px 12px;
-            border-radius: 9999px;
-            font-size: 0.8em;
-            transition: all 0.2s;
-            cursor: pointer;
-        }
-
-        .feedback-area.top-header .feedback-buttons button:hover {
-            background-color: #f3f4f6;
-            border-color: #9ca3af;
-        }
-
-        .chat-messages {
-            flex: 1;
-            padding: 1rem;
-            padding-left: 0.3rem;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            font-size: 0.95rem;
-        }
-        .message h2,
-        .message h3,
-        .message p {
-            margin: 0;
-        }
-
-        /* 마크다운 메시지 안의 <p> 기본 margin 제거 */
-        .message p {
-            margin: 0;
-            padding: 0;
-        }
-
-        /* 각 문단 아래에만 여백을 줘서 가독성 확보 */
-        .message p + p {
-            margin-top: 1em;
-        }
-
-        /* 제목과 다음 문단 사이의 간격 조정 */
-        .message h2 + p {
-            margin-top: 0.5em;
-        }
-
-        /* 굵은 글씨 아래 간격 조정 */
-        .message strong + p {
-            margin-top: 0.5em;
-        }
-
-        /* 마지막 줄 여백 제거 */
-        .message p:last-child {
-            margin-bottom: 0;
-        }
-
-
-        /* bot wrapper 내부도 동일 처리 */
-        .bot-message-content p {
-            margin: 0;
-            padding: 0;
-        }
-
-        .bot-message-wrapper {
-            display: flex;
-            align-items: flex-start;
-            gap: 5px;
-            margin: 0;
-        }
-
-        /* 봇 메시지 내의 모든 <p> 태그의 하단 여백 제거 */
-        .bot-message-wrapper .message p {
-            margin: 0;
-            padding: 0;
-        }
-
-        /* 봇 메시지 내부의 모든 마크다운 요소 기본 여백 제거 */
-        .bot-message-wrapper p,
-        .bot-message-wrapper h2,
-        .bot-message-wrapper h3,
-        .bot-message-wrapper h4 {
-            margin: 0;
-            padding: 0;
-        }
-
-        /* 각 문단 간의 간격 조정 */
-        .bot-message-wrapper p + p {
-            margin-top: 1em; /* 문단과 문단 사이에 1줄 여백 추가 */
-        }
-
-        /* 제목과 다음 문단 사이의 간격 조정 */
-        .bot-message-wrapper h2 + p,
-        .bot-message-wrapper h3 + p {
-            margin-top: 0.5em; /* 제목 아래에 0.5줄 여백 추가 */
-        }
-
-        /* 굵은 글씨와 다음 문단 사이의 간격 조정 */
-        .bot-message-wrapper strong + p {
-            margin-top: 0.5em;
-        }
-
-        /* 목록 스타일 */
-        .bot-message-wrapper ul,
-        .bot-message-wrapper ol {
-            margin: 0.5em 0;
-            padding-left: 20px;
-        }
-
-        /* 마지막 줄바꿈 문제 해결 - `.bot` 클래스를 명시하여 특이성 높이기 */
-        .bot-message-wrapper .message.bot p:last-child {
-            margin-bottom: 0;
-        }
-
-        .bot-message-content {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            margin: 0;
-        }
-
-        .profile-img {
-            width: 65px;
-            height: 65px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        .profile-name {
-            font-size: 1.1em;
-            font-weight: bold;
-            color: #6b7280;
-        }
-
-        .message {
-            max-width: 80%;
-            margin: 0;
-            padding: 0.75rem 1rem;
-            border-radius: 1rem;
-            line-height: 1.5;
-            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
-            transform: translateY(20px);
-            opacity: 0;
-        }
-
-        .message.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-
-        .message.bot {
-            background: #f1f1f1;
-            align-self: flex-start;
-            border-top-left-radius: 0;
-        }
-
-        .message.user {
-            background: #2563eb;
-            color: white;
-            align-self: flex-end;
-            border-top-right-radius: 0;
-        }
-
-        .chat-input {
-            display: flex;
-            align-items: center;
-            padding: 0.5rem;
-            background: #f1f1f1;
-        }
-
-        .chat-input input {
-            flex: 1;
-            padding: 0.75rem;
-            border: 1px solid #ddd;
-            border-radius: 9999px;
-            outline: none;
-            margin-right: 0.5rem;
-            transition: border-color 0.3s;
-        }
-
-        .chat-input input:focus {
-            border-color: #2563eb;
-        }
-
-        .chat-input button.send-btn {
-            background-color: #2563eb;
-            border-radius: 9999px;
-            width: 44px;
-            height: 44px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: background-color 0.2s, transform 0.2s;
-            border: none;
-        }
-
-        .chat-input button.send-btn:hover {
-            background-color: #1d4ed8;
-            transform: scale(1.05);
-        }
-
-        #toggle-categories {
-            background: #9ca3af;
-            border-radius: 9999px;
-            width: 44px;
-            height: 44px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: background-color 0.2s, transform 0.3s ease;
-            border: none;
-            margin-right: 0.5rem;
-        }
-
-        #toggle-categories.rotated {
-            transform: rotate(45deg);
-        }
-
-        #toggle-categories:hover {
-            background-color: #6b7280;
-        }
-
-        .feedback-area.hidden {
-            display: none;
-        }
-
-        /* Modal Overlay Style */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.4);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 999;
-            backdrop-filter: blur(5px);
-            transition: backdrop-filter 0.3s ease;
-        }
-
-        /* Modal Box Modern Style */
-        #feedback-modal {
-            background: #fff;
-            padding: 2rem;
-            border-radius: 1.5rem;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-            position: relative;
-            transform: translateY(-20px) scale(0.95);
-            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
-            opacity: 0;
-        }
-
-        .modal-overlay.visible {
-            display: flex;
-        }
-
-        .modal-overlay.visible #feedback-modal {
-            transform: translateY(0) scale(1);
-            opacity: 1;
-        }
-
-        #feedback-modal h3 {
-            margin-top: 0;
-            margin-bottom: 1.5rem;
-            font-size: 1.25rem;
-            color: #333;
-        }
-
-        #feedback-modal .close-btn {
-            position: absolute;
-            top: 1rem;
-            right: 1.2rem;
-            font-size: 2rem;
-            color: #9ca3af;
-            cursor: pointer;
-            line-height: 1;
-        }
-
-        #feedback-modal .close-btn:hover {
-            color: #6b7280;
-        }
-
-        .rating-stars {
-            font-size: 2.2em;
-            color: #ccc;
-            margin-bottom: 1rem;
-            display: flex;
-            justify-content: center;
-        }
-
-        /* 별점 스타일 */
-        .rating-stars .star {
-            cursor: pointer;
-            transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
-        }
-        .rating-stars .star:hover {
-            transform: scale(1.2);
-        }
-        .rating-stars .star-empty {
-            color: #d1d5db;
-        }
-        .rating-stars .star-filled {
-            color: #fcd34d;
-        }
-
-        .feedback-form textarea {
-            width: 100%;
-            height: 100px;
-            border-radius: 0.75rem;
-            border: 1px solid #d1d5db;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            resize: none;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .feedback-form textarea:focus {
-            border-color: #2563eb;
-        }
-
-        .feedback-form button {
-            background: #2563eb;
-            color: #fff;
-            border: none;
-            padding: 0.75rem 2rem;
-            border-radius: 9999px;
-            cursor: pointer;
-            font-weight: 700;
-            transition: background 0.2s;
-        }
-
-        .feedback-form button:hover {
-            background: #1e40af;
-        }
-
-        /* 카테고리/질문 컨테이너 스타일 */
-        .category-container {
-            display: none;
-            flex-direction: column;
-            padding: 10px;
-            background-color: #60a5fa;
-            text-align: center;
-            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
-            transform: translateY(100%);
-            opacity: 0;
-        }
-
-        .category-container.visible {
-            display: flex;
-            transform: translateY(0);
-            opacity: 1;
-        }
-
-        /* 뒤로가기 버튼 영역 스타일 */
-        .category-navigation {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 10px;
-            width: 100%;
-            gap: 10px;
-        }
-
-        .category-navigation button {
-            background-color: transparent;
-            color: white;
-            padding: 5px 8px;
-            border-radius: 10px;
-            font-size: 0.9rem;
-            transition: background 0.3s;
-            border: 1px solid white;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .category-navigation button:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .category-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .category-buttons button {
-            margin: 5px;
-            padding: 8px 15px;
-            border: none;
-            background: #1e40af;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 20px;
-            transition: background 0.3s;
-        }
-
-        .category-buttons button:hover {
-            background: #1e3a8a;
-        }
-
-        .question-list {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            width: 100%;
-        }
-
-        .question-list div {
-            padding: 10px 15px;
-            cursor: pointer;
-            background: #dbeafe;
-            border-radius: 8px;
-            width: 100%;
-            text-align: left;
-            transition: background 0.2s;
-        }
-
-        .question-list div:hover {
-            background: #a5c3ed;
-        }
-
-        /* 로딩 애니메이션 */
-        .loading-dots {
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            padding: 0 1rem;
-            height: 30px;
-        }
-        .loading-dot {
-            width: 8px;
-            height: 8px;
-            background-color: #2563eb;
-            border-radius: 50%;
-            margin: 0 2px;
-            animation: bounce 0.6s infinite ease-in-out;
-        }
-        .loading-dot:nth-child(2) { animation-delay: 0.1s; }
-        .loading-dot:nth-child(3) { animation-delay: 0.2s; }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
-    </style>
+    <link rel="stylesheet" href="/css/chat-ui.css">
 </head>
 <body>
 <div class="chat-container">
@@ -630,6 +85,14 @@
     const newChatBtn = document.getElementById("new-chat");
     const langSelect = document.getElementById("language-select");
     const feedbackArea = document.getElementById("feedback-area");
+
+    // ✅ Category section 이벤트 리스너가 없는 경우를 대비하여 조건부로 추가
+const categorySection = document.getElementById("category-section");
+const toggleBtn = document.getElementById("toggle-categories");
+const categoryCloseBtn = document.createElement("button");
+categoryCloseBtn.classList.add("category-close-btn");
+categoryCloseBtn.innerHTML = "&times;";
+categorySection.prepend(categoryCloseBtn);
 
     // ✅ UI 텍스트를 위한 다국어 데이터
     const translations = {
@@ -1199,50 +662,56 @@
     document.getElementById("submit-feedback-btn").addEventListener("click", submitFeedback);
 
     // ✅ Category section 이벤트 리스너가 없는 경우를 대비하여 조건부로 추가
-    const categorySection = document.getElementById("category-section");
     if (categorySection) {
-        document.getElementById("toggle-categories").addEventListener("click", async() => {
-            const section = document.getElementById("category-section");
-            const toggleBtn = document.getElementById("toggle-categories");
+    document.getElementById("toggle-categories").addEventListener("click", async() => {
+        const section = document.getElementById("category-section");
+        const toggleBtn = document.getElementById("toggle-categories");
 
-            toggleBtn.classList.toggle('rotated');
+        toggleBtn.classList.toggle('rotated');
 
-            if (section.classList.contains('visible')) {
-                section.classList.remove('visible');
-                backHistory = [];
-            } else {
-                await loadMainCategories();
+        if (section.classList.contains('visible')) {
+            section.classList.remove('visible');
+            backHistory = [];
+        } else {
+            await loadMainCategories();
+        }
+    });
+
+    // ✅ 'X' 버튼 클릭 이벤트 리스너 추가
+    categoryCloseBtn.addEventListener("click", () => {
+        categorySection.classList.remove('visible');
+        toggleBtn.classList.remove('rotated');
+        backHistory = [];
+    });
+
+    categorySection.addEventListener("click", async(event) => {
+        const target = event.target.closest('button, div');
+        if (target && target.tagName === 'BUTTON') {
+            const buttonType = target.dataset.type;
+            const id = target.dataset.id;
+            if (buttonType === 'main') {
+                await loadSubCategories(id);
+            } else if (buttonType === 'sub') {
+                await loadQuestions(id);
             }
-        });
+        } else if (target && target.tagName === 'DIV' && target.closest('.question-list')) {
+            const qaId = target.dataset.id;
+            const questionText = target.textContent;
 
-        categorySection.addEventListener("click", async(event) => {
-            const target = event.target.closest('button, div');
-            if (target && target.tagName === 'BUTTON') {
-                const buttonType = target.dataset.type;
-                const id = target.dataset.id;
-                if (buttonType === 'main') {
-                    await loadSubCategories(id);
-                } else if (buttonType === 'sub') {
-                    await loadQuestions(id);
-                }
-            } else if (target && target.tagName === 'DIV' && target.closest('.question-list')) {
-                const qaId = target.dataset.id;
-                const questionText = target.textContent;
+            // 사용자 메시지를 화면에 추가하고, 기록에도 추가 후 저장
+            addMessageToChat(questionText, 'user');
+            const chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
+            chatHistory.push({ sender: 'user', message: questionText });
+            saveToLocalStorage(chatHistory);
 
-                // 사용자 메시지를 화면에 추가하고, 기록에도 추가 후 저장
-                addMessageToChat(questionText, 'user');
-                const chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
-                chatHistory.push({ sender: 'user', message: questionText });
-                saveToLocalStorage(chatHistory);
+            categorySection.classList.remove('visible');
+            document.getElementById("toggle-categories").classList.remove('rotated');
+            feedbackArea.classList.add('hidden');
 
-                categorySection.classList.remove('visible');
-                document.getElementById("toggle-categories").classList.remove('rotated');
-                feedbackArea.classList.add('hidden');
-
-                await getAnswer(qaId);
-            }
-        });
-    }
+            await getAnswer(qaId);
+        }
+    });
+}
 
     const languageSelect = document.getElementById("language-select");
     if (languageSelect) {

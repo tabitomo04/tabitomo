@@ -80,8 +80,8 @@
     </div>
   </div>
 
-
-  <div th:if="${pagelist == null or pagelist.isEmpty()}" class="no-results">
+     <div th:if="${storylist == null or storylist.isEmpty()}" th:text="'storylist: ' + ${storylist}"></div>
+  <div th:if="${(storylist == null or storylist.isEmpty()) and (pagelist == null or pagelist.isEmpty())}" class="no-results">
     <img th:src="@{/images/pabicone.clear.png}" alt="검색결과 없음" >
     <p data-translatable>검색 결과가 없습니다.</p>
   </div>

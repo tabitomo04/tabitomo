@@ -152,7 +152,6 @@ public class EditorController {
         }
 
 
-
         try {
             // Ensure page is at least 0
             page = Math.max(0, page);

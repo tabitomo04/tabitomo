@@ -27,6 +27,7 @@ public class StorybookEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "book_num")
     private Integer booknum;
 
     @Column(name = "title")

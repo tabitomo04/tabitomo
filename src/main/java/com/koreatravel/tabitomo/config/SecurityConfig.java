@@ -98,9 +98,7 @@ public class SecurityConfig {
                             "/", 
                             "/css/**", 
                             "/js/**", 
-                            "/images/**", 
-                            "/images/**", 
-                            "/favicon.ico", 
+                            "/image/**", 
                             "/error"
                         ).permitAll()
                         .requestMatchers(

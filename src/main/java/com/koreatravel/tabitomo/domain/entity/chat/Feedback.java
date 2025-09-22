@@ -33,5 +33,8 @@ public class Feedback {
 
     @Column(name = "timestamp", nullable = false)
     private LocalDateTime timestamp;
+
+    @Column(name = "is_helpful", nullable = false)
+    private Boolean isHelpful;
 }
 

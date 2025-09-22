@@ -136,7 +136,9 @@ public class ChatService {
 
     // 질문 ID를 기반으로 답변을 반환합니다.
     public String getAnswerByQaId(Integer qaId, String lang) {
-        return qaRepo.findById(qaId).map(qa -> getQaAnswer(qa, lang)).orElse("답변이 없습니다.");
+        return qaRepo.findById(qaId)
+                .map(qa -> getQaAnswer(qa, lang).strip())
+                .orElse("답변이 없습니다.");
     }
 
     // 1. 키워드 점수 합산 방식으로 DB에서 ChatQA 객체 검색
@@ -173,10 +175,11 @@ public class ChatService {
             ChatRequest singleReq = new ChatRequest();
             singleReq.setMessage(prompt);
             singleReq.setLanguage(processLanguageCode(language)); // 언어 코드 변환
-            return openAiService.getChatResponse(singleReq).getReply();
+            String reply = openAiService.getChatResponse(singleReq).getReply();
+            return reply != null ? reply.stripTrailing() : dbAnswer; // ✅ 마지막 줄바꿈 제거
         } catch (Exception e) {
             System.err.println("AI 답변 보정 중 오류 발생: " + e.getMessage());
-            return dbAnswer;
+            return dbAnswer.stripTrailing();
         }
     }
 
@@ -187,7 +190,11 @@ public class ChatService {
 
         if (dbAnswer.isPresent()) {
             // 2. DB에서 답변을 찾았다면, AI를 사용해 답변을 다듬고 반환합니다.
-            String refinedAnswer = refineAnswerWithAI(getQaQuestion(dbAnswer.get(), request.getLanguage()), getQaAnswer(dbAnswer.get(), request.getLanguage()), request.getLanguage()); // 언어 정보 전달
+            String refinedAnswer = refineAnswerWithAI(
+                    getQaQuestion(dbAnswer.get(), request.getLanguage()),
+                    getQaAnswer(dbAnswer.get(), request.getLanguage()),
+                    request.getLanguage()
+            ); // 언어 정보 전달
             ChatResponse response = new ChatResponse();
             response.setReply(refinedAnswer);
             response.setAnswerSource("DB");
@@ -195,26 +202,10 @@ public class ChatService {
         } else {
             // 3. DB에서 답변을 찾지 못했다면, 전체 채팅 기록을 AI에 보내 답변을 받습니다.
             try {
-                // 이전 대화 기록을 AI 모델에 전달할 수 있는 형태로 변환합니다.
-                List<Map<String, String>> chatHistory = request.getChatHistory();
-                String fullPrompt = chatHistory.stream()
-                        .map(chat -> {
-                            String sender = chat.get("sender");
-                            String message = chat.get("message");
-                            if ("user".equals(sender)) {
-                                return "사용자: " + message;
-                            } else {
-                                return "AI 챗봇: " + message;
-                            }
-                        })
-                        .collect(Collectors.joining("\n"));
-
-                // AI 모델에 최종 프롬프트를 전송합니다.
-                ChatRequest aiRequest = new ChatRequest();
-                aiRequest.setMessage(fullPrompt);
-                aiRequest.setLanguage(processLanguageCode(request.getLanguage())); // 언어 코드 변환
-
-                return openAiService.getChatResponse(aiRequest);
+                // OpenAiService는 ChatRequest에 포함된 chatHistory를 처리하므로,
+                // 새로운 객체를 만들 필요 없이 기존 request 객체를 그대로 전달하면 됩니다.
+                request.setLanguage(processLanguageCode(request.getLanguage()));
+                return openAiService.getChatResponse(request);
 
             } catch (Exception e) {
                 System.err.println("AI 답변 생성 중 오류 발생: " + e.getMessage());

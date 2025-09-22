@@ -14,4 +14,5 @@ public class FeedbackRequest {
     private String feedbackText;
     private List<Map<String, String>> chatHistory; // chatHistory 필드 추가
     private Date timestamp;
+    private Integer isHelpful;
 }

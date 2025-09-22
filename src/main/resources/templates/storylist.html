@@ -49,13 +49,14 @@
 
   <div class="filters">
     <div class="leftbutton">
-      <button th:onclick="|location.href='@{/storybook/list(sort = hot)}'|" data-translatable>HOT</button>
-      <button th:onclick="|location.href='@{/storybook/list(sort = new)}'|" data-translatable>NEW</button>
+      <button th:onclick="|location.href='@{/storybook/list(sort = hot)}'|" >HOT</button>
+      <button th:onclick="|location.href='@{/storybook/list(sort = new)}'|" >NEW</button>
     </div>
-    <div class="rightbutton">
+    <div class="rightbutton" sec:authorize="isAuthenticated()">
       <a class="storylistbtn" id="templistBtn" data-translatable>임시저장본</a>
       <a class="storylistbtn primary" onclick="checkTemp()" th:href="@{'/storybook/write'}" data-translatable>새 스토리 작성</a>
     </div>
+    <div class="rightbutton" sec:authorize="!isAuthenticated()">&nbsp;</div>
   </div>
   </section>
 
@@ -81,7 +82,7 @@
 
 
   <div th:if="${pagelist == null or pagelist.isEmpty()}" class="no-results">
-    <img th:src="@{/images/pabicone.png}" alt="검색결과 없음" >
+    <img th:src="@{/images/pabicone.clear.png}" alt="검색결과 없음" >
     <p data-translatable>검색 결과가 없습니다.</p>
   </div>
 

@@ -1,8 +1,18 @@
 <!doctype html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
   <meta charset="utf-8">
-  <title>edit</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-translatable>스토리북 수정</title>
+
+  <!-- Common CSS/JS from header fragment -->
+  <link rel="icon" th:href="@{/image/pabicone.png}" type="image/png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script th:src="@{/js/translation.js}"></script>
 
   <!--ckeditor css-->
   <link rel="stylesheet" th:href="@{/css/editor.css}">
@@ -52,8 +62,16 @@
 
 
 <body>
+
+<!-- Header -->
+<div th:insert="~{fragments/header :: header}"></div>
+
+<!-- Navigation Menu -->
+<div th:insert="~{fragments/menu :: menu}"></div>
+
+
 <div class="center-div">
-  <h1 style="font-size: 40px;">스토리북 수정</h1>
+  <h1 style="font-size: 40px;" data-translatable>스토리북 수정</h1>
   <a th:href="@{'/mypage'}">다른 페이지로 이동 (모달창 테스트용)</a>
   <!-- post 글이면 post.booknum, temp 글이면 hidden으로 tempId -->
   <input type="hidden" id="booknum" th:value="${post != null} ? ${post.booknum} : ''" >
@@ -61,11 +79,11 @@
   <input type="hidden" id="savetype" th:value="${temp != null} ? 'temp' : 'post'" >
 
   <div>
-    <table style="border: 2px solid #333; border-collapse: separate; width: 100%; margin-bottom:30px">
+    <table style="border: 2px solid #333; border-collapse: separate; width: 100%; margin-bottom:30px; background: white">
       <thead>
       <tr>
         <td colspan="5">
-          <input type="text" id="title" class="title-input" th:value="${temp != null} ? ${temp.title} : ${post.title}" name="title" maxlength="100" style="color: #444444; font-weight: bold;">
+          <input type="text" id="title" class="title-input" th:value="${temp != null} ? ${temp.title} : ${post.title}" name="title" maxlength="100" style="color: #444444; font-weight: bold;" data-translatable>
         </td>
       </tr>
       <tr>
@@ -75,12 +93,13 @@
                  name="subtitle"
                  maxlength="100"
                  style="color: #aaa;"
+                 data-translatable-placeholder
                  th:placeholder="${#strings.isEmpty(temp?.subtitle) and #strings.isEmpty(post?.subtitle) ? '부제목을 입력하세요' : ''}">
         </td>
       </tr>
       <tr>
         <td colspan="5">
-          <input name="tags" id="tags" placeholder="태그 추가" th:value="${temp != null} ? ${temp.tags} : ${#strings.arrayJoin(post.tags, ',')}">
+          <input name="tags" id="tags" data-translatable-placeholder placeholder="태그 추가" th:value="${temp != null} ? ${temp.tags} : ${#strings.arrayJoin(post.tags, ',')}">
         </td>
       </tr>
       </thead>
@@ -102,9 +121,9 @@
       </tbody>
     </table>
     <div style="text-align:right">
-      <button th:if="${temp == null}" class="saveButton btn btn-dark" type="button">저장</button>
-      <button th:if="${temp != null}" class="tempButton btn btn-dark" type="button">임시저장</button>
-      <button th:if="${temp != null}" class="saveButton btn btn-dark" type="button" >저장</button>
+      <button th:if="${temp == null}" class="saveButton btn btn-dark" type="button" data-translatable>저장</button>
+      <button th:if="${temp != null}" class="tempButton btn btn-dark" type="button" data-translatable>임시저장</button>
+      <button th:if="${temp != null}" class="saveButton btn btn-dark" type="button" data-translatable>저장</button>
       <br>
     </div>
   </div>
@@ -113,10 +132,10 @@
 <!-- 모달창 -->
 <div id="leaveModal" class="Leavemodal">
   <div class="Leavemodal-content">
-    <p id="modalMessage">계속 작성하시겠습니까?</p>
+    <p id="modalMessage" data-translatable>계속 작성하시겠습니까?</p>
     <div class="Leavemodal-buttons">
-      <button id="yesBtn">예</button>
-      <button id="noBtn">아니오</button>
+      <button id="yesBtn" data-translatable>예</button>
+      <button id="noBtn" data-translatable>아니오</button>
     </div>
   </div>
 </div>
@@ -124,11 +143,11 @@
 <div id="leavesaveModal" class="Leavemodal">
   <div class="Leavemodal-content">
     <span id="closeBtn" class="close">&times;</span>
-    <p id="modalsaveMessage">변경 사항을 저장하시겠습니까</p>
+    <p id="modalsaveMessage" data-translatable>변경 사항을 저장하시겠습니까</p>
     <div class="Leavemodal-buttons">
-      <button id="saveBtn">예</button>
-      <button id="nosaveBtn">아니오</button>
-      <button id="cancelBtn">취소</button>
+      <button id="saveBtn" data-translatable>예</button>
+      <button id="nosaveBtn" data-translatable>아니오</button>
+      <button id="cancelBtn" data-translatable>취소</button>
     </div>
   </div>
 </div>
@@ -202,6 +221,9 @@
 
 
 </script>
+
+<!-- Footer -->
+<footer th:replace="~{fragments/footer :: footer}"></footer>
 
 </body>
 </html>

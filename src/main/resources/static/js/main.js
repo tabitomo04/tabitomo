@@ -168,7 +168,6 @@ const editorConfig = {
 			'resizeImage'
 		]
 	},
-	language: 'ko',
 	licenseKey: LICENSE_KEY,
 	link: {
 		addTargetToExternalLinks: true,
@@ -186,7 +185,7 @@ const editorConfig = {
 	menuBar: {
 		isVisible: true
 	},
-    placeholder: '당신의 여행을 기록해보세요!',
+
 	table: {
 		contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
 	},
@@ -198,7 +197,7 @@ const editorConfig = {
 
 let editorInstance;
 
-    // CKEditor 초기화
+
     ClassicEditor.create(document.querySelector('#input-contents'), {
         ...editorConfig,
         spellcheck: false,
@@ -251,6 +250,7 @@ let editorInstance;
         const saveRequestDTO = {
                 booknum: $('#booknum').val() || null,
                 tempId: $('#tempId').val() || null,
+                tags: tagify.value.map(t => t.value),
                 savetype: $('#savetype').val(),
                 title: $('#title').val(),
                 subtitle: $('#subtitle').val(),
@@ -303,6 +303,7 @@ let editorInstance;
         const saveRequestDTO = {
                 booknum: $('#booknum').val() || null,
                 tempId: $('#tempId').val() || null,
+                tags: tagify.value.map(t => t.value),
                 savetype: $('#savetype').val(),
                 title: $('#title').val(),
                 subtitle: $('#subtitle').val(),

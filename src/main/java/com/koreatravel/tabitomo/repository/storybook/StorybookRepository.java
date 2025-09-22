@@ -29,9 +29,11 @@ public interface StorybookRepository extends JpaRepository<StorybookEntity, Inte
             "     LIMIT 1) AS thumbnail, " +
             "    m.nickname AS nickname " +
             "FROM storybook s " +
-            "JOIN member m ON s.member_id = m.id ",
+            "JOIN member m ON s.member_id = m.id " +
+            "WHERE m.email = :email " +
+            "ORDER BY s.created_at DESC",
             nativeQuery = true)
-    List<StorybookListDTO> StorybookList(Sort sort);
+    List<StorybookListDTO> StorybookList(@Param("email") String email);
 
     // 스토리북 리스트 페이지의 랜덤 리스트 쿼리
     @Query(value = "SELECT " +

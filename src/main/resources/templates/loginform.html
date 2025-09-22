@@ -25,6 +25,9 @@
       --error-bg: #f8d7da;
       --error-text: #721c24;
       --error-border: #f5c6cb;
+      --success-color: #28a745;
+      --warning-color: #ffc107;
+      --info-color: #17a2b8;
     }
     
     .error-message {
@@ -230,26 +233,40 @@
     .step-indicator {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 20px;
+      align-items: center;
+      margin-bottom: 30px;
       position: relative;
+      padding: 0 20px;
     }
     
     .step {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      background: #e9ecef;
+      width: auto;
+      min-width: 120px;
+      height: 40px;
+      border-radius: 20px;
+      background-color: #e9ecef;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: bold;
+      font-weight: 500;
       color: #6c757d;
       position: relative;
-      z-index: 1;
+      z-index: 2;
+      padding: 0 15px;
+      font-size: 0.9rem;
+      text-align: center;
+      transition: all 0.3s ease;
     }
     
     .step.active {
-      background: var(--primary-color);
+      background-color: var(--primary-color);
+      color: white;
+      transform: scale(1.05);
+      box-shadow: 0 0 10px rgba(46, 76, 76, 0.3);
+    }
+    
+    .step.completed {
+      background-color: var(--success-color);
       color: white;
     }
     
@@ -263,9 +280,12 @@
       top: 50%;
       left: 0;
       right: 0;
-      height: 2px;
-      background: #e9ecef;
-      z-index: 0;
+      height: 3px;
+      background-color: #e9ecef;
+      position: relative;
+      margin: 0 5px;
+      border-radius: 3px;
+      overflow: hidden;
     }
     
     .step-line-progress {
@@ -274,7 +294,6 @@
       left: 0;
       height: 100%;
       background: var(--secondary-color);
-      transition: width 0.3s;
     }
     
     /* Responsive adjustments */
@@ -373,23 +392,120 @@
 
 <!-- 비밀번호 재설정 모달 -->
 <div class="modal fade" id="passwordModal" tabindex="-1" aria-labelledby="passwordModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="passwordModalLabel">비밀번호 재설정</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
+      <div class="modal-header bg-primary text-white">
+        <h4 class="modal-title fw-bold" id="passwordModalLabel">
+          <i class="fas fa-key me-2"></i>비밀번호 재설정
+        </h4>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body">
-        <form id="passwordResetForm">
-          <div class="mb-3">
-            <label for="resetEmail" class="form-label">이메일 주소</label>
-            <input type="email" class="form-control" id="resetEmail" required>
+      <div class="modal-body p-4">
+        <div class="step-indicator mb-4">
+          <div class="step step-1 active">1. 이메일 인증</div>
+          <div class="step-line">
+            <div class="step-line-progress"></div>
           </div>
-        </form>
+          <div class="step step-2">2. 인증번호 확인</div>
+          <div class="step-line">
+            <div class="step-line-progress"></div>
+          </div>
+          <div class="step step-3">3. 비밀번호 변경</div>
+        </div>
+        
+        <!-- Step 1: Email Verification -->
+        <div class="step-content p-4 bg-light rounded" id="step1">
+          <h5 class="mb-4"><i class="fas fa-envelope me-2 text-primary"></i>이메일 주소를 입력해주세요</h5>
+          <p class="text-muted mb-4">가입하신 이메일 주소를 입력하시면 인증번호가 발송됩니다.</p>
+          <div class="row g-3">
+            <div class="col-md-8">
+              <label for="resetEmail" class="form-label fw-bold">이메일 주소</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                <input type="email" class="form-control form-control-lg" id="resetEmail" placeholder="example@example.com">
+              </div>
+              <div class="invalid-feedback" id="emailError"></div>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+              <button type="button" class="btn btn-primary btn-lg w-100" id="sendVerificationBtn">
+                <i class="fas fa-paper-plane me-2"></i>인증번호 전송
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Step 2: Verification Code -->
+        <div class="step-content p-4 bg-light rounded" id="step2" style="display: none;">
+          <h5 class="mb-4"><i class="fas fa-shield-alt me-2 text-primary"></i>이메일 인증</h5>
+          <p class="text-muted mb-4">이메일로 전송된 6자리 인증번호를 입력해주세요.</p>
+          <div class="row g-3">
+            <div class="col-md-8">
+              <label for="verificationCode" class="form-label fw-bold">인증번호</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-key"></i></span>
+                <input type="text" class="form-control form-control-lg text-center" id="verificationCode" placeholder="6자리 숫자" maxlength="6">
+              </div>
+              <div class="d-flex justify-content-between mt-2">
+                <div class="form-text">인증번호가 오지 않나요? <a href="#" id="resendCodeBtn" class="text-decoration-none">재전송</a></div>
+                <div class="text-danger" id="countdown">3:00</div>
+              </div>
+              <div class="invalid-feedback" id="codeError"></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Step 3: New Password -->
+        <div class="step-content p-4 bg-light rounded" id="step3" style="display: none;">
+          <h5 class="mb-4"><i class="fas fa-lock me-2 text-primary"></i>새 비밀번호 설정</h5>
+          <p class="text-muted mb-4">새로운 비밀번호를 설정해주세요.</p>
+          <div class="row g-3">
+            <div class="col-12">
+              <label for="newPassword" class="form-label fw-bold">새 비밀번호</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-key"></i></span>
+                <input type="password" class="form-control form-control-lg" id="newPassword" placeholder="8자 이상 입력해주세요">
+                <button class="btn btn-outline-secondary toggle-password" type="button" data-target="newPassword">
+                  <i class="far fa-eye"></i>
+                </button>
+              </div>
+              <div class="form-text">8자 이상, 영문, 숫자, 특수문자를 포함해주세요.</div>
+              <div class="password-strength mt-2">
+                <div class="progress" style="height: 5px;">
+                  <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                </div>
+                <small class="text-muted">비밀번호 강도: <span id="passwordStrength">약함</span></small>
+              </div>
+              <div class="invalid-feedback" id="passwordError"></div>
+            </div>
+            <div class="col-12">
+              <label for="confirmPassword" class="form-label fw-bold">비밀번호 확인</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-check-circle"></i></span>
+                <input type="password" class="form-control form-control-lg" id="confirmPassword" placeholder="비밀번호를 다시 입력해주세요">
+                <button class="btn btn-outline-secondary toggle-password" type="button" data-target="confirmPassword">
+                  <i class="far fa-eye"></i>
+                </button>
+              </div>
+              <div class="invalid-feedback" id="confirmPasswordError"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="alert alert-danger mt-4 d-none d-flex align-items-center" id="errorAlert">
+          <i class="fas fa-exclamation-circle me-2"></i>
+          <div id="errorMessage"></div>
+        </div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
-        <button type="button" class="btn btn-primary" id="sendResetLink">링크 발송</button>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary btn-lg" id="prevStepBtn" style="display: none;">
+          <i class="fas fa-arrow-left me-2"></i>이전
+        </button>
+        <button type="button" class="btn btn-primary btn-lg ms-auto" id="nextStepBtn" style="display: none;">
+          다음<i class="fas fa-arrow-right ms-2"></i>
+        </button>
+        <button type="button" class="btn btn-success btn-lg" id="resetPasswordBtn" style="display: none;">
+          <i class="fas fa-save me-2"></i>비밀번호 재설정
+        </button>
       </div>
     </div>
   </div>
@@ -549,5 +665,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 <script src="/js/login.js"></script>
+<script src="/js/password-reset.js"></script>
 </body>
 </html>

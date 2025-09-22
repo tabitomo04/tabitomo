@@ -5,25 +5,33 @@ import com.koreatravel.tabitomo.domain.entity.member.CountryEntity;
 import com.koreatravel.tabitomo.domain.entity.member.LanguageEntity;
 import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
 import java.util.UUID;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.BadCredentialsException;
 import com.koreatravel.tabitomo.repository.member.CountryRepository;
 import com.koreatravel.tabitomo.repository.member.LanguageRepository;
 import com.koreatravel.tabitomo.repository.member.MemberRepository;
 import com.koreatravel.tabitomo.domain.dto.auth.SignUpDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 
 /**
  * AuthService handles user authentication and registration.
  */
 @Service
 @RequiredArgsConstructor
-public class AuthService {
+public class AuthService implements AuthServiceInterface {
+
+    private final Map<String, String> resetTokens = new ConcurrentHashMap<>();
+    private final Map<String, Long> tokenExpiration = new ConcurrentHashMap<>();
+    private static final long TOKEN_EXPIRATION_MS = 30 * 60 * 1000; // 30분
 
     private final MemberRepository memberRepository;
     private final CountryRepository countryRepository;
@@ -31,6 +39,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
 
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
     /**
      * Checks if an email already exists.
@@ -162,5 +171,47 @@ public class AuthService {
      */
     public MemberEntity findById(UUID id) {
         return memberRepository.findById(id).orElse(null);
+    }
+
+    @Override
+    public void storeResetToken(String email, String token) {
+        resetTokens.put(email, token);
+        tokenExpiration.put(email, System.currentTimeMillis() + TOKEN_EXPIRATION_MS);
+    }
+    
+    @Override
+    public boolean verifyAndResetPassword(String email, String token, String newPassword) {
+        // 토큰 유효성 검사
+        String storedToken = resetTokens.get(email);
+        Long expirationTime = tokenExpiration.get(email);
+        
+        if (storedToken == null || !storedToken.equals(token)) {
+            return false; // 토큰이 일치하지 않음
+        }
+        
+        if (expirationTime == null || System.currentTimeMillis() > expirationTime) {
+            // 토큰 만료
+            resetTokens.remove(email);
+            tokenExpiration.remove(email);
+            return false;
+        }
+        
+        // 비밀번호 업데이트
+        try {
+            MemberEntity member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                
+            member.setPassword(passwordEncoder.encode(newPassword));
+            memberRepository.save(member);
+            
+            // 토큰 사용 후 삭제
+            resetTokens.remove(email);
+            tokenExpiration.remove(email);
+            
+            return true;
+        } catch (Exception e) {
+            log.error("비밀번호 재설정 중 오류 발생", e);
+            return false;
+        }
     }
 }

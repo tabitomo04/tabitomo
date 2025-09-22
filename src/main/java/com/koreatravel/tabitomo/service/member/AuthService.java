@@ -1,6 +1,5 @@
 package com.koreatravel.tabitomo.service.member;
 
-import com.koreatravel.tabitomo.config.security.UserDetailsImpl;
 import com.koreatravel.tabitomo.domain.dto.member.MemberProfileDTO;
 import com.koreatravel.tabitomo.domain.entity.member.CountryEntity;
 import com.koreatravel.tabitomo.domain.entity.member.LanguageEntity;
@@ -14,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -111,24 +109,31 @@ public class AuthService {
      */
     @Transactional
     public MemberProfileDTO login(String email, String password) {
-        try {
-            // Attempt authentication
-            Authentication authentication = new UsernamePasswordAuthenticationToken(email, password);
-            Authentication authenticated = authenticationManager.authenticate(authentication);
-
-            // Get user details from authentication
-            UserDetailsImpl userDetails = (UserDetailsImpl) authenticated.getPrincipal();
-            // Get member by ID from the database to ensure we have the latest data
-            MemberEntity member = findById(userDetails.getId());
-
-            // Convert MemberEntity to MemberProfileDTO
-            return convertToProfileDTO(member);
-
-        } catch (BadCredentialsException e) {
-            throw new BadCredentialsException("이메일 또는 비밀번호가 올바르지 않습니다.", e);
-        } catch (Exception e) {
-            throw new RuntimeException("로그인 처리 중 오류가 발생했습니다.", e);
-        }
+        // Authenticate user
+        authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(email, password)
+        );
+        
+        // Get member entity
+        MemberEntity member = memberRepository.findByEmail(email)
+            .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
+        
+        // Convert to DTO and return
+        return convertToProfileDTO(member);
+    }
+    
+    /**
+     * Gets member profile by email.
+     *
+     * @param email the email of the member
+     * @return MemberProfileDTO containing member profile information
+     * @throws BadCredentialsException if member not found
+     */
+    @Transactional(readOnly = true)
+    public MemberProfileDTO getMemberProfileByEmail(String email) {
+        MemberEntity member = memberRepository.findByEmail(email)
+            .orElseThrow(() -> new BadCredentialsException("Member not found with email: " + email));
+        return convertToProfileDTO(member);
     }
 
     /**

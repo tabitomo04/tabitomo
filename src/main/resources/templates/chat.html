@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TabiTomo Chatbot</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const API_BASE_URL = /*[[${@environment.getProperty('api.base-url')}]]*/ 'http://localhost:8080';
+        /*]]>*/
+    </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
 
@@ -115,9 +122,43 @@
             gap: 1rem;
             font-size: 0.95rem;
         }
-
-        .message {
+        .message h2,
+        .message h3,
+        .message p {
             margin: 0;
+        }
+
+        /* 마크다운 메시지 안의 <p> 기본 margin 제거 */
+        .message p {
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 각 문단 아래에만 여백을 줘서 가독성 확보 */
+        .message p + p {
+            margin-top: 1em;
+        }
+
+        /* 제목과 다음 문단 사이의 간격 조정 */
+        .message h2 + p {
+            margin-top: 0.5em;
+        }
+
+        /* 굵은 글씨 아래 간격 조정 */
+        .message strong + p {
+            margin-top: 0.5em;
+        }
+
+        /* 마지막 줄 여백 제거 */
+        .message p:last-child {
+            margin-bottom: 0;
+        }
+
+
+        /* bot wrapper 내부도 동일 처리 */
+        .bot-message-content p {
+            margin: 0;
+            padding: 0;
         }
 
         .bot-message-wrapper {
@@ -125,6 +166,49 @@
             align-items: flex-start;
             gap: 5px;
             margin: 0;
+        }
+
+        /* 봇 메시지 내의 모든 <p> 태그의 하단 여백 제거 */
+        .bot-message-wrapper .message p {
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 봇 메시지 내부의 모든 마크다운 요소 기본 여백 제거 */
+        .bot-message-wrapper p,
+        .bot-message-wrapper h2,
+        .bot-message-wrapper h3,
+        .bot-message-wrapper h4 {
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 각 문단 간의 간격 조정 */
+        .bot-message-wrapper p + p {
+            margin-top: 1em; /* 문단과 문단 사이에 1줄 여백 추가 */
+        }
+
+        /* 제목과 다음 문단 사이의 간격 조정 */
+        .bot-message-wrapper h2 + p,
+        .bot-message-wrapper h3 + p {
+            margin-top: 0.5em; /* 제목 아래에 0.5줄 여백 추가 */
+        }
+
+        /* 굵은 글씨와 다음 문단 사이의 간격 조정 */
+        .bot-message-wrapper strong + p {
+            margin-top: 0.5em;
+        }
+
+        /* 목록 스타일 */
+        .bot-message-wrapper ul,
+        .bot-message-wrapper ol {
+            margin: 0.5em 0;
+            padding-left: 20px;
+        }
+
+        /* 마지막 줄바꿈 문제 해결 - `.bot` 클래스를 명시하여 특이성 높이기 */
+        .bot-message-wrapper .message.bot p:last-child {
+            margin-bottom: 0;
         }
 
         .bot-message-content {
@@ -149,10 +233,18 @@
 
         .message {
             max-width: 80%;
+            margin: 0;
             padding: 0.75rem 1rem;
             border-radius: 1rem;
             line-height: 1.5;
-            white-space: pre-wrap;
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+            transform: translateY(20px);
+            opacity: 0;
+        }
+
+        .message.show {
+            transform: translateY(0);
+            opacity: 1;
         }
 
         .message.bot {
@@ -182,6 +274,11 @@
             border-radius: 9999px;
             outline: none;
             margin-right: 0.5rem;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input input:focus {
+            border-color: #2563eb;
         }
 
         .chat-input button.send-btn {
@@ -195,12 +292,13 @@
             color: white;
             font-size: 1.5rem;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: background-color 0.2s, transform 0.2s;
             border: none;
         }
 
         .chat-input button.send-btn:hover {
             background-color: #1d4ed8;
+            transform: scale(1.05);
         }
 
         #toggle-categories {
@@ -243,6 +341,8 @@
             justify-content: center;
             align-items: center;
             z-index: 999;
+            backdrop-filter: blur(5px);
+            transition: backdrop-filter 0.3s ease;
         }
 
         /* Modal Box Modern Style */
@@ -302,7 +402,10 @@
         /* 별점 스타일 */
         .rating-stars .star {
             cursor: pointer;
-            transition: color 0.2s ease-in-out;
+            transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
+        }
+        .rating-stars .star:hover {
+            transform: scale(1.2);
         }
         .rating-stars .star-empty {
             color: #d1d5db;
@@ -349,10 +452,15 @@
             padding: 10px;
             background-color: #60a5fa;
             text-align: center;
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+            transform: translateY(100%);
+            opacity: 0;
         }
 
         .category-container.visible {
             display: flex;
+            transform: translateY(0);
+            opacity: 1;
         }
 
         /* 뒤로가기 버튼 영역 스타일 */
@@ -425,6 +533,30 @@
         .question-list div:hover {
             background: #a5c3ed;
         }
+
+        /* 로딩 애니메이션 */
+        .loading-dots {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 0 1rem;
+            height: 30px;
+        }
+        .loading-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #2563eb;
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: bounce 0.6s infinite ease-in-out;
+        }
+        .loading-dot:nth-child(2) { animation-delay: 0.1s; }
+        .loading-dot:nth-child(3) { animation-delay: 0.2s; }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
     </style>
 </head>
 <body>
@@ -449,9 +581,11 @@
             <button id="feedback-yes-btn">예</button>
             <button id="feedback-no-btn">아니오</button>
         </div>
+        <button id="retransmit-feedback-btn" class="hidden"></button>
     </div>
 
     <div class="chat-messages" id="chat-box">
+        <!-- Messages will be dynamically added here -->
     </div>
 
     <div id="category-section" class="category-container"></div>
@@ -483,584 +617,656 @@
             </div>
         </div>
     </div>
-</div><script>
+</div><script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/lib/marked.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.5/dist/purify.min.js"></script>
+
+<script>
     let currentRating = 0;
-let backHistory = [];
-const API_URL = 'http://localhost:9999/api/chat'; // 백엔드 API URL
-const chatBox = document.getElementById("chat-box");
-const messageInput = document.getElementById("message");
-const sendBtn = document.getElementById("send-btn");
-const newChatBtn = document.getElementById("new-chat");
-const langSelect = document.getElementById("language-select");
-
-// ✅ UI 텍스트를 위한 다국어 데이터
-const translations = {
-    'ko': {
-        headerTitle: 'TabiTomo',
-        newChatButton: '새 채팅',
-        feedbackPrompt: '챗봇 상담이 도움이 됐나요?',
-        feedbackYes: '예',
-        feedbackNo: '아니오',
-        inputPlaceholder: '메시지를 입력하세요',
-        feedbackModalTitle: '답변이 마음에 드셨나요?',
-        feedbackTextPlaceholder: '자유로운 의견을 남겨주세요.',
-        feedbackSubmitButton: '피드백 제출',
-        initialMessage: '안녕하세요 토모에요! 무엇을 도와드릴까요?',
-        loadError: '데이터를 불러오는 중 오류가 발생했습니다.',
-        alertForbiddenWord: '욕설이나 부적절한 단어는 입력할 수 없습니다.',
-        alertFeedbackForbiddenWord: '욕설이나 부적절한 단어는 피드백에 포함할 수 없습니다.',
-        alertNoHistory: '피드백을 남길 채팅 기록이 없습니다. 대화를 시작해주세요.',
-        alertFeedbackSubmitted: '이미 피드백을 제출했습니다. 새 채팅을 시작해주세요.',
-        alertSubmissionFailed: '피드백 제출에 실패했습니다. 이미 제출했거나 서버 오류일 수 있습니다.',
-        alertSubmissionSuccess: '피드백이 제출되었습니다. 감사합니다!',
-        apiError: '답변을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.',
-        communicationError: '통신 에러:',
-        goHome: '처음',
-        goBack: '뒤로',
-        noData: '데이터를 불러오는 중 오류가 발생했습니다.',
-        languageChanged: '언어가 한국어로 변경되었습니다. 새로운 대화를 시작해주세요.'
-    },
-    'en': {
-        headerTitle: 'TabiTomo',
-        newChatButton: 'New Chat',
-        feedbackPrompt: 'Was the chatbot consultation helpful?',
-        feedbackYes: 'Yes',
-        feedbackNo: 'No',
-        inputPlaceholder: 'Enter a message',
-        feedbackModalTitle: 'Did you like the response?',
-        feedbackTextPlaceholder: 'Please leave your feedback.',
-        feedbackSubmitButton: 'Submit Feedback',
-        initialMessage: 'Hello, I\'m Tomo! How can I help you?',
-        loadError: 'An error occurred while loading data.',
-        alertForbiddenWord: 'You cannot enter profanity or inappropriate words.',
-        alertFeedbackForbiddenWord: 'Profanity or inappropriate words cannot be included in feedback.',
-        alertNoHistory: 'No chat history to leave feedback. Please start a conversation.',
-        alertFeedbackSubmitted: 'Feedback has already been submitted. Please start a new chat.',
-        alertSubmissionFailed: 'Feedback submission failed. You may have already submitted or a server error occurred.',
-        alertSubmissionSuccess: 'Feedback submitted successfully. Thank you!',
-        apiError: 'Could not retrieve a response. Please try again later.',
-        communicationError: 'Communication error:',
-        goHome: 'Home',
-        goBack: 'Back',
-        noData: 'An error occurred while loading data.',
-        languageChanged: 'Language has been changed to English. Please start a new conversation.'
-    },
-    'ja': {
-        headerTitle: 'タビトモ',
-        newChatButton: '新しいチャット',
-        feedbackPrompt: 'チャットボットの相談は役に立ちましたか？',
-        feedbackYes: 'はい',
-        feedbackNo: 'いいえ',
-        inputPlaceholder: 'メッセージを入力してください',
-        feedbackModalTitle: '回答は気に入りましたか？',
-        feedbackTextPlaceholder: 'ご意見を自由にお聞かせください。',
-        feedbackSubmitButton: 'フィードバックを送信',
-        initialMessage: 'こんにちは、トモです！何かお手伝いできることはありますか？',
-        loadError: 'データの読み込み中にエラーが発生しました。',
-        alertForbiddenWord: '不適切な言葉や卑猥な言葉は入力できません。',
-        alertFeedbackForbiddenWord: '不適切な言葉や卑猥な言葉はフィードバックに含めることはできません。',
-        alertNoHistory: 'フィードバックを残すチャット履歴がありません。会話を開始してください。',
-        alertFeedbackSubmitted: 'フィードバックはすでに送信されました。新しいチャットを開始してください。',
-        alertSubmissionFailed: 'フィードバックの送信に失敗しました。すでに送信されたか、サーバーエラーが発生した可能性があります。',
-        alertSubmissionSuccess: 'フィードバックが正常に送信されました。ありがとうございます！',
-        apiError: '回答を取得できませんでした。後でもう一度お試しください。',
-        communicationError: '通信エラー:',
-        goHome: '最初へ',
-        goBack: '戻る',
-        noData: 'データの読み込み中にエラーが発生しました。',
-        languageChanged: '言語が日本語に変更されました。新しい会話を始めてください。'
-    }
-};
-
-// ✅ UI 텍스트를 업데이트하는 함수
-function updateUITexts(lang) {
-    const t = translations[lang];
-    document.querySelector('.header-title').textContent = t.headerTitle;
-    document.getElementById('new-chat').textContent = t.newChatButton;
-    document.querySelector('#feedback-area p').textContent = t.feedbackPrompt;
-    document.getElementById('feedback-yes-btn').textContent = t.feedbackYes;
-    document.getElementById('feedback-no-btn').textContent = t.feedbackNo;
-    document.getElementById('message').placeholder = t.inputPlaceholder;
-    document.querySelector('#feedback-modal h3').textContent = t.feedbackModalTitle;
-    document.getElementById('feedback-text').placeholder = t.feedbackTextPlaceholder;
-    document.getElementById('submit-feedback-btn').textContent = t.feedbackSubmitButton;
-    document.getElementById("go-home").textContent = t.goHome;
-    document.getElementById("back-one-step").textContent = t.goBack;
-}
-
-// ✅ 언어에 따라 올바른 속성 이름을 가져오는 헬퍼 함수 추가
-function getLocalizedName(item, type, lang) {
-    if (type === 'question') {
-        const langMap = { 'ko': 'questionKo', 'en': 'questionEn', 'ja': 'questionJa' };
-        return item[langMap[lang]] || item.questionKo; // 기본값으로 questionKo 사용
-    } else {
-        const langMap = { 'ko': 'nameKo', 'en': 'nameEn', 'ja': 'nameJa' };
-        return item[langMap[lang]] || item.nameKo; // 기본값으로 nameKo 사용
-    }
-}
-
-// ✅ 카테고리/질문 버튼 업데이트 함수
-function updateCategoryButtons(container, data, type) {
-    const lang = document.getElementById("language-select").value;
-    const t = translations[lang];
-    container.innerHTML = `
-        <div class="category-navigation">
-            <button id="go-home">${t.goHome}</button>
-            <button id="back-one-step" class="hidden">${t.goBack}</button>
-        </div>
-        <div class="${type === 'question' ? 'question-list' : 'category-buttons'}"></div>
-    `;
-    const buttonList = container.querySelector('.category-buttons') || container.querySelector('.question-list');
-    const backBtn = container.querySelector('#back-one-step');
-    const homeBtn = container.querySelector('#go-home');
-
-    if (backHistory.length > 0) {
-        backBtn.classList.remove('hidden');
-    } else {
-        backBtn.classList.add('hidden');
-    }
-
-    homeBtn.onclick = loadMainCategories;
-    backBtn.onclick = goBackOneStep;
-
-    if (data && data.length > 0) {
-        if (type === 'question') {
-             data.forEach(item => {
-                const div = document.createElement("div");
-                div.textContent = getLocalizedName(item, 'question', lang); // 수정된 부분
-                div.dataset.id = item.qaId;
-                buttonList.appendChild(div);
-            });
-        } else {
-            data.forEach(item => {
-                const button = document.createElement("button");
-                button.textContent = getLocalizedName(item, type, lang); // 수정된 부분
-                button.dataset.id = item.id;
-                button.dataset.type = type;
-                buttonList.appendChild(button);
-            });
-        }
-    } else {
-        buttonList.innerHTML = `<div style="text-align: center; color: #fff;">${t.noData}</div>`;
-    }
-}
-// ✅ 메인 카테고리 로딩 함수 (언어 파라미터 포함)
-async function loadMainCategories() {
-    const section = document.getElementById("category-section");
-    section.classList.add('visible');
-    document.getElementById("toggle-categories").classList.remove('rotated');
-    backHistory = [];
-    const lang = document.getElementById("language-select").value;
-
-    try {
-        const response = await fetch(`/api/main-categories?lang=${lang}`);
-        if (!response.ok) throw new Error('Network response was not ok.');
-        const categories = await response.json();
-        updateCategoryButtons(section, categories, 'main');
-    } catch (error) {
-        console.error("메인 카테고리 로드 실패:", error);
-        const t = translations[lang];
-        section.innerHTML = `<div class="category-container visible"><div style="text-align: center; color: #fff; padding: 10px;">${t.loadError}</div></div>`;
-    }
-}
-
-// ✅ 서브 카테고리 로딩 함수 (언어 파라미터 포함)
-async function loadSubCategories(mainCategoryId) {
-    backHistory.push({ type: 'main', id: mainCategoryId });
-    const section = document.getElementById("category-section");
-    const lang = document.getElementById("language-select").value;
-
-    try {
-        const response = await fetch(`/api/sub-categories/${mainCategoryId}?lang=${lang}`);
-        if (!response.ok) throw new Error('Network response was not ok.');
-        const subCategories = await response.json();
-        updateCategoryButtons(section, subCategories, 'sub');
-    } catch (error) {
-        console.error("서브 카테고리 로드 실패:", error);
-        const t = translations[lang];
-        section.innerHTML = `<div class="category-container visible"><div style="text-align: center; color: #fff; padding: 10px;">${t.loadError}</div></div>`;
-    }
-}
-
-// ✅ 질문 리스트 로딩 함수 (언어 파라미터 포함)
-async function loadQuestions(subCategoryId) {
-    backHistory.push({ type: 'sub', id: subCategoryId });
-    const section = document.getElementById("category-section");
-    const lang = document.getElementById("language-select").value;
-
-    try {
-        const response = await fetch(`/api/sub-categories/${subCategoryId}/qas?lang=${lang}`);
-        if (!response.ok) throw new Error('Network response was not ok.');
-        const questions = await response.json();
-        updateCategoryButtons(section, questions, 'question');
-    } catch (error) {
-        console.error("질문 로드 실패:", error);
-        const t = translations[lang];
-        section.innerHTML = `<div style="text-align: center; color: #fff;">${t.noData}</div>`;
-    }
-}
-
-// ✅ 답변 로딩 함수 (언어 파라미터 포함)
-async function getAnswer(qaId) {
-    const lang = document.getElementById("language-select").value;
-    const t = translations[lang];
-    try {
-        const response = await fetch(`/api/answer/${qaId}?lang=${lang}`);
-        if (!response.ok) throw new Error('Network response was not ok.');
-        const answer = await response.text();
-        displayBotMessage(answer);
-    } catch (error) {
-        console.error("답변 로드 실패:", error);
-        displayBotMessage(t.apiError);
-    }
-}
-
-// ✅ 뒤로가기 버튼 함수
-async function goBackOneStep() {
-    if (backHistory.length > 0) {
-        const previousStep = backHistory.pop();
-        if (previousStep.type === 'main') {
-            await loadMainCategories();
-        } else if (previousStep.type === 'sub') {
-            const mainCategory = backHistory[backHistory.length-1].id;
-            await loadSubCategories(mainCategory);
-        }
-    }
-}
-
-// ✅ 채팅 메시지를 HTML에 추가하는 함수
-function addMessageToChat(message, sender) {
-    const formattedMessage = message.replace(/\n/g, '<br>');
-    if (sender === 'bot') {
-        chatBox.innerHTML += `
-            <div class='bot-message-wrapper'>
-                <img src='/img/tomo.png' alt='토모 프로필' class='profile-img'>
-                <div class='bot-message-content'>
-                    <span class='profile-name'>토모</span>
-                    <div class='message bot'>${formattedMessage}</div>
-                </div>
-            </div>
-        `;
-    } else {
-        chatBox.innerHTML += `<div class='message user'>${formattedMessage}</div>`;
-    }
-    saveToSessionStorage(sender, message);
-    chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-
-// ✅ 채팅 기록 로딩 함수
-function loadChatHistory() {
-    const chatHistory = JSON.parse(sessionStorage.getItem("chatHistory"));
-    const lang = document.getElementById("language-select").value;
-    const t = translations[lang];
-
-    chatBox.innerHTML = ''; // 기존 채팅 기록을 삭제하는 코드 추가
-
-    if (!chatHistory || chatHistory.length === 0) {
-        const initialMessage = { sender: "bot", message: t.initialMessage };
-        addMessageToChat(initialMessage.message, initialMessage.sender);
-    } else {
-        chatHistory.forEach(chat => {
-            addMessageToChat(chat.message, chat.sender);
-        });
-    }
-    chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-// ✅ 세션 스토리지에 메시지 저장
-function saveToSessionStorage(sender, message) {
-    let chatHistory = JSON.parse(sessionStorage.getItem("chatHistory")) || [];
-    chatHistory.push({ sender: sender, message: message });
-    sessionStorage.setItem("chatHistory", JSON.stringify(chatHistory));
-}
-
-// ✅ 금지어 검사 함수
-async function containsForbiddenWord(text) {
-    try {
-        const response = await fetch('/chat/check-word', {
-            method: 'POST',
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ word: text })
-        });
-        const data = await response.json();
-        return data.isForbidden;
-    } catch (error) {
-        console.error("금지어 검사 API 호출 실패. 에러:", error);
-        return false;
-    }
-}
-
-// ✅ 봇 메시지 표시 함수
-function displayBotMessage(message) {
-    const formattedMessage = message.replace(/\n/g, '<br>');
-    chatBox.innerHTML += `
-        <div class='bot-message-wrapper'>
-            <img src='/img/tomo.png' alt='토모 프로필' class='profile-img'>
-            <div class='bot-message-content'>
-                <span class='profile-name'>토모</span>
-                <div class='message bot'>${formattedMessage}</div>
-            </div>
-        </div>
-    `;
-    saveToSessionStorage("bot", message);
-    chatBox.scrollTop = chatBox.scrollHeight;
-    document.getElementById("feedback-area").classList.remove('hidden');
-}
-
-// ✅ 메시지 전송 함수 (언어 파라미터 포함)
-async function sendMessage() {
-    const userMessage = messageInput.value.trim();
-    const lang = langSelect.value;
-    const t = translations[lang];
-
-    if (!userMessage) return;
-
-    const isForbidden = await containsForbiddenWord(userMessage);
-    if (isForbidden) {
-        alert(t.alertForbiddenWord);
-        return;
-    }
-
-    addMessageToChat(userMessage, 'user');
-    messageInput.value = "";
-    document.getElementById("feedback-area").classList.add('hidden');
-
-    try {
-        const chatHistory = JSON.parse(sessionStorage.getItem("chatHistory")) || [];
-
-        const aiResponse = await fetch("/api/send", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: userMessage, chatHistory: chatHistory, language: lang })
-        });
-
-        const aiData = await aiResponse.json();
-
-        if (aiData && aiData.reply) {
-            displayBotMessage(aiData.reply);
-        } else {
-            displayBotMessage(t.apiError);
-        }
-
-    } catch (error) {
-        const errorMessage = `${t.communicationError} ${error.message}`;
-        displayBotMessage(errorMessage);
-        console.error("Fetch error:", error);
-    }
-}
-
-// ✅ 피드백 제출 여부 확인 함수
-function checkFeedbackSubmitted() {
-    const isSubmitted = sessionStorage.getItem("feedbackSubmitted");
+    let backHistory = [];
+    const API_URL = 'http://localhost:9999/api/chat'; // 백엔드 API URL
+    const chatBox = document.getElementById("chat-box");
+    const messageInput = document.getElementById("message");
+    const sendBtn = document.getElementById("send-btn");
+    const newChatBtn = document.getElementById("new-chat");
+    const langSelect = document.getElementById("language-select");
     const feedbackArea = document.getElementById("feedback-area");
-    if (isSubmitted === "true") {
-        feedbackArea.classList.add("hidden");
-    }
-}
 
-// ✅ 피드백 모달 열기 함수
-function openFeedbackModal() {
-    const chatHistory = JSON.parse(sessionStorage.getItem("chatHistory"));
-    const lang = document.getElementById("language-select").value;
-    const t = translations[lang];
-
-    if (!chatHistory || chatHistory.length <= 1) {
-        alert(t.alertNoHistory);
-        return;
-    }
-    if (sessionStorage.getItem("feedbackSubmitted") === "true") {
-        alert(t.alertFeedbackSubmitted);
-        return;
-    }
-    const overlay = document.getElementById("feedback-overlay");
-    overlay.style.display = "flex";
-    const stars = document.querySelectorAll('#star-rating .star');
-    stars.forEach(star => star.classList.remove('star-filled'));
-    currentRating = 0;
-    setTimeout(() => {
-        overlay.classList.add("visible");
-    }, 10);
-}
-
-// ✅ 별점 채우기 함수
-function fillStars(count) {
-    const stars = document.querySelectorAll('#star-rating .star');
-    stars.forEach((star, index) => {
-        if (index < count) {
-            star.classList.remove('star-empty');
-            star.classList.add('star-filled');
-        } else {
-            star.classList.remove('star-filled');
-            star.classList.add('star-empty');
+    // ✅ UI 텍스트를 위한 다국어 데이터
+    const translations = {
+        'ko': {
+            headerTitle: 'TabiTomo',
+            newChatButton: '새 채팅',
+            feedbackPrompt: '챗봇 상담이 도움이 됐나요?',
+            feedbackYes: '예',
+            feedbackNo: '아니오',
+            inputPlaceholder: '메시지를 입력하세요',
+            feedbackModalTitle: '답변이 마음에 드셨나요?',
+            feedbackTextPlaceholder: '자유로운 의견을 남겨주세요.',
+            feedbackSubmitButton: '피드백 제출',
+            initialMessage: '안녕하세요 토모에요! 무엇을 도와드릴까요?',
+            loadError: '데이터를 불러오는 중 오류가 발생했습니다.',
+            alertForbiddenWord: '욕설이나 부적절한 단어는 입력할 수 없습니다.',
+            alertFeedbackForbiddenWord: '욕설이나 부적절한 단어는 피드백에 포함할 수 없습니다.',
+            alertNoHistory: '피드백을 남길 채팅 기록이 없습니다. 대화를 시작해주세요.',
+            alertFeedbackSubmitted: '이미 피드백을 제출했습니다. 새 채팅을 시작해주세요.',
+            alertSubmissionFailed: '피드백 제출에 실패했습니다. 서버 오류일 수 있습니다.',
+            alertSubmissionSuccess: '피드백이 제출되었습니다. 감사합니다!',
+            apiError: '답변을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.',
+            communicationError: '통신 에러:',
+            goHome: '처음',
+            goBack: '뒤로',
+            noData: '데이터를 불러오는 중 오류가 발생했습니다.',
+            languageChanged: '언어가 한국어로 변경되었습니다. 새로운 대화를 시작해주세요.'
+        },
+        'en': {
+            headerTitle: 'TabiTomo',
+            newChatButton: 'New Chat',
+            feedbackPrompt: 'Was the chatbot consultation helpful?',
+            feedbackYes: 'Yes',
+            feedbackNo: 'No',
+            inputPlaceholder: 'Enter a message',
+            feedbackModalTitle: 'Did you like the response?',
+            feedbackTextPlaceholder: 'Please leave your feedback.',
+            feedbackSubmitButton: 'Submit Feedback',
+            initialMessage: 'Hello, I\'m Tomo! How can I help you?',
+            loadError: 'An error occurred while loading data.',
+            alertForbiddenWord: 'You cannot enter profanity or inappropriate words.',
+            alertFeedbackForbiddenWord: 'Profanity or inappropriate words cannot be included in feedback.',
+            alertNoHistory: 'No chat history to leave feedback. Please start a conversation.',
+            alertFeedbackSubmitted: 'Feedback has already been submitted. Please start a new chat.',
+            alertSubmissionFailed: 'Feedback submission failed. A server error may have occurred.',
+            alertSubmissionSuccess: 'Feedback submitted successfully. Thank you!',
+            apiError: 'Could not retrieve a response. Please try again later.',
+            communicationError: 'Communication error:',
+            goHome: 'Home',
+            goBack: 'Back',
+            noData: 'An error occurred while loading data.',
+            languageChanged: 'Language has been changed to English. Please start a new conversation.'
+        },
+        'ja': {
+            headerTitle: 'タビトモ',
+            newChatButton: '新しいチャット',
+            feedbackPrompt: 'チャットボットの相談は役に立ちましたか？',
+            feedbackYes: 'はい',
+            feedbackNo: 'いいえ',
+            inputPlaceholder: 'メッセージを入力してください',
+            feedbackModalTitle: '回答は気に入りましたか？',
+            feedbackTextPlaceholder: 'ご意見を自由にお聞かせください。',
+            feedbackSubmitButton: 'フィードバックを送信',
+            initialMessage: 'こんにちは、トモです！何かお手伝いできることはありますか？',
+            loadError: 'データの読み込み中にエラーが発生했습니다。',
+            alertForbiddenWord: '不適切な言葉や卑猥な言葉は入力できません。',
+            alertFeedbackForbiddenWord: '不適切な言葉や卑猥な言葉はフィードバックに含めることはできません。',
+            alertNoHistory: 'フィードバックを残すチャット履歴がありません。会話を開始してください。',
+            alertFeedbackSubmitted: 'フィードバックはすでに送信されました。新しいチャットを開始してください。',
+            alertSubmissionFailed: 'フィードバックの送信に失敗しました。サーバーエラーが発生した可能性があります。',
+            alertSubmissionSuccess: 'フィードバックが正常に送信されました。ありがとうございます！',
+            apiError: '回答を取得できませんでした。後でもう一度お試しください。',
+            communicationError: '通信エラー:',
+            goHome: '最初へ',
+            goBack: '戻る',
+            noData: 'データの読み込み中にエラーが発生しました。',
+            languageChanged: '言語が日本語に変更されました。新しい会話を始めてください。'
         }
-    });
-}
-
-// ✅ 피드백 제출 함수
-async function submitFeedback() {
-    const lang = document.getElementById("language-select").value;
-    const t = translations[lang];
-    const rating = currentRating;
-    const feedbackText = document.getElementById("feedback-text").value;
-    const chatHistory = JSON.parse(sessionStorage.getItem("chatHistory"));
-
-    if (!chatHistory || chatHistory.length < 2) {
-        alert(t.alertNoHistory);
-        return;
-    }
-
-    const isForbidden = await containsForbiddenWord(feedbackText);
-    if (isForbidden) {
-        alert(t.alertFeedbackForbiddenWord);
-        return;
-    }
-
-    const feedbackData = {
-        rating: parseInt(rating),
-        feedbackText: feedbackText,
-        chatHistory: chatHistory,
-        language: lang
     };
 
-    try {
-        const response = await fetch("/api/feedback", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(feedbackData)
+    let isHelpfulValue = null; // ✅ '예'/'아니오' 값을 저장할 변수 추가
+
+    // ✅ UI 텍스트를 업데이트하는 함수
+    function updateUITexts(lang) {
+        const t = translations[lang];
+        document.querySelector('.header-title').textContent = t.headerTitle;
+        document.getElementById('new-chat').textContent = t.newChatButton;
+        document.querySelector('#feedback-area p').textContent = t.feedbackPrompt;
+        document.getElementById('feedback-yes-btn').textContent = t.feedbackYes;
+        document.getElementById('feedback-no-btn').textContent = t.feedbackNo;
+        document.getElementById('message').placeholder = t.inputPlaceholder;
+        document.querySelector('#feedback-modal h3').textContent = t.feedbackModalTitle;
+        document.getElementById('feedback-text').placeholder = t.feedbackTextPlaceholder;
+        document.getElementById('submit-feedback-btn').textContent = t.feedbackSubmitButton;
+        // Go Home 및 Go Back 버튼이 있다면 업데이트
+        const goHomeBtn = document.getElementById("go-home");
+        if (goHomeBtn) goHomeBtn.textContent = t.goHome;
+        const goBackBtn = document.getElementById("back-one-step");
+        if (goBackBtn) goBackBtn.textContent = t.goBack;
+    }
+
+    // ✅ 언어에 따라 올바른 속성 이름을 가져오는 헬퍼 함수 추가
+    function getLocalizedName(item, type, lang) {
+        if (type === 'question') {
+            const langMap = {
+                'ko': 'questionKo',
+                'en': 'questionEn',
+                'ja': 'questionJa'
+            };
+            return item[langMap[lang]] || item.questionKo;
+        } else {
+            const langMap = {
+                'ko': 'nameKo',
+                'en': 'nameEn',
+                'ja': 'nameJa'
+            };
+            return item[langMap[lang]] || item.nameKo;
+        }
+    }
+
+    // ✅ 카테고리/질문 버튼 업데이트 함수
+    function updateCategoryButtons(container, data, type) {
+        const lang = document.getElementById("language-select").value;
+        const t = translations[lang];
+        container.innerHTML = `
+            <div class="category-navigation">
+                <button id="go-home">${t.goHome}</button>
+                <button id="back-one-step" class="hidden">${t.goBack}</button>
+            </div>
+            <div class="${type === 'question' ? 'question-list' : 'category-buttons'}"></div>
+        `;
+        const buttonList = container.querySelector('.category-buttons') || container.querySelector('.question-list');
+        const backBtn = container.querySelector('#back-one-step');
+        const homeBtn = container.querySelector('#go-home');
+
+        if (backHistory.length > 0) {
+            backBtn.classList.remove('hidden');
+        } else {
+            backBtn.classList.add('hidden');
+        }
+
+        homeBtn.onclick = loadMainCategories;
+        backBtn.onclick = goBackOneStep;
+
+        if (data && data.length > 0) {
+            if (type === 'question') {
+                data.forEach(item => {
+                    const div = document.createElement("div");
+                    div.textContent = getLocalizedName(item, 'question', lang);
+                    div.dataset.id = item.qaId;
+                    buttonList.appendChild(div);
+                });
+            } else {
+                data.forEach(item => {
+                    const button = document.createElement("button");
+                    button.textContent = getLocalizedName(item, type, lang);
+                    button.dataset.id = item.id;
+                    button.dataset.type = type;
+                    buttonList.appendChild(button);
+                });
+            }
+        } else {
+            buttonList.innerHTML = `<div style="text-align: center; color: #fff;">${t.noData}</div>`;
+        }
+    }
+    // ✅ 메인 카테고리 로딩 함수 (언어 파라미터 포함)
+    async function loadMainCategories() {
+        const section = document.getElementById("category-section");
+        section.classList.add('visible');
+        document.getElementById("toggle-categories").classList.remove('rotated');
+        backHistory = [];
+        const lang = document.getElementById("language-select").value;
+
+        try {
+            const response = await fetch(`/api/main-categories?lang=${lang}`);
+            if (!response.ok) throw new Error('Network response was not ok.');
+            const categories = await response.json();
+            updateCategoryButtons(section, categories, 'main');
+        } catch (error) {
+            console.error("메인 카테고리 로드 실패:", error);
+            const t = translations[lang];
+            section.innerHTML = `<div class="category-container visible"><div style="text-align: center; color: #fff; padding: 10px;">${t.loadError}</div></div>`;
+        }
+    }
+
+    // ✅ 서브 카테고리 로딩 함수 (언어 파라미터 포함)
+    async function loadSubCategories(mainCategoryId) {
+        backHistory.push({
+            type: 'main',
+            id: mainCategoryId
+        });
+        const section = document.getElementById("category-section");
+        const lang = document.getElementById("language-select").value;
+
+        try {
+            const response = await fetch(`/api/sub-categories/${mainCategoryId}?lang=${lang}`);
+            if (!response.ok) throw new Error('Network response was not ok.');
+            const subCategories = await response.json();
+            updateCategoryButtons(section, subCategories, 'sub');
+        } catch (error) {
+            console.error("서브 카테고리 로드 실패:", error);
+            const t = translations[lang];
+            section.innerHTML = `<div class="category-container visible"><div style="text-align: center; color: #fff; padding: 10px;">${t.loadError}</div></div>`;
+        }
+    }
+
+    // ✅ 질문 리스트 로딩 함수 (언어 파라미터 포함)
+    async function loadQuestions(subCategoryId) {
+        backHistory.push({
+            type: 'sub',
+            id: subCategoryId
+        });
+        const section = document.getElementById("category-section");
+        const lang = document.getElementById("language-select").value;
+
+        try {
+            const response = await fetch(`/api/sub-categories/${subCategoryId}/qas?lang=${lang}`);
+            if (!response.ok) throw new Error('Network response was not ok.');
+            const questions = await response.json();
+            updateCategoryButtons(section, questions, 'question');
+        } catch (error) {
+            console.error("질문 로드 실패:", error);
+            const t = translations[lang];
+            section.innerHTML = `<div style="text-align: center; color: #fff;">${t.noData}</div>`;
+        }
+    }
+
+    // ✅ 답변 로딩 함수 (언어 파라미터 포함)
+    async function getAnswer(qaId) {
+        const lang = document.getElementById("language-select").value;
+        const t = translations[lang];
+        try {
+            const response = await fetch(`/api/answer/${qaId}?lang=${lang}`);
+            if (!response.ok) throw new Error('Network response was not ok.');
+            const answer = await response.text();
+            displayBotMessage(answer);
+        } catch (error) {
+            console.error("답변 로드 실패:", error);
+            displayBotMessage(t.apiError);
+        }
+    }
+
+    // ✅ 뒤로가기 버튼 함수
+    async function goBackOneStep() {
+        if (backHistory.length > 0) {
+            const previousStep = backHistory.pop();
+            if (previousStep.type === 'main') {
+                await loadMainCategories();
+            } else if (previousStep.type === 'sub') {
+                const mainCategory = backHistory[backHistory.length - 1].id;
+                await loadSubCategories(mainCategory);
+            }
+        }
+    }
+
+    // ✅ 공통 메시지 추가 함수 (user/bot 둘 다 사용)
+    function addMessageToChat(message, sender) {
+        // 메시지 앞뒤 공백 제거
+        message = message.trim();
+
+        // 마크다운 HTML 변환
+        let html = marked.parse(message, {
+            breaks: true // 줄바꿈을 <br>로 변환
         });
 
-        if (response.ok) {
-            alert(t.alertSubmissionSuccess);
-            sessionStorage.setItem("feedbackSubmitted", "true");
-            checkFeedbackSubmitted();
+        // Marked가 한 줄짜리 텍스트를 <p>...</p>로 감싸는 현상 수정
+        // 이 정규식을 사용하면 <p> 태그를 제거하고 내용만 남김
+        html = html.replace(/^<p>(.*)<\/p>\n?$/, '$1');
+
+         // 마크다운 HTML 변환
+        // let html = marked.parse(message);
+
+        // 마지막 빈 <p> 제거
+        html = html.replace(/<p>(\s|&nbsp;)*<\/p>$/g, '');
+
+        // 메시지 엘리먼트 생성
+        const messageElement = document.createElement("div");
+        messageElement.classList.add("message", sender);
+        messageElement.innerHTML = html;
+
+        // 봇 메시지 처리
+        if (sender === "bot") {
+            const wrapper = document.createElement("div");
+            wrapper.classList.add("bot-message-wrapper");
+            wrapper.innerHTML = `
+                <img src="/img/tomo.png" alt="토모 프로필" class="profile-img">
+                <div class="bot-message-content">
+                    <span class="profile-name">토모</span>
+                </div>
+            `;
+            wrapper.querySelector(".bot-message-content").appendChild(messageElement);
+            chatBox.appendChild(wrapper);
         } else {
-            const errorText = await response.text();
-            throw new Error("서버 에러: " + errorText);
+            chatBox.appendChild(messageElement);
         }
-    } catch (error) {
-        alert(t.alertSubmissionFailed);
-        console.error("Feedback submission error:", error);
-    } finally {
+
+        // show 클래스 부여 → transition
+        setTimeout(() => {
+            messageElement.classList.add("show");
+        }, 50);
+
+        // 스크롤 하단 이동
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+
+
+    // ✅ 채팅 기록을 localStorage에 저장하는 함수
+    function saveToLocalStorage(chatHistory) {
+        localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
+    }
+
+    // ✅ 채팅 기록을 로드하고 화면에 렌더링하는 함수
+    function loadChatHistory() {
+        const chatHistory = JSON.parse(localStorage.getItem("chatHistory"));
+        const lang = document.getElementById("language-select").value;
+        const t = translations[lang];
+
+        chatBox.innerHTML = ''; // 기존 채팅 기록을 삭제하여 중복 방지
+
+        if (!chatHistory || chatHistory.length === 0) {
+            const initialMessage = {
+                sender: "bot",
+                message: t.initialMessage
+            };
+            // 초기 메시지는 화면에만 추가하고, 로컬 스토리지에 저장하지 않음
+            addMessageToChat(initialMessage.message, initialMessage.sender);
+        } else {
+            chatHistory.forEach(chat => {
+                addMessageToChat(chat.message, chat.sender);
+            });
+        }
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // ✅ 금지어 검사 함수
+    async function containsForbiddenWord(text) {
+        try {
+            const response = await fetch('/chat/check-word', {
+                method: 'POST',
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    word: text
+                })
+            });
+            const data = await response.json();
+            return data.isForbidden;
+        } catch (error) {
+            console.error("금지어 검사 API 호출 실패. 에러:", error);
+            return false;
+        }
+    }
+
+    // ✅ 봇 메시지 표시 함수
+    function displayBotMessage(message) {
+        addMessageToChat(message, "bot");
+
+        const chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
+        chatHistory.push({ sender: "bot", message });
+        saveToLocalStorage(chatHistory);
+
+        feedbackArea.classList.remove("hidden");
+    }
+
+
+    // ✅ 메시지 전송 함수 (언어 파라미터 포함)
+    async function sendMessage() {
+        const userMessage = messageInput.value.trim();
+        const lang = langSelect.value;
+        const t = translations[lang];
+
+        if (!userMessage) return;
+
+        const isForbidden = await containsForbiddenWord(userMessage);
+        if (isForbidden) {
+            alert(t.alertForbiddenWord);
+            return;
+        }
+
+        // 사용자 메시지를 화면에 추가하고, 기록에도 추가 후 저장
+        addMessageToChat(userMessage, 'user');
+        const chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
+        chatHistory.push({ sender: 'user', message: userMessage });
+        saveToLocalStorage(chatHistory);
+
+        messageInput.value = "";
+        feedbackArea.classList.add('hidden');
+
+        try {
+            const aiResponse = await fetch("/api/send", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    message: userMessage,
+                    chatHistory: chatHistory,
+                    language: lang
+                })
+            });
+
+            const aiData = await aiResponse.json();
+
+            if (aiData && aiData.reply) {
+                displayBotMessage(aiData.reply);
+            } else {
+                displayBotMessage(t.apiError);
+            }
+
+        } catch (error) {
+            const errorMessage = `${t.communicationError} ${error.message}`;
+            displayBotMessage(errorMessage);
+            console.error("Fetch error:", error);
+        }
+    }
+
+    // ✅ 피드백 모달 열기 함수
+    function openFeedbackModal() {
+        const chatHistory = JSON.parse(localStorage.getItem("chatHistory"));
+        const lang = document.getElementById("language-select").value;
+        const t = translations[lang];
+
+        if (!chatHistory || chatHistory.length <= 1) {
+            alert(t.alertNoHistory);
+            return;
+        }
+        const overlay = document.getElementById("feedback-overlay");
+        overlay.style.display = "flex";
+        const stars = document.querySelectorAll('#star-rating .star');
+        stars.forEach(star => star.classList.remove('star-filled'));
+        currentRating = 0;
+        setTimeout(() => {
+            overlay.classList.add("visible");
+        }, 10);
+    }
+
+    // ✅ 별점 채우기 함수
+    function fillStars(count) {
+        const stars = document.querySelectorAll('#star-rating .star');
+        stars.forEach((star, index) => {
+            if (index < count) {
+                star.classList.remove('star-empty');
+                star.classList.add('star-filled');
+            } else {
+                star.classList.remove('star-filled');
+                star.classList.add('star-empty');
+            }
+        });
+    }
+
+    // ✅ 피드백 제출 함수
+    async function submitFeedback() {
+        const lang = document.getElementById("language-select").value;
+        const t = translations[lang];
+        const rating = currentRating;
+        const feedbackText = document.getElementById("feedback-text").value;
+        const chatHistory = JSON.parse(localStorage.getItem("chatHistory"));
+
+        if (!chatHistory || chatHistory.length < 2) {
+            alert(t.alertNoHistory);
+            return;
+        }
+
+        const isForbidden = await containsForbiddenWord(feedbackText);
+        if (isForbidden) {
+            alert(t.alertFeedbackForbiddenWord);
+            return;
+        }
+
+        const feedbackData = {
+            rating: parseInt(rating),
+            feedbackText: feedbackText,
+            chatHistory: chatHistory,
+            language: lang,
+            isHelpful: isHelpfulValue // ✅ isHelpful 값을 데이터에 추가
+        };
+
+        try {
+            const response = await fetch("/api/feedback", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(feedbackData)
+            });
+
+            if (response.ok) {
+                alert(t.alertSubmissionSuccess);
+            } else {
+                const errorText = await response.text();
+                throw new Error("서버 에러: " + errorText);
+            }
+        } catch (error) {
+            alert(t.alertSubmissionFailed);
+            console.error("Feedback submission error:", error);
+        } finally {
+            const overlay = document.getElementById("feedback-overlay");
+            overlay.classList.remove("visible");
+            setTimeout(() => {
+                overlay.style.display = "none";
+            }, 300);
+            document.getElementById("feedback-text").value = "";
+            currentRating = 0;
+            isHelpfulValue = null; // ✅ 값 초기화
+        }
+    }
+
+    // ✅ 이벤트 리스너 통합 및 정리
+    sendBtn.addEventListener("click", sendMessage);
+    messageInput.addEventListener("keypress", (event) => {
+        if (event.key === "Enter") {
+            sendMessage();
+        }
+    });
+
+    newChatBtn.addEventListener("click", () => {
+        localStorage.removeItem("chatHistory");
+        backHistory = [];
+        loadChatHistory();
+        feedbackArea.classList.add('hidden');
+        updateUITexts(langSelect.value);
+    });
+
+    // ✅ '예' 버튼 클릭 시 isHelpful 값을 true로 설정하고 모달 열기
+    document.getElementById("feedback-yes-btn").addEventListener("click", () => {
+        isHelpfulValue = 1;
+        openFeedbackModal();
+    });
+
+    // ✅ '아니오' 버튼 클릭 시 isHelpful 값을 false로 설정하고 모달 열기
+    document.getElementById("feedback-no-btn").addEventListener("click", () => {
+        isHelpfulValue = 0;
+        openFeedbackModal();
+    });
+
+    document.querySelector("#feedback-modal .close-btn").addEventListener("click", () => {
         const overlay = document.getElementById("feedback-overlay");
         overlay.classList.remove("visible");
         setTimeout(() => {
             overlay.style.display = "none";
         }, 300);
-        document.getElementById("feedback-text").value = "";
-        currentRating = 0;
-    }
-}
+    });
 
-// ✅ 이벤트 리스너 통합 및 정리
-sendBtn.addEventListener("click", sendMessage);
-messageInput.addEventListener("keypress", (event) => {
-    if (event.key === "Enter") {
-        sendMessage();
-    }
-});
-
-newChatBtn.addEventListener("click", () => {
-    sessionStorage.removeItem("chatHistory");
-    sessionStorage.removeItem("feedbackSubmitted");
-    document.getElementById("feedback-area").classList.add('hidden');
-    backHistory = [];
-    loadChatHistory();
-    checkFeedbackSubmitted();
-    updateUITexts(langSelect.value);
-});
-
-document.getElementById("feedback-yes-btn").addEventListener("click", openFeedbackModal);
-document.getElementById("feedback-no-btn").addEventListener("click", openFeedbackModal);
-
-document.querySelector("#feedback-modal .close-btn").addEventListener("click", () => {
-    const overlay = document.getElementById("feedback-overlay");
-    overlay.classList.remove("visible");
-    setTimeout(() => {
-        overlay.style.display = "none";
-    }, 300);
-});
-
-const starContainer = document.getElementById('star-rating');
-starContainer.addEventListener('mouseover', (e) => {
-    const star = e.target.closest('.star');
-    if (star) {
-        const rating = parseInt(star.dataset.rating, 10);
-        fillStars(rating);
-    }
-});
-
-starContainer.addEventListener('mouseout', () => {
-    fillStars(currentRating);
-});
-
-starContainer.addEventListener('click', (e) => {
-    const star = e.target.closest('.star');
-    if (star) {
-        currentRating = parseInt(star.dataset.rating, 10);
-        fillStars(currentRating);
-    }
-});
-
-document.getElementById("submit-feedback-btn").addEventListener("click", submitFeedback);
-
-document.getElementById("toggle-categories").addEventListener("click", async () => {
-    const section = document.getElementById("category-section");
-    const toggleBtn = document.getElementById("toggle-categories");
-
-    toggleBtn.classList.toggle('rotated');
-
-    if (section.classList.contains('visible')) {
-        section.classList.remove('visible');
-        backHistory = [];
-    } else {
-        await loadMainCategories();
-    }
-});
-
-document.getElementById("category-section").addEventListener("click", async (event) => {
-    const section = document.getElementById("category-section");
-    const target = event.target.closest('button, div');
-
-    if (target && target.tagName === 'BUTTON') {
-        const buttonType = target.dataset.type;
-        const id = target.dataset.id;
-        if (buttonType === 'main') {
-            await loadSubCategories(id);
-        } else if (buttonType === 'sub') {
-            await loadQuestions(id);
+    const starContainer = document.getElementById('star-rating');
+    starContainer.addEventListener('mouseover', (e) => {
+        const star = e.target.closest('.star');
+        if (star) {
+            const rating = parseInt(star.dataset.rating, 10);
+            fillStars(rating);
         }
-    } else if (target && target.tagName === 'DIV' && target.closest('.question-list')) {
-        const qaId = target.dataset.id;
-        const questionText = target.textContent;
+    });
 
-        addMessageToChat(questionText, 'user');
+    starContainer.addEventListener('mouseout', () => {
+        fillStars(currentRating);
+    });
 
-        section.classList.remove('visible');
-        document.getElementById("toggle-categories").classList.remove('rotated');
-        document.getElementById("feedback-area").classList.add('hidden');
+    starContainer.addEventListener('click', (e) => {
+        const star = e.target.closest('.star');
+        if (star) {
+            currentRating = parseInt(star.dataset.rating, 10);
+            fillStars(currentRating);
+        }
+    });
 
-        await getAnswer(qaId);
+    document.getElementById("submit-feedback-btn").addEventListener("click", submitFeedback);
+
+    // ✅ Category section 이벤트 리스너가 없는 경우를 대비하여 조건부로 추가
+    const categorySection = document.getElementById("category-section");
+    if (categorySection) {
+        document.getElementById("toggle-categories").addEventListener("click", async() => {
+            const section = document.getElementById("category-section");
+            const toggleBtn = document.getElementById("toggle-categories");
+
+            toggleBtn.classList.toggle('rotated');
+
+            if (section.classList.contains('visible')) {
+                section.classList.remove('visible');
+                backHistory = [];
+            } else {
+                await loadMainCategories();
+            }
+        });
+
+        categorySection.addEventListener("click", async(event) => {
+            const target = event.target.closest('button, div');
+            if (target && target.tagName === 'BUTTON') {
+                const buttonType = target.dataset.type;
+                const id = target.dataset.id;
+                if (buttonType === 'main') {
+                    await loadSubCategories(id);
+                } else if (buttonType === 'sub') {
+                    await loadQuestions(id);
+                }
+            } else if (target && target.tagName === 'DIV' && target.closest('.question-list')) {
+                const qaId = target.dataset.id;
+                const questionText = target.textContent;
+
+                // 사용자 메시지를 화면에 추가하고, 기록에도 추가 후 저장
+                addMessageToChat(questionText, 'user');
+                const chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
+                chatHistory.push({ sender: 'user', message: questionText });
+                saveToLocalStorage(chatHistory);
+
+                categorySection.classList.remove('visible');
+                document.getElementById("toggle-categories").classList.remove('rotated');
+                feedbackArea.classList.add('hidden');
+
+                await getAnswer(qaId);
+            }
+        });
     }
-});
 
-document.getElementById("language-select").addEventListener("change", (event) => {
-    const selectedLang = event.target.value;
-    updateUITexts(selectedLang);
-    sessionStorage.removeItem("chatHistory"); // 채팅 기록 초기화 추가
-    if (document.getElementById("category-section").classList.contains('visible')) {
-        loadMainCategories();
+    const languageSelect = document.getElementById("language-select");
+    if (languageSelect) {
+        languageSelect.addEventListener("change", (event) => {
+            const selectedLang = event.target.value;
+            updateUITexts(selectedLang);
+            localStorage.removeItem("chatHistory");
+            if (categorySection && categorySection.classList.contains('visible')) {
+                loadMainCategories();
+            }
+            loadChatHistory();
+            feedbackArea.classList.add('hidden');
+        });
     }
-    loadChatHistory();
-    checkFeedbackSubmitted();
-});
 
-document.addEventListener("DOMContentLoaded", () => {
-    const initialLang = document.getElementById("language-select").value;
-    updateUITexts(initialLang);
-    loadChatHistory();
-    checkFeedbackSubmitted();
-});
+    document.addEventListener("DOMContentLoaded", () => {
+        const initialLang = document.getElementById("language-select").value;
+        updateUITexts(initialLang);
+        loadChatHistory();
+        const chatHistory = JSON.parse(localStorage.getItem("chatHistory"));
+        if (chatHistory && chatHistory.length > 1) {
+            feedbackArea.classList.remove('hidden');
+        }
+    });
 </script>
 </body>
 </html>

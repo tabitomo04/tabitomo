@@ -164,6 +164,12 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/clear-questionnaire-prompt")
+    public ResponseEntity<?> clearQuestionnairePrompt(HttpSession session) {
+        session.removeAttribute("showQuestionnairePrompt");
+        return ResponseEntity.ok().build();
+    }
+    
     @PostMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();

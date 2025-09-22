@@ -60,19 +60,31 @@ public class SecurityConfig {
                     .passwordParameter("password")
                     .successHandler(customAuthenticationSuccessHandler)
                     .failureHandler((request, response, exception) -> {
-                        request.getSession().setAttribute("SPRING_SECURITY_LAST_EXCEPTION", exception);
-                        response.sendRedirect("/auth/login?error=true");
+                        String errorMessage = "이메일 또는 비밀번호가 일치하지 않습니다.";
+                        if (exception.getMessage() != null && exception.getMessage().contains("비활성화된 계정")) {
+                            errorMessage = "비활성화된 계정입니다. 관리자에게 문의해주세요.";
+                        }
+                        response.sendRedirect("/auth/login?error=true&message=" + 
+                            java.net.URLEncoder.encode(errorMessage, "UTF-8"));
                     })
                     .permitAll()
                 )
                 // 로그아웃 설정
-                .logout(logout -> logout
-                    .logoutUrl("/auth/logout")
-                    .logoutSuccessUrl("/")
-                    .invalidateHttpSession(true)
-                    .deleteCookies("JSESSIONID")
-                    .permitAll()
-                )
+                .logout(logout -> {
+                    logout.logoutUrl("/auth/logout")
+                        .logoutSuccessUrl("/")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                        .clearAuthentication(true)
+                        .permitAll();
+                    // 로그아웃 성공 핸들러 추가
+                    logout.logoutSuccessHandler((request, response, authentication) -> {
+                        // 세션 무효화
+                        request.getSession().invalidate();
+                        // 홈페이지로 리다이렉트
+                        response.sendRedirect("/");
+                    });
+                })
 
                 // 예외 처리
                 .exceptionHandling(exception -> exception
@@ -80,7 +92,9 @@ public class SecurityConfig {
                         if (isAjaxRequest(request)) {
                             response.sendError(HttpStatus.UNAUTHORIZED.value(), "Unauthorized");
                         } else {
-                            response.sendRedirect("/auth/login?error=unauthorized");
+                            String message = "로그인이 필요한 서비스입니다. 로그인 후 이용해주세요.";
+                            response.sendRedirect("/auth/login?error=unauthorized&message=" + 
+                                java.net.URLEncoder.encode(message, "UTF-8"));
                         }
                     })
                     .accessDeniedHandler((request, response, accessDeniedException) -> {

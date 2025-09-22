@@ -322,22 +322,18 @@
   <div class="login-body">
     <!-- 오류 메시지 표시 -->
     <div th:if="${param.error}" class="error-message" role="alert">
-        <div th:if="${param.error == 'unaired'}">
-            <i class="fas fa-exclamation-circle me-2" aria-hidden="true"></i>로그인이 필요한 서비스입니다. 로그인 후 이용해주세요.
-        </div>
-        <div th:if="${param.error == 'true'}">
-            <div th:if="${session.SPRING_SECURITY_LAST_EXCEPTION != null}">
-                <div th:if="${session.SPRING_SECURITY_LAST_EXCEPTION.message == '비활성화된 계정입니다. 관리자에게 문의해주세요.'}">
-                    <i class="fas fa-exclamation-circle me-2" aria-hidden="true"></i>비활성화된 계정입니다. 관리자에게 문의해주세요.
-                </div>
-                <div th:unless="${session.SPRING_SECURITY_LAST_EXCEPTION.message == '비활성화된 계정입니다. 관리자에게 문의해주세요.'}">
-                    <i class="fas fa-exclamation-circle me-2" aria-hidden="true"></i>이메일 또는 비밀번호가 일치하지 않습니다.
-                </div>
-            </div>
-            <div th:unless="${session.SPRING_SECURITY_LAST_EXCEPTION != null}">
-                <i class="fas fa-exclamation-circle me-2" aria-hidden="true"></i>이메일 또는 비밀번호가 일치하지 않습니다.
-            </div>
-        </div>
+        <i class="fas fa-exclamation-circle me-2" aria-hidden="true"></i>
+        <span th:if="${param.message}">
+            <span th:utext="${#strings.unescapeJava(param.message)}"></span>
+        </span>
+        <span th:unless="${param.message}">
+            <span th:if="${param.error == 'unauthorized' or param.error == 'unaired'}">
+                로그인이 필요한 서비스입니다. 로그인 후 이용해주세요.
+            </span>
+            <span th:if="${param.error == 'true'}">
+                이메일 또는 비밀번호가 일치하지 않습니다.
+            </span>
+        </span>
     </div>
     
     <!-- 이메일 로그인 폼 -->

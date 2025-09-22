@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="ko">
+<head th:replace="~{fragments/header :: head}">
+    <title data-translatable>공개된 여행 - Tabitomo</title>
+</head>
+<body>
+<!-- Header -->
+<div th:replace="~{fragments/header :: header}"></div>
+
+<!-- Navigation Menu -->
+<div th:replace="~{fragments/menu :: menu}"></div>
+
+<!-- Main Content -->
+<main class="container py-5">
+    <h1 class="mb-4" data-translatable>모두의 여행</h1>
+    <p class="text-muted mb-4" data-translatable>다른 여행자들이 공유한 멋진 여행 계획을 둘러보세요.</p>
+
+    <section>
+        <div th:if="${trips == null or trips.isEmpty()}" class="alert alert-info" role="alert" data-translatable>
+            아직 공개된 여행 계획이 없습니다.
+        </div>
+
+        <div class="list-group" th:unless="${trips == null or trips.isEmpty()}">
+            <!-- Iterate over public trips -->
+            <a th:each="trip : ${trips}" th:href="@{/public-trips/{id}(id=${trip.id})}" class="list-group-item list-group-item-action flex-column align-items-start">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1" th:text="${trip.title}" data-translatable>여행 계획 이름</h5>
+                    <small th:if="${trip.startDate != null}" 
+                           th:text="${#temporals.format(trip.startDate, 'yyyy.MM.dd')} + ' ~ ' + ${#temporals.format(trip.endDate, 'yyyy.MM.dd')}">여행 기간</small>
+                </div>
+                <p class="mb-1">
+                    <strong data-translatable>작성자:</strong>
+                    <span th:text="${trip.member.nickname}">작성자 닉네임</span>
+                </p>
+                <div class="d-flex w-100 justify-content-between">
+                    <small class="text-muted" data-translatable>여기를 클릭하여 상세 내용을 확인하세요.</small>
+                    <small class="text-muted" th:if="${trip.createdAt != null}"><span data-translatable>작성일:</span> [[${#temporals.format(trip.createdAt, 'yyyy.MM.dd')}]]</small>
+                </div>
+            </a>
+        </div>
+    </section>
+</main>
+
+<!-- Footer -->
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

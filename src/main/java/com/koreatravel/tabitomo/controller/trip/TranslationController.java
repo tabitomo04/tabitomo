@@ -1,53 +1,67 @@
 package com.koreatravel.tabitomo.controller.trip;
 
-import com.google.cloud.translate.Translate;
-import com.google.cloud.translate.TranslateOptions;
-import com.google.cloud.translate.Translation;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import com.koreatravel.tabitomo.service.trip.TranslationService;
+
+import java.util.List;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/translate")
+@RequiredArgsConstructor
 public class TranslationController {
 
-    @Value("${google.cloud.translation.api-key}")
-    private String apiKey;
+    private final TranslationService translationService;
 
-    @PostMapping("/translate")
-    public ResponseEntity<?> translateText(
-            @RequestParam String text,
-            @RequestParam String target) {
-        
+    @PostMapping
+    public ResponseEntity<?> translate(@RequestBody TranslationRequest request) {
         try {
-            Translate translate = TranslateOptions.newBuilder()
-                    .setApiKey(apiKey)
-                    .build()
-                    .getService();
-
-            Translation translation = translate.translate(
-                    text,
-                    Translate.TranslateOption.targetLanguage(target)
-            );
-
-            return ResponseEntity.ok(
-                    new TranslationResponse(translation.getTranslatedText())
-            );
+            // Call the batch translation method in the service
+            List<String> translatedTexts = translationService.translateTexts(request.getTexts(), request.getTargetLanguage());
+            return ResponseEntity.ok(new TranslationResponse(translatedTexts));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError()
-                    .body("Translation failed: " + e.getMessage());
+            // Log the exception for debugging purposes
+            return ResponseEntity.badRequest().body(Map.of("error", "번역 중 오류가 발생했습니다: " + e.getMessage()));
         }
     }
 
-    private static class TranslationResponse {
-        private final String translatedText;
+    // --- DTOs for the request and response ---
 
-        public TranslationResponse(String translatedText) {
-            this.translatedText = translatedText;
+    static class TranslationRequest {
+        private List<String> texts;
+        private String targetLanguage;
+
+        public List<String> getTexts() {
+            return texts;
         }
 
-        public String getTranslatedText() {
-            return translatedText;
+        public void setTexts(List<String> texts) {
+            this.texts = texts;
+        }
+
+        public String getTargetLanguage() {
+            return targetLanguage;
+        }
+
+        public void setTargetLanguage(String targetLanguage) {
+            this.targetLanguage = targetLanguage;
+        }
+    }
+
+    static class TranslationResponse {
+        private final List<String> translatedTexts;
+
+        public TranslationResponse(List<String> translatedTexts) {
+            this.translatedTexts = translatedTexts;
+        }
+
+        public List<String> getTranslatedTexts() {
+            return translatedTexts;
         }
     }
 }

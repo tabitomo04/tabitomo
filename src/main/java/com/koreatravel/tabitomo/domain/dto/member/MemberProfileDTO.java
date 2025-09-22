@@ -1,5 +1,6 @@
 package com.koreatravel.tabitomo.domain.dto.member;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -8,7 +9,7 @@ import java.util.UUID;
 import com.koreatravel.tabitomo.domain.dto.storybook.LikedbookDTO;
 import com.koreatravel.tabitomo.domain.dto.storybook.StorybookDTO;
 import com.koreatravel.tabitomo.domain.dto.storybook.TempsaveDTO;
-import com.koreatravel.tabitomo.domain.dto.trip.TripPlan;
+import com.koreatravel.tabitomo.domain.entity.trip.TripPlan;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Past;
@@ -25,7 +26,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MemberProfileDTO {
+public class MemberProfileDTO implements Serializable {
+    private static final long serialVersionUID = 1L;
     // 기본 정보
     private UUID id;
     

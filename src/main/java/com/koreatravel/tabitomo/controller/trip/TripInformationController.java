@@ -1,5 +1,7 @@
 package com.koreatravel.tabitomo.controller.trip;
 
+import com.koreatravel.tabitomo.domain.entity.trip.Place;
+import com.koreatravel.tabitomo.repository.trip.PlaceRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -7,8 +9,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import com.koreatravel.tabitomo.domain.entity.trip.Place;
-import com.koreatravel.tabitomo.repository.trip.PlaceRepository;
 
 import java.util.Arrays;
 import java.util.List;
@@ -23,6 +23,18 @@ public class TripInformationController {
     }
 
     @GetMapping("/tripinformation")
+    public String showRegionSelectPage(Model model) {
+        List<String> regions = Arrays.asList(
+            "대구광역시", "경기도", "경상남도", "경상북도", "전북특별자치도",
+            "강원특별자치도", "충청북도", "전라남도", "충청남도", "서울특별시",
+            "울산광역시", "광주광역시", "부산광역시", "제주특별자치도",
+            "대전광역시", "인천광역시", "세종특별자치시"
+        );
+        model.addAttribute("regions", regions);
+        return "tripinformation/region_select";
+    }
+
+    @GetMapping("/tripinformation/places")
     public String showTripInformation(Model model,
                                       @RequestParam(value = "region", required = false, defaultValue = "all") String region,
                                       @RequestParam(value = "categoryCode", required = false, defaultValue = "all") String categoryCode,
@@ -56,6 +68,17 @@ public class TripInformationController {
         model.addAttribute("selectedRegion", region);
         model.addAttribute("selectedCategoryCode", categoryCode);
         model.addAttribute("keyword", keyword);
+
+        // Pagination logic
+        int windowSize = 5;
+        int startPage = Math.max(0, placesPage.getNumber() - (windowSize / 2));
+        int endPage = Math.min(placesPage.getTotalPages() > 0 ? placesPage.getTotalPages() - 1 : 0, startPage + windowSize - 1);
+        if (endPage - startPage < windowSize -1 && placesPage.getTotalPages() >= windowSize) {
+             startPage = Math.max(0, endPage - windowSize + 1);
+        }
+
+        model.addAttribute("startPage", startPage);
+        model.addAttribute("endPage", endPage);
 
         return "tripinformation/tripinformation";
     }

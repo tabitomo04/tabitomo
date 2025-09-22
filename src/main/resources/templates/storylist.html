@@ -1,36 +1,75 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>여행 스토리 검색 페이지</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-translatable>여행 스토리 검색 페이지</title>
+    
+    <!-- Common CSS/JS from header fragment -->
+    <link rel="icon" th:href="@{/image/pabicone.png}" type="image/png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/translation.js}"></script>
 
-  <link rel="stylesheet" th:href= "@{/css/storylist.css}">
+    <!-- Page-specific CSS from storylist.html -->
+    <link rel="stylesheet" th:href="@{/css/storylist.css}">
+    <link rel="stylesheet" th:href="@{/css/paging.css}">
+    <link rel="stylesheet" th:href="@{/css/modal.css}">
+
+  <script th:src="@{/js/jquery-3.7.1.min.js}"></script>
+    <!-- Page-specific JS from storylist.html -->
+  <script>
+    window.addEventListener('load', () => {
+        if (performance.getEntriesByType("navigation")[0].type === "reload") {
+            // 새로고침일 때만 실행
+            history.replaceState(null, '', '/storybook/list');
+        }
+    });
+  </script>
 </head>
 <body>
-<div class="container">
-  <h1>당신의 여행 이야기를 들려주세요</h1>
 
-  <div class="search-box">
-    <input type="text" placeholder="검색어를 입력하세요" />
-    <button>검색</button>
-  </div>
+<!-- Header -->
+<div th:insert="~{fragments/header :: header}"></div>
+
+<!-- Navigation Menu -->
+<div th:insert="~{fragments/menu :: menu}"></div>
+
+<div class="container">
+ <section class="py-5">
+  <h1 id="listtitle" data-translatable>당신의 여행 이야기를 들려주세요</h1>
+
+  <form id="searchForm" action="/storybook/list" method="get"  class="search-box">
+    <input type="text" name="keyword" id="keyword" data-translatable-placeholder placeholder="검색어를 입력하세요" />
+    <button type="submit" data-translatable>검색</button>
+  </form>
 
   <div class="filters">
-    <button th:onclick="|location.href='@{/storybook/list(sort = hot)}'|">HOT</button>
-    <button th:onclick="|location.href='@{/storybook/list(sort = new)}'|">NEW</button>
+    <div class="leftbutton">
+      <button th:onclick="|location.href='@{/storybook/list(sort = hot)}'|" data-translatable>HOT</button>
+      <button th:onclick="|location.href='@{/storybook/list(sort = new)}'|" data-translatable>NEW</button>
+    </div>
+    <div class="rightbutton">
+      <a class="storylistbtn" id="templistBtn" data-translatable>임시저장본</a>
+      <a class="storylistbtn primary" onclick="checkTemp()" th:href="@{'/storybook/write'}" data-translatable>새 스토리 작성</a>
+    </div>
   </div>
+  </section>
 
+ <div id="story-container">
   <div class="grid" th:if="${storylist != null}">
     <div th:if="${storylist}" th:each="storylist, status: ${storylist}">
       <a class="link" th:href="@{'/storybook/detail?booknum=' + ${storylist.booknum}}">
         <div class="card">
           <div class="likes">❤ <span th:text="${storylist.likes}"></span></div>
           <div class="thumbnail">
-            <img th:src="@{${storylist.thumbnail}}" alt="썸네일">
+            <img th:src="@{${storylist.thumbnail} ?: '/image/tomo.png'}" alt="썸네일">
           </div>
-          <h3 th:text="${storylist.title}"></h3>
-          <p th:text="${storylist.subtitle}"></p>
+          <h3 th:text="${storylist.title}" data-translatable></h3>
+          <p th:text="${storylist.subtitle}" data-translatable></p>
           <div class="meta">
             <span th:text="${storylist.booknum}"></span>
             <span th:text="${#temporals.format(storylist.createDate, 'yy.MM.dd')}"></span>
@@ -40,16 +79,22 @@
     </div>
   </div>
 
+
+  <div th:if="${pagelist == null or pagelist.isEmpty()}" class="no-results">
+    <img th:src="@{/images/pabicone.png}" alt="검색결과 없음" >
+    <p data-translatable>검색 결과가 없습니다.</p>
+  </div>
+
   <div class="grid" th:if="${pagelist != null}">
     <div th:if="${pagelist}" th:each="pagelist, status: ${pagelist}">
       <a class="link" th:href="@{'/storybook/detail?booknum=' + ${pagelist.booknum}}">
         <div class="card">
           <div class="likes">❤ <span th:text="${pagelist.likes}"></span></div>
           <div class="thumbnail">
-            <img th:src="@{${pagelist.thumbnail}}" alt="썸네일">
+            <img th:src="@{${pagelist.thumbnail}} ?: '/image/tomo.png'}" alt="썸네일">
           </div>
-          <h3 th:text="${pagelist.title}"></h3>
-          <p th:text="${pagelist.subtitle}"></p>
+          <h3 th:text="${pagelist.title}" data-translatable></h3>
+          <p th:text="${pagelist.subtitle}" data-translatable></p>
           <div class="meta">
             <span th:text="${pagelist.booknum}"></span>
             <span th:text="${#temporals.format(pagelist.createDate, 'yy.MM.dd')}"></span>
@@ -58,27 +103,117 @@
       </a>
     </div>
   </div>
+ </div>
 
-</div>
 
 <!-- 페이징 네비게이션 -->
-<div class="pagination-container" th:if="${pagelist != null}">
+<div class="pagination-container"th:if="${pagelist != null and totalPages > 0}">
   <ul class="pagination">
     <!-- 이전 페이지 버튼 -->
     <li>
-      <a th:if="${hasPrevious}" th:href="@{/storybook/list(sort=${sort},page=${currentPage - 1}, size=${size})}" class="pre-btn">이전</a>
+      <a th:if="${hasPrevious}" th:href="@{/storybook/list(sort=${sort},page=${currentPage - 1}, size=${size})}" class="pre-btn" data-translatable>이전</a>
     </li>
 
     <!-- 페이지 번호들 -->
-    <li th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}">
-      <a th:href="@{/storybook/list(sort=${sort},page=${pageNum}, size=${size})}" th:text="${pageNum + 1}" th:classappend="${pageNum == currentPage} ? 'current'" class="page-btn"></a>
+    <li th:each="pageNum : ${#numbers.sequence(pageGroupStart, pageGroupEnd)}">
+      <a th:href="@{/storybook/list(sort=${sort}, page=${pageNum}, size=${size})}"
+         th:text="${pageNum + 1}"
+         th:classappend="${pageNum == currentPage} ? 'current'"
+         class="page-btn"></a>
     </li>
 
     <!-- 다음 페이지 버튼 -->
     <li>
-      <a th:if="${hasNext}" th:href="@{/storybook/list(sort=${sort},page=${currentPage + 1}, size=${size})}" class="next-btn">다음</a>
+      <a th:if="${hasNext}" th:href="@{/storybook/list(sort=${sort},page=${currentPage + 1}, size=${size})}" class="next-btn" data-translatable>다음</a>
     </li>
   </ul>
 </div>
+</div>
+
+<!-- 모달창 -->
+<div id="templistModal" class="templistModal" style="display:none;">
+  <div class="templistModal-content">
+    <span id="closeBtn" class="close">&times;</span>
+
+    <h2 th:if="${templist != null and !templist.isEmpty()}" data-translatable>임시저장본 리스트</h2>
+
+    <div th:if="${templist == null or templist.isEmpty()}">
+      <img th:src="@{/image/pabicone.png}" alt="임시저장 없음" style="display:block; margin:0 auto 10px; width:100px; height:auto;">
+      <p data-translatable>임시저장한 스토리북이 존재하지 않습니다.</p>
+    </div>
+
+    <div th:if="${templist != null and !templist.isEmpty()}">
+    <form action="/storybook/update" method="get" onsubmit="return checkRadio()">
+      <table>
+        <tr>
+          <th class="col-select" data-translatable>선택</th>
+          <th class="col-title" data-translatable>제목</th>
+          <th class="col-subtitle" data-translatable>부제목</th>
+          <th class="col-date" data-translatable>작성날짜</th>
+          <th class="col-del" data-translatable>삭제</th>
+        </tr>
+
+        <tr th:if="${templist}" th:each="templist : ${templist}">
+          <td class="col-select"><input type="radio" name="tempId" th:value="${templist.tempId}"></td>
+          <td class="col-title" th:text="${templist.title}" data-translatable></td>
+          <td class="col-subtitle" th:text="${templist.subtitle}" data-translatable></td>
+          <td class="col-date" th:text="${#temporals.format(templist.updateDate, 'yy.MM.dd')}"></td>
+          <td class="col-del del"><a th:href="@{'/storybook/tempdelete?tempId=' + ${templist.tempId}}"
+                                     onclick="return confirm('정말 삭제할까요?')">&times;</a></td>
+        </tr>
+      </table>
+      <button type="submit" class="btn" data-translatable>불러오기</button>
+    </form>
+    </div>
+
+
+  </div>
+</div>
+
+<script>
+  const modal = document.querySelector('#templistModal');
+  const closeBtn = document.querySelector('#closeBtn');
+  const templistBtn = document.querySelector('#templistBtn');
+
+  templistBtn.addEventListener("click", ()=> {
+      modal.style.display="block";
+  });
+  closeBtn.addEventListener("click", ()=> {
+      modal.style.display="none";
+  });
+
+   function checkRadio() {
+    const radios = document.querySelectorAll('input[name="tempId"]');
+    let checked = false;
+    radios.forEach(radio => {
+      if (radio.checked) {
+        checked = true;
+      }
+    });
+
+    if (!checked) {
+      alert("임시저장본을 선택해주세요!");
+      return false; // 제출 막기
+    }
+    return true; // 통과하면 제출됨
+  }
+
+  // 엔터로 검색
+
+  const input = document.getElementById("keyword");
+input.addEventListener("keydown", function(e) {
+    if(e.key === "Enter") {
+        e.preventDefault();
+        const keyword = input.value.trim();
+        if(keyword) {
+            window.location.href = `/storybook/list?keyword=${encodeURIComponent(keyword)}`;
+        }
+    }
+});
+</script>
+
+<!-- Footer -->
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
 </body>
 </html>

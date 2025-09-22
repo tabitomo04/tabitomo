@@ -1,13 +1,37 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       lang="ko">
-<head th:replace="~{fragments/header :: head}">
-    <title>여행 계획 상세 - Tabitomo</title>
-    <link rel="stylesheet" href="/css/tripselect.css">
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-</head>
+
+
+<head th:replace="~{fragments/header :: head}"></head>
+
 <body>
+
+<style>
+    /* Toast notification styles */
+    .toast-notification {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #333;
+        color: #fff;
+        padding: 15px 20px;
+        border-radius: 5px;
+        z-index: 10000;
+        display: none; /* Initially hidden */
+        opacity: 0;
+        transition: opacity 0.3s, bottom 0.3s;
+    }
+
+    .toast-notification.show {
+        display: block;
+        opacity: 1;
+        bottom: 30px;
+    }
+</style>
+
 <!-- Header -->
 <div th:replace="~{fragments/header :: header}"></div>
 
@@ -18,9 +42,9 @@
 <main class="container py-5">
     <!-- Trip Title and Dates -->
     <div class="plan-summary mb-4">
-        <h1 class="mb-3" th:text="${trip.title}">여행 계획 이름</h1>
+        <h1 class="mb-3" th:text="${trip.title}" data-translatable>여행 계획 이름</h1>
         <p class="lead" th:if="${trip.startDate != null and trip.endDate != null}">
-            <strong>여행 기간:</strong>
+            <strong data-translatable>여행 기간:</strong>
             <span th:text="${#temporals.format(trip.startDate, 'yyyy-MM-dd')}"></span> ~
             <span th:text="${#temporals.format(trip.endDate, 'yyyy-MM-dd')}"></span>
         </p>
@@ -29,7 +53,7 @@
     <!-- Recommended Accommodation -->
     <div class="card mb-4">
         <div class="card-header">
-            <h5 class="mb-0">추천 숙소</h5>
+            <h5 class="mb-0" data-translatable>추천 숙소</h5>
         </div>
         <div class="card-body">
             <div th:if="${trip.accommodation != null}">
@@ -38,20 +62,20 @@
                         <img th:src="${trip.accommodation.imageUrl}" class="img-fluid rounded" alt="숙소 이미지">
                     </div>
                     <div th:classappend="${trip.accommodation.imageUrl != null and !trip.accommodation.imageUrl.isEmpty()} ? 'col-md-8' : 'col-md-12'">
-                        <h5 th:text="${trip.accommodation.name}">숙소 이름</h5>
+                        <h5 th:text="${trip.accommodation.name}" data-translatable>숙소 이름</h5>
                         <p class="mb-1" th:if="${trip.accommodation.address != null}">
                             <i class="fas fa-map-marker-alt me-1 text-muted"></i>
-                            <span th:text="${trip.accommodation.address}"></span>
+                            <span th:text="${trip.accommodation.address}" data-translatable></span>
                         </p>
                         <p class="mb-0 text-muted" th:if="${trip.accommodation.description != null}">
                             <i class="fas fa-info-circle me-1"></i>
-                            <span th:text="${trip.accommodation.description}"></span>
+                            <span th:text="${trip.accommodation.description}" data-translatable></span>
                         </p>
                     </div>
                 </div>
             </div>
             <div th:unless="${trip.accommodation != null}">
-                <p class="mb-0">저장된 추천 숙소 정보가 없습니다.</p>
+                <p class="mb-0" data-translatable>저장된 추천 숙소 정보가 없습니다.</p>
             </div>
         </div>
     </div>
@@ -59,26 +83,32 @@
     <!-- Schedules Table -->
     <div class="card">
         <div class="card-header">
-            <h5 class="mb-0">상세 일정</h5>
+            <h5 class="mb-0" data-translatable>상세 일정</h5>
         </div>
         <div class="card-body">
-            <div th:if="${schedules.isEmpty()}" class="alert alert-info">
+            <div th:if="${schedules.isEmpty()}" class="alert alert-info" data-translatable>
                 저장된 세부 일정이 없습니다.
             </div>
             <div th:unless="${schedules.isEmpty()}" class="table-responsive">
                 <table class="table table-hover">
                     <thead>
                         <tr>
-                            <th style="width: 15%;">일차</th>
-                            <th style="width: 20%;">시간</th>
-                            <th>장소</th>
+                            <th style="width: 15%;" data-translatable>일차</th>
+                            <th style="width: 20%;" data-translatable>시간</th>
+                            <th data-translatable>장소</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr th:each="schedule : ${schedules}">
-                            <td th:text="${schedule.day} + '일차'"></td>
+                            <td>[[${schedule.day}]]<span data-translatable>일차</span></td>
                             <td th:text="${schedule.startTime} + (${schedule.endTime != null and schedule.endTime != ''} ? ' ~ ' + ${schedule.endTime} : '')"></td>
-                            <td th:text="${schedule.place.name}"></td>
+                            <td>
+                                <span th:text="${schedule.place.name}" data-translatable></span>
+                                <span sec:authorize="isAuthenticated()">
+                                    <i class="far fa-star favorite-btn" th:data-place-id="${schedule.place.id}" style="cursor: pointer; color: #FFD700;"></i>
+                                </span>
+                                <div th:if="${schedule.place.address != null}" class="text-muted small" data-translatable th:text="${schedule.place.address}"></div>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -87,12 +117,89 @@
     </div>
 
     <div class="mt-4">
-        <a th:href="@{/mypage}" class="btn btn-primary">마이페이지로 돌아가기</a>
+        <a th:href="@{/mypage}" class="btn btn-primary" data-translatable>마이페이지로 돌아가기</a>
     </div>
 </main>
 
+<!-- Toast Notification -->
+<div class="toast-notification" id="toastNotification">
+    <span></span>
+</div>
+
 <!-- Footer -->
 <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    function showToast(messageKey, defaultText) {
+        const toastNotification = document.getElementById('toastNotification');
+        if (!toastNotification) return;
+
+        const toastSpan = toastNotification.querySelector('span');
+        toastSpan.setAttribute('data-translatable', messageKey);
+        toastSpan.textContent = defaultText;
+
+        if(window.translationManager) {
+            window.translationManager.applyCurrentLanguage(toastNotification);
+        }
+
+        toastNotification.classList.add('show');
+
+        setTimeout(() => {
+            toastNotification.classList.remove('show');
+        }, 3000);
+    }
+
+    const favoriteButtons = document.querySelectorAll('.favorite-btn');
+
+    if (favoriteButtons.length > 0) {
+        favoriteButtons.forEach(btn => {
+            const placeId = btn.dataset.placeId;
+            fetch(`/api/favorites/status?placeId=${placeId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.isFavorite) {
+                        btn.classList.remove('far');
+                        btn.classList.add('fas');
+                    }
+                })
+                .catch(() => {});
+        });
+
+        favoriteButtons.forEach(btn => {
+            btn.addEventListener('click', function () {
+                const placeId = this.dataset.placeId;
+                const isFavorite = this.classList.contains('fas');
+
+                fetch('/api/favorites', {
+                    method: isFavorite ? 'DELETE' : 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ placeId: placeId })
+                })
+                .then(response => {
+                    if (response.ok) {
+                        this.classList.toggle('far');
+                        this.classList.toggle('fas');
+                        if (isFavorite) {
+                            showToast('favorite.removed', '즐겨찾기에서 삭제되었습니다.');
+                        } else {
+                            showToast('favorite.added', '즐겨찾기에 추가되었습니다.');
+                        }
+                    } else {
+                        showToast('favorite.error', '즐겨찾기 작업 중 오류가 발생했습니다.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('favorite.network.error', '네트워크 오류가 발생했습니다.');
+                });
+            });
+        });
+    }
+});
+</script>
 
 </body>
 </html>

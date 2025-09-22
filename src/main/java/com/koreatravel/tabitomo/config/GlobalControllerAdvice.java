@@ -1,4 +1,4 @@
-package com.koreatravel.tabitomo.controller.trip;
+package com.koreatravel.tabitomo.config;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 @ControllerAdvice
 public class GlobalControllerAdvice {
 
-    @ModelAttribute("request")
-    public HttpServletRequest addRequestToModel(HttpServletRequest request) {
-        return request;
+    @ModelAttribute("requestURI")
+    public String requestURI(final HttpServletRequest request) {
+        return request.getRequestURI();
     }
 }

@@ -560,9 +560,21 @@ public void tempdel(Integer tempId) {
         return storybookRepository.hotORnewPage(sort,pageable);
     }
 
+    // 태그의 화이트리스트 배열 가져오기
     public List<String> gettaglist() {
         return tagMasterRepository.findRandomTagNames();
     }
 
+    /**
+     * 스토리북 키워드 검색 결과
+     * @param keyword 검색 키워드
+     * @param page
+     * @param size
+     * @return
+     */
+    public Page<StorybookListDTO> getSearchList(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page,size);
+        return storybookRepository.findbykeyword(keyword, pageable);
+    }
 }
 

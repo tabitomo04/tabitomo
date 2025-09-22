@@ -59,9 +59,7 @@ document.addEventListener('click', function(e) {
 <div class="container">
   <!-- 태그 -->
   <div class="tags">
-    <span>#힐링</span>
-    <span>#제주도</span>
-    <span>#풀꽃</span>
+    <span th:each="tagName : ${post.tags}" th:text="'#' + ${tagName}"></span>
   </div>
 
   <!-- 제목 & 부제목 -->
@@ -82,7 +80,7 @@ document.addEventListener('click', function(e) {
   <!-- 메타 정보 -->
   <div class="meta">
     <div>
-    <span>정민호</span> · <span th:text="${#temporals.format(post.createDate, 'yy.MM.dd')}"></span>
+      <span th:text="${post.nickname}"></span> · <span th:text="${#temporals.format(post.createDate, 'yy.MM.dd')}"></span>
     </div>
     <div class="actions">
       <button class="urlbtn" data-tooltip="복사되었습니다!" onclick="clip()">URL 공유</button>

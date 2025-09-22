@@ -73,4 +73,27 @@ public interface StorybookRepository extends JpaRepository<StorybookEntity, Inte
             countQuery = "SELECT COUNT(*) FROM storybook s",
             nativeQuery = true)
     Page<StorybookListDTO> hotORnewPage(@Param("sort") String sort, Pageable pageable);
+
+    // 검색
+    @Query(value = "SELECT " +
+            "    s.booknum AS booknum, " +
+            "    s.title AS title, " +
+            "    s.subtitle AS subtitle, " +
+            "    s.likes AS likes, " +
+            "    s.created_at AS createDate, " +
+            "    (SELECT m.media_url " +
+            "     FROM media m " +
+            "     WHERE m.num = s.booknum AND m.media_type = 'image' " + // m.게시물번호_컬럼 = s.고유번호_컬럼
+            "     ORDER BY m.uploaded_at ASC " + // m.업로드시간_컬럼
+            "     LIMIT 1) AS thumbnail, " +
+            "     u.nickname AS nickname " +
+            "FROM storybook s " +
+            "JOIN storytag st ON s.booknum = st.booknum " +
+            "JOIN TagMaster tm ON st.tag_id = tm.tag_id " +
+            "JOIN member u ON s.email = u.email " +
+            "WHERE tm.tag_name LIKE CONCAT('%', :keyword, '%') " +
+            "ORDER BY s.created_at DESC",
+            nativeQuery = true)
+    Page<StorybookListDTO> findbykeyword(@Param("keyword") String keyword, Pageable pageable);
+
 }

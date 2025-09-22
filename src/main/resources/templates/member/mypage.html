@@ -1,10 +1,29 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       lang="ko">
-<head th:replace="~{fragments/header :: head}">
+
+<head>
     <title>마이페이지 - Tabitomo</title>
+
+    <link rel="stylesheet" th:href="@{/css/mypage.css}">
+    <link rel="stylesheet" th:href="@{/css/modal.css}">
+
+    <!-- header, footer css-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/translation.js}"></script>
+
 </head>
+
+
 <body>
+
+<div id="toast-container" class="toast-container"></div>
+
 <!-- Header -->
 <div th:replace="~{fragments/header :: header}"></div>
 
@@ -12,48 +31,324 @@
 <div th:replace="~{fragments/menu :: menu}"></div>
 
 <!-- Main Content -->
+
 <main class="container py-5">
-    <h1 class="mb-4">마이페이지</h1>
+    <h1 class="mb-4" data-translatable>마이페이지</h1>
+
+    <!-- User Info -->
+    <section class="mb-5" sec:authorize="isAuthenticated()">
+        <h2 class="h3 mb-3" data-translatable>회원 정보</h2>
+        <div class="card">
+            <div class="card-body">
+                <p class="card-text">
+                    <strong data-translatable>닉네임:</strong>
+                    <span th:text="${profile.nickname}"></span>
+                </p>
+                <p class="card-text">
+                    <strong data-translatable>이메일:</strong>
+                    <span th:text="${profile.email}"></span>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 내 스토리북 -->
+    <section class="story-section py-3">
+        <div class="section-header">
+            <h2 class="h3 mb-3" data-translatable>나의 스토리북</h2>
+            <div class="story-buttons">
+                <a class="storybtn" id="templistBtn" data-translatable>임시저장본</a>
+                <a class="storybtn primary" onclick="checkTemp()" th:href="@{'/storybook/write'}" data-translatable>새 스토리 작성</a>
+            </div>
+        </div>
+        <div th:if="${storylist == null or storylist.isEmpty()}" class="alert alert-info" role="alert" data-translatable>당신의 여행 스토리북을 만들어보세요!</div>
+
+        <div class="grid">
+
+            <div th:if="${storylist}" th:each="storylist, status: ${storylist}">
+                <a class="link" th:href="@{'/storybook/detail?booknum=' + ${storylist.booknum}}">
+                    <div class="card">
+                        <div class="likes">❤ <span th:text="${storylist.likes}"></span></div>
+                        <div class="thumbnail">
+                            <img th:src="@{${storylist.thumbnail}}" alt="썸네일">
+                        </div>
+                        <h3 th:text="${storylist.title}" data-translatable></h3>
+                        <p th:text="${storylist.subtitle}" data-translatable></p>
+                        <div class="meta">
+                            <span th:text="${storylist.booknum}"></span>
+                            <span th:text="${#temporals.format(storylist.createDate, 'yy.MM.dd')}"></span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+        </div>
+
+        <div th:if="${storylist != null and !storylist.isEmpty()}">
+            <div th:if="${!all}">
+                <button class="more" th:onclick="|location.href='@{/mypage(all=true)}'|" data-translatable>더 보기 +</button>
+            </div>
+            <div th:if="${all}">
+                <button class="morebtn" th:onclick="|location.href='@{/mypage(all=false)}'|" data-translatable>닫기</button>
+            </div>
+        </div>
+
+    </section>
 
     <!-- Error Message Display -->
+
+
+    <!-- Message Display -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
     <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
         <span th:text="${errorMessage}"></span>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 
+
+    <!-- My Trip Plans -->
     <section>
-        <h2 class="h3 mb-3">나의 여행 계획</h2>
-        <div th:if="${trips == null or trips.isEmpty()}" class="alert alert-info" role="alert">
+        <h2 class="h3 mb-3" data-translatable>나의 여행 계획</h2>
+        <div th:if="${tripsPage.empty}" class="alert alert-info" role="alert" data-translatable>
             저장된 여행 계획이 없습니다.
         </div>
 
-        <div class="list-group" th:unless="${trips == null or trips.isEmpty()}">
-            <!-- Iterate over the new Trip objects -->
-            <a th:each="trip : ${trips}" th:href="@{/trips/{id}(id=${trip.id})}" class="list-group-item list-group-item-action flex-column align-items-start">
-                <div class="d-flex w-100 justify-content-between">
-                    <!-- Trip Title -->
-                    <h5 class="mb-1" th:text="${trip.title}">여행 계획 이름</h5>
-                    <!-- Trip Dates -->
-                    <small th:if="${trip.startDate != null}" 
-                           th:text="${#temporals.format(trip.startDate, 'yyyy.MM.dd')} + ' ~ ' + ${#temporals.format(trip.endDate, 'yyyy.MM.dd')}">여행 기간</small>
+        <div class="list-group" th:unless="${tripsPage.empty}">
+            <div th:each="trip : ${tripsPage.content}" class="list-group-item d-flex justify-content-between align-items-center">
+                <a th:href="@{/trips/{id}(id=${trip.id})}" class="text-decoration-none text-reset flex-grow-1 me-3">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1" th:text="${trip.title}" data-translatable>여행 계획 이름</h5>
+                        <small th:if="${trip.startDate != null}"
+                               th:text="${#temporals.format(trip.startDate, 'yyyy.MM.dd')} + ' ~ ' + ${#temporals.format(trip.endDate, 'yyyy.MM.dd')}">여행 기간</small>
+                    </div>
+                    <p class="mb-1">
+                        <strong data-translatable>숙소:</strong>
+                        <span th:if="${trip.accommodation != null}" th:text="${trip.accommodation.name}" data-translatable>숙소 이름</span>
+                        <span th:unless="${trip.accommodation != null}" class="text-muted" data-translatable>정보 없음</span>
+                    </p>
+                    <div class="d-flex w-100 justify-content-between">
+                        <small class="text-muted" data-translatable>여기를 클릭하여 상세 내용을 확인하세요.</small>
+                        <small class="text-muted" th:if="${trip.createdAt != null}">
+                            <span data-translatable>생성일:</span> [[${#temporals.format(trip.createdAt, 'yyyy.MM.dd')}]]
+                        </small>
+                    </div>
+                </a>
+
+                <div class="d-flex align-items-center">
+                    <form th:action="@{/member/trips/{id}/toggle-visibility(id=${trip.id})}" method="post" class="me-2 visibility-toggle">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch"
+                                   th:id="'visibilitySwitch-' + ${trip.id}"
+                                   th:checked="${'PUBLIC'.equals(trip.visibility)}"
+                                   onchange="this.form.submit()">
+                            <label class="form-check-label" th:for="'visibilitySwitch-' + ${trip.id}"
+                                   th:text="${'PUBLIC'.equals(trip.visibility) ? '공개' : '비공개'}" data-translatable></label>
+                        </div>
+                    </form>
+                    <form th:action="@{/member/trips/{id}/delete(id=${trip.id})}" method="post" onsubmit="return confirm('정말로 이 여행 계획을 삭제하시겠습니까?');">
+                        <button type="submit" class="btn btn-outline-danger btn-sm" data-translatable>삭제</button>
+                    </form>
                 </div>
-                <!-- Accommodation Info -->
-                <p class="mb-1">
-                    <strong>숙소:</strong>
-                    <span th:if="${trip.accommodation != null}" th:text="${trip.accommodation.name}">숙소 이름</span>
-                    <span th:unless="${trip.accommodation != null}" class="text-muted">정보 없음</span>
-                </p>
-                <div class="d-flex w-100 justify-content-between">
-                    <small class="text-muted">여기를 클릭하여 상세 내용을 확인하세요.</small>
-                    <small class="text-muted" th:if="${trip.createdAt != null}" th:text="'생성일: ' + ${#temporals.format(trip.createdAt, 'yyyy.MM.dd')}"></small>
-                </div>
-            </a>
+            </div>
         </div>
+
+        <!-- Trip Pagination -->
+        <nav th:if="${tripsPage.totalPages > 1}" class="mt-4 d-flex justify-content-center">
+            <ul class="pagination">
+                <li class="page-item" th:classappend="${tripsPage.first} ? 'disabled'">
+                    <a class="page-link" th:href="@{/mypage(tripPage=0, favPage=${favoritePlacesPage.number})}" data-translatable>처음</a>
+                </li>
+                <li class="page-item" th:classappend="${tripsPage.first} ? 'disabled'">
+                    <a class="page-link" th:href="@{/mypage(tripPage=${tripsPage.number - 1}, favPage=${favoritePlacesPage.number})}" data-translatable>이전</a>
+                </li>
+                <li class="page-item" th:each="pageNumber : ${#numbers.sequence(startTripPage, endTripPage)}" th:classappend="${pageNumber == tripsPage.number} ? 'active'">
+                    <a class="page-link" th:href="@{/mypage(tripPage=${pageNumber}, favPage=${favoritePlacesPage.number})}" th:text="${pageNumber + 1}"></a>
+                </li>
+                <li class="page-item" th:classappend="${tripsPage.last} ? 'disabled'">
+                    <a class="page-link" th:href="@{/mypage(tripPage=${tripsPage.number + 1}, favPage=${favoritePlacesPage.number})}" data-translatable>다음</a>
+                </li>
+                <li class="page-item" th:classappend="${tripsPage.last} ? 'disabled'">
+                    <a class="page-link" th:href="@{/mypage(tripPage=${tripsPage.totalPages - 1}, favPage=${favoritePlacesPage.number})}" data-translatable>마지막</a>
+                </li>
+            </ul>
+        </nav>
+    </section>
+
+    <!-- Favorite Places -->
+    <section class="mt-5">
+        <h2 class="h3 mb-3" data-translatable>즐겨찾기한 장소</h2>
+        <div id="favorite-places-container">
+            <div th:if="${favoritePlacesPage.empty}" class="alert alert-info" role="alert" data-translatable>
+                즐겨찾기한 장소가 없습니다.
+            </div>
+            <div class="list-group" th:unless="${favoritePlacesPage.empty}">
+                <div th:each="fav : ${favoritePlacesPage.content}" class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1" th:text="${fav.place.name}" data-translatable>장소 이름</h5>
+                        <p class="mb-1 text-muted" th:text="${fav.place.address}" data-translatable>장소 주소</p>
+                    </div>
+                    <button class="btn btn-outline-danger btn-sm unfavorite-btn" th:data-place-id="${fav.place.id}" data-translatable>삭제</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Favorite Places Pagination -->
+        <nav th:if="${favoritePlacesPage.totalPages > 1}" class="mt-4 d-flex justify-content-center">
+            <ul class="pagination">
+                <li class="page-item" th:classappend="${favoritePlacesPage.first} ? 'disabled'">
+                    <a class="page-link" th:href="@{/mypage(favPage=0, tripPage=${tripsPage.number})}" data-translatable>처음</a>
+                </li>
+                <li class="page-item" th:classappend="${favoritePlacesPage.first} ? 'disabled'">
+                    <a class="page-link" th:href="@{/mypage(favPage=${favoritePlacesPage.number - 1}, tripPage=${tripsPage.number})}" data-translatable>이전</a>
+                </li>
+                <li class="page-item" th:each="pageNumber : ${#numbers.sequence(startFavPage, endFavPage)}" th:classappend="${pageNumber == favoritePlacesPage.number} ? 'active'">
+                    <a class="page-link" th:href="@{/mypage(favPage=${pageNumber}, tripPage=${tripsPage.number})}" th:text="${pageNumber + 1}"></a>
+                </li>
+                <li class="page-item" th:classappend="${favoritePlacesPage.last} ? 'disabled'">
+                    <a class="page-link" th:href="@{/mypage(favPage=${favoritePlacesPage.number + 1}, tripPage=${tripsPage.number})}" data-translatable>다음</a>
+                </li>
+                <li class="page-item" th:classappend="${favoritePlacesPage.last} ? 'disabled'">
+                    <a class="page-link" th:href="@{/mypage(favPage=${favoritePlacesPage.totalPages - 1}, tripPage=${tripsPage.number})}" data-translatable>마지막</a>
+                </li>
+            </ul>
+        </nav>
     </section>
 </main>
 
+
+<!-- 모달창 -->
+<div id="templistModal" class="templistModal" style="display:none;">
+    <div class="templistModal-content">
+        <span id="closeBtn" class="close">&times;</span>
+        <h2 th:if="${templist != null and !templist.isEmpty()}" data-translatable>임시저장본 리스트</h2>
+
+        <div th:if="${templist == null or templist.isEmpty()}">
+            <img th:src="@{/image/pabicone.png}" alt="임시저장 없음" style="display:block; margin:0 auto 10px; width:100px; height:auto;">
+            <p data-translatable>임시저장한 스토리북이 존재하지 않습니다.</p>
+        </div>
+
+        <div th:if="${templist != null and !templist.isEmpty()}">
+            <form action="/storybook/update" method="get" onsubmit="return checkRadio()">
+                <table>
+                    <tr>
+                        <th class="col-select" data-translatable>선택</th>
+                        <th class="col-title" data-translatable>제목</th>
+                        <th class="col-subtitle" data-translatable>부제목</th>
+                        <th class="col-date" data-translatable>작성날짜</th>
+                        <th class="col-del" data-translatable>삭제</th>
+                    </tr>
+
+                    <tr th:if="${templist}" th:each="templist : ${templist}">
+                        <td class="col-select"><input type="radio" name="tempId" th:value="${templist.tempId}"></td>
+                        <td class="col-title" th:text="${templist.title}" data-translatable></td>
+                        <td class="col-subtitle" th:text="${templist.subtitle}" data-translatable></td>
+                        <td class="col-date" th:text="${#temporals.format(templist.updateDate, 'yy.MM.dd')}"></td>
+                        <td class="col-del del"><a th:href="@{'/storybook/tempdelete?tempId=' + ${templist.tempId}}"
+                                                   onclick="return confirm('정말 삭제할까요?')">&times;</a></td>
+                    </tr>
+                </table>
+                <button type="submit" class="btn" data-translatable>불러오기</button>
+            </form>
+        </div>
+
+
+    </div>
+</div>
+<script>
+    const modal = document.querySelector('#templistModal');
+    const closeBtn = document.querySelector('#closeBtn');
+    const templistBtn = document.querySelector('#templistBtn');
+
+    templistBtn.addEventListener("click", ()=> {
+        modal.style.display="block";
+    });
+    closeBtn.addEventListener("click", ()=>{
+        modal.style.display="none";
+    });
+
+     function checkRadio() {
+      const radios = document.querySelectorAll('input[name="tempId"]');
+      let checked = false;
+      radios.forEach(radio => {
+        if (radio.checked) {
+          checked = true;
+        }
+      });
+
+      if (!checked) {
+        alert("임시저장본을 선택해주세요!");
+        return false; // 제출 막기
+      }
+      return true; // 통과하면 제출됨
+    }
+</script>
+
 <!-- Footer -->
 <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = 'toast-message';
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    if (container.contains(toast)) {
+                        container.removeChild(toast);
+                    }
+                }, 500);
+            }, 3000);
+        }
+
+        const favoritePlacesContainer = document.getElementById('favorite-places-container');
+
+        if (favoritePlacesContainer) {
+            favoritePlacesContainer.addEventListener('click', function(event) {
+                if (event.target.classList.contains('unfavorite-btn')) {
+                    const button = event.target;
+                    const placeId = button.dataset.placeId;
+
+                    if (confirm('이 장소를 즐겨찾기에서 삭제하시겠습니까?')) {
+                        fetch('/api/favorites', {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ placeId: placeId })
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                // Instead of removing the item, just reload the page to reflect pagination.
+                                showToast('즐겨찾기에서 삭제되었습니다.');
+                                window.location.reload();
+                            } else {
+                                response.json().then(err => {
+                                    showToast('오류: ' + (err.message || '삭제에 실패했습니다.'));
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            showToast('네트워크 오류가 발생했습니다.');
+                        });
+                    }
+                }
+            });
+        }
+    });
+</script>
 
 </body>
 </html>

@@ -65,8 +65,8 @@ table td{
       background: transparent;
       width: 100%;
       font-size: 15px;
-      height:24px;
-      margin : 0 auto 100px 20px;
+      height:20px;
+      margin : 0 auto 30px 20px;
   }
     .subtitle-input::placeholder {
       color: #aaa;
@@ -83,8 +83,8 @@ table td{
        .subtitle {
         width: 100%;
         font-size: 15px;
-        height:24px;
-        margin : 0 auto 100px 20px !important;
+        height:20px;
+        margin : 0 auto 30px 20px !important;
     }
 
 

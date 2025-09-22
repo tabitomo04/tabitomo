@@ -4,9 +4,9 @@ import com.koreatravel.tabitomo.domain.dto.member.CountryDTO;
 import com.koreatravel.tabitomo.domain.dto.member.LanguageDTO;
 import com.koreatravel.tabitomo.domain.dto.member.MemberProfileDTO;
 import com.koreatravel.tabitomo.domain.dto.auth.SignUpDTO;
-import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
 import com.koreatravel.tabitomo.service.member.AuthService;
 import com.koreatravel.tabitomo.service.member.MemberService;
+import lombok.extern.slf4j.Slf4j;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,6 +29,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import org.springframework.validation.BindingResult;
 
+@Slf4j
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/auth")
@@ -92,9 +93,13 @@ public class AuthController {
             // 서비스를 통해 로그인 처리 및 사용자 프로필 가져오기
             MemberProfileDTO memberProfile = authService.login(email, password);
             
-            // 세션에 사용자 프로필 저장
+            // 세션에 사용자 정보 저장 (MemberProfileDTO에 이미 questionnaireCompleted 필드가 있음)
             session.setAttribute("user", memberProfile);
             session.setAttribute("authenticatedEmail", email);
+            session.setAttribute("questionnaireCompleted", memberProfile.isQuestionnaireCompleted());
+            
+            // 세션에 저장된 값 확인 로그
+            log.info("Login - User: {}, Questionnaire completed: {}", email, memberProfile.isQuestionnaireCompleted());
             
             // 로그인 상태 유지 설정 (30일)
             if (Boolean.TRUE.equals(rememberMe) || Boolean.TRUE.equals(autoLogin)) {
@@ -130,14 +135,6 @@ public class AuthController {
                 autoLoginCookie.setMaxAge(0);
                 autoLoginCookie.setPath("/");
                 response.addCookie(autoLoginCookie);
-            }
-            
-            // 사용자 정보 조회
-            MemberEntity member = memberService.findByEmail(email);
-            
-            // 질문 완료 여부 확인
-            if (!member.isQuestionnaireCompleted()) {
-                return "redirect:/question/start";
             }
             
             return "redirect:/";

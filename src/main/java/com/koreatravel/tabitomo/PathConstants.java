@@ -11,6 +11,7 @@ public interface PathConstants {
 
     // 멤버
     public static final String MEMBER = BASE + "/member";
+    public static final String MYPAGE = "/mypage";
     public static final String MEMBER_INFO = MEMBER + "/info";
     public static final String MEMBER_UPDATE = MEMBER + "/update";
     public static final String MEMBER_DELETE = MEMBER + "/delete";
@@ -22,9 +23,7 @@ public interface PathConstants {
     public static final String QUESTION_COMPLETE = QUESTION + "/complete";
 
     // 여행
-    public static final String TRAVEL = "/travel";
-    public static final String TRAVEL_LIST = TRAVEL + "/list";
-    // 하단에 추가 바람!
+
 
     // 여행 스토리북
     public static final String STORYBOOK = "/storybook";

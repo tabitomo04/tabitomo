@@ -7,15 +7,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.util.UUID;
 
 @Embeddable
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class TripTagId implements Serializable {
-    @Column(name = "trip_id", columnDefinition = "BINARY(16)")
-    private UUID tripId;
+    @Column(name = "trip_id")
+    private Long tripId;
     
     @Column(name = "tag_id")
     private Integer tagId;

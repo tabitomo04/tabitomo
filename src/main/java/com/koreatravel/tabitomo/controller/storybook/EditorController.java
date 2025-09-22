@@ -119,12 +119,17 @@ public class EditorController {
      * @return 스토리북 목록 뷰
      */
     @GetMapping(PathConstants.STORYBOOK_LIST)
-    public String storylist(
-            Model model,
-            @RequestParam(value = "sort", required = false, defaultValue = "random") String sort,
-            @RequestParam(value = "page", required = false, defaultValue = "0") int page,
-            @RequestParam(value = "size", required = false, defaultValue = "6") int size) {
-        
+    public String storylist(Model model,
+                            @RequestParam(defaultValue = "random") String sort,
+                            @RequestParam(name = "page", defaultValue = "0") int page,
+                            @RequestParam(name = "size", defaultValue = "6") int size,
+                            @RequestParam(name = "keyword", required = false) String keyword){
+
+        // 임시저장 리스트
+        List<TempsaveDTO> tempsaveList = editorService.getTempsaveList();
+        model.addAttribute("templist",tempsaveList);
+
+
         try {
             // Ensure page is at least 0
             page = Math.max(0, page);
@@ -132,8 +137,30 @@ public class EditorController {
             size = Math.min(100, Math.max(1, size));
             
             log.info("Loading storybook list - sort: {}, page: {}, size: {}", sort, page, size);
-            
-            if (sort == null || "random".equals(sort)) {
+
+            if (keyword != null && !keyword.isEmpty()) {
+                // 검색 키워드 있을 때
+                Page<StorybookListDTO> searchList = editorService.getSearchList(keyword, page, size);
+                if (searchList.getTotalElements() == 0) {
+                    model.addAttribute("pagelist", null);
+                } else {
+                    model.addAttribute("pagelist", searchList.getContent());
+                }
+                model.addAttribute("sort", sort);
+                model.addAttribute("currentPage", page);
+                model.addAttribute("size", size);
+                model.addAttribute("totalPages", searchList.getTotalPages());
+                model.addAttribute("totalElement", searchList.getTotalElements());
+                model.addAttribute("hasNext", searchList.hasNext());
+                model.addAttribute("hasPrevious", searchList.hasPrevious());
+                model.addAttribute("keyword", keyword);
+
+                int pageGroupStart = (page / 5) * 5;
+                int pageGroupEnd = Math.min(pageGroupStart + 4, searchList.getTotalPages() - 1);
+                model.addAttribute("pageGroupStart", pageGroupStart);
+                model.addAttribute("pageGroupEnd", pageGroupEnd);
+            }
+            else if (sort == null || "random".equals(sort)) {
                 // 랜덤 정렬의 경우
                 List<StorybookListDTO> storybookList = editorService.getStorybookList("random");
                 model.addAttribute("storylist", storybookList);
@@ -154,6 +181,12 @@ public class EditorController {
                 model.addAttribute("totalElement", hotORnewList.getTotalElements());
                 model.addAttribute("hasNext", hotORnewList.hasNext());
                 model.addAttribute("hasPrevious", hotORnewList.hasPrevious());
+
+                int pageGroupStart = (page / 5) * 5;
+                int pageGroupEnd = Math.min(pageGroupStart + 4, hotORnewList.getTotalPages() - 1);
+                model.addAttribute("pageGroupStart", pageGroupStart);
+                model.addAttribute("pageGroupEnd", pageGroupEnd);
+
             }
             
             return "storylist";
@@ -205,28 +238,7 @@ public class EditorController {
     @GetMapping(PathConstants.STORYBOOK_TEMPDELETE)
     public String tempdel(@RequestParam("tempId") Integer tempId){
         editorService.tempdel(tempId);
-        return "redirect:/mypage";
-    }
-
-    /**
-     * 마이페이지 불러오기
-     * @return 마이페이지
-     */
-    @GetMapping("/mypage")
-    public String mypage(Model model,@RequestParam(defaultValue = "false") boolean all){
-
-        // 스토리북 리스트
-        List<StorybookListDTO> storybookList = editorService.getMyStorybookList();
-        if (!all) {
-            storybookList = storybookList.stream().limit(3).toList();
-        }
-        model.addAttribute("storylist", storybookList);
-        model.addAttribute("all", all);
-
-        // 임시저장 리스트
-        List<TempsaveDTO> tempsaveList = editorService.getTempsaveList();
-        model.addAttribute("templist",tempsaveList);
-        return "mypage";
+        return "redirect:/member/mypage";
     }
 
 

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/header :: head}">
+    <title>회원 관리</title>
+</head>
+
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+<div th:replace="~{fragments/menu :: menu}"></div>
+
+<div class="container mt-5">
+    <h1>회원 관리</h1>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>이메일(ID)</th>
+                <th>닉네임</th>
+                <th>권한</th>
+                <th>가입일</th>
+                <th>상태</th>
+                <th>액션</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="member : ${members}">
+                <td th:text="${member.email}"></td>
+                <td th:text="${member.nickname}"></td>
+                <td th:text="${member.role}"></td>
+                <td th:text="${#temporals.format(member.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
+                <td>
+                    <span th:if="${member.isActive}" class="badge bg-success">활성</span>
+                    <span th:unless="${member.isActive}" class="badge bg-danger">비활성</span>
+                </td>
+                <td>
+                    <!-- 관리자 계정이 아닐 경우에만 버튼들을 표시합니다. -->
+                    <th:block th:unless="${member.role == 'admin'}">
+                        <a th:href="@{/admin/users/edit/{email}(email=${member.email})}" class="btn btn-sm btn-primary">수정</a>
+                        
+                        <form th:action="@{/admin/users/toggle-active/{email}(email=${member.email})}" method="post" style="display:inline;">
+                            <button type="submit" 
+                                    th:classappend="${member.isActive} ? 'btn-warning' : 'btn-success'" 
+                                    class="btn btn-sm"
+                                    th:text="${member.isActive} ? '비활성화' : '활성화'"></button>
+                        </form>
+
+                        <form th:action="@{/admin/users/delete/{email}(email=${member.email})}" method="post" style="display:inline;">
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('정말로 이 회원을 삭제하시겠습니까?');">삭제</button>
+                        </form>
+                    </th:block>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <a th:href="@{/admin}" class="btn btn-secondary">관리자 페이지로 돌아가기</a>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

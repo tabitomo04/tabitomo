@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import org.springframework.validation.BindingResult;
@@ -41,8 +42,12 @@ public class AuthController {
 
     // 로그인 페이지 이동
     @GetMapping("/login")
-    public String loginPage() {
-        return "loginform"; // templates/login.html
+    public String loginPage(@CookieValue(value = "savedEmail", required = false) String savedEmail, Model model) {
+        if (savedEmail != null && !savedEmail.isEmpty()) {
+            model.addAttribute("savedEmail", savedEmail);
+            model.addAttribute("rememberEmail", true);
+        }
+        return "loginform";
     }
 
     @GetMapping("/signup")
@@ -83,8 +88,8 @@ public class AuthController {
     public String login(
             @RequestParam("email") String email,
             @RequestParam("password") String password,
-            @RequestParam(value = "remember-me", required = false) Boolean rememberMe,
-            @RequestParam(value = "auto-login", required = false) Boolean autoLogin,
+            @RequestParam(value = "remember-email", required = false) Boolean rememberEmail,
+            @RequestParam(value = "remember-me", required = false) Boolean autoLogin,
             HttpSession session,
             HttpServletResponse response,
             RedirectAttributes redirectAttributes) {
@@ -101,31 +106,37 @@ public class AuthController {
             // 세션에 저장된 값 확인 로그
             log.info("Login - User: {}, Questionnaire completed: {}", email, memberProfile.isQuestionnaireCompleted());
             
-            // 로그인 상태 유지 설정 (30일)
-            if (Boolean.TRUE.equals(rememberMe) || Boolean.TRUE.equals(autoLogin)) {
+            // 이메일 저장 쿠키 설정 (1년 유지)
+            if (Boolean.TRUE.equals(rememberEmail)) {
+                Cookie emailCookie = new Cookie("savedEmail", email);
+                emailCookie.setMaxAge(60 * 60 * 24 * 365); // 1년
+                emailCookie.setPath("/");
+                response.addCookie(emailCookie);
+            } else {
+                // 이메일 저장 체크 해제 시 쿠키 삭제
+                Cookie emailCookie = new Cookie("savedEmail", null);
+                emailCookie.setMaxAge(0);
+                emailCookie.setPath("/");
+                response.addCookie(emailCookie);
+            }
+            
+            // 자동 로그인 설정 (30일)
+            if (Boolean.TRUE.equals(autoLogin)) {
                 // 세션 만료 시간 설정 (30일)
                 session.setMaxInactiveInterval(60 * 60 * 24 * 30); // 30일
                 
-                // 자동 로그인 쿠키 설정 (30일 유지)
-                if (Boolean.TRUE.equals(autoLogin)) {
-                    String token = UUID.randomUUID().toString();
-                    // 토큰을 DB에 저장하는 로직 추가 (예: memberService.saveAutoLoginToken(email, token))
-                    
-                    // 쿠키 설정
-                    Cookie autoLoginCookie = new Cookie("autoLogin", token);
-                    autoLoginCookie.setMaxAge(60 * 60 * 24 * 30); // 30일
-                    autoLoginCookie.setPath("/");
-                    autoLoginCookie.setHttpOnly(true);
-                    // HTTPS 사용 시에만 secure 플래그 설정
-                    // autoLoginCookie.setSecure(true);
-                    response.addCookie(autoLoginCookie);
-                } else {
-                    // remember-me만 체크된 경우 쿠키 삭제
-                    Cookie autoLoginCookie = new Cookie("autoLogin", null);
-                    autoLoginCookie.setMaxAge(0);
-                    autoLoginCookie.setPath("/");
-                    response.addCookie(autoLoginCookie);
-                }
+                // 자동 로그인 토큰 생성 및 쿠키 설정 (30일 유지)
+                String token = UUID.randomUUID().toString();
+                // 토큰을 DB에 저장하는 로직 추가 (예: memberService.saveAutoLoginToken(email, token))
+                
+                // 쿠키 설정
+                Cookie autoLoginCookie = new Cookie("autoLogin", token);
+                autoLoginCookie.setMaxAge(60 * 60 * 24 * 30); // 30일
+                autoLoginCookie.setPath("/");
+                autoLoginCookie.setHttpOnly(true);
+                // HTTPS 사용 시에만 secure 플래그 설정
+                // autoLoginCookie.setSecure(true);
+                response.addCookie(autoLoginCookie);
             } else {
                 // 기본 세션 시간 (30분)
                 session.setMaxInactiveInterval(60 * 30);
@@ -146,5 +157,11 @@ public class AuthController {
             redirectAttributes.addFlashAttribute("error", "로그인 처리 중 오류가 발생했습니다.");
             return "redirect:/auth/login";
         }
+    }
+
+    @PostMapping("/logout")
+    public String logout(HttpSession session) {
+        session.invalidate();
+        return "redirect:/";
     }
 }

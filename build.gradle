@@ -75,8 +75,9 @@ dependencies {
     runtimeOnly 'com.h2database:h2' // For testing
 
 
-    // Session Management
+    // Session Management with JDBC
     implementation 'org.springframework.session:spring-session-jdbc'
+    implementation 'org.springframework.session:spring-session-core'
 
     // Thymeleaf + Security
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'

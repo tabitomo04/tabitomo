@@ -65,7 +65,7 @@
                     <i class="fas fa-user"></i> 
                     <span sec:authentication="principal.nickname">Nickname</span><span data-translatable>님</span>
                 </span>
-                <form th:action="@{/logout}" method="post" class="d-inline">
+                <form th:action="@{/auth/logout}" method="post" class="d-inline">
                     <button type="submit" class="btn btn-outline-light">
                         <i class="fas fa-sign-out-alt"></i> <span data-translatable>로그아웃</span>
                     </button>

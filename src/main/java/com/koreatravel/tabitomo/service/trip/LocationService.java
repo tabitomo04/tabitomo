@@ -1,7 +1,6 @@
 package com.koreatravel.tabitomo.service.trip;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,6 +8,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
@@ -18,8 +18,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.opencsv.CSVReader;
-import com.opencsv.exceptions.CsvValidationException;
+import com.koreatravel.tabitomo.domain.entity.trip.Place;
+import com.koreatravel.tabitomo.repository.trip.PlaceRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +31,7 @@ public class LocationService {
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
+    private final PlaceRepository placeRepository;
 
     @Value("${kakao.api.key}")
     private String kakaoApiKey;
@@ -194,30 +195,27 @@ public class LocationService {
     }
 
     public List<Map<String, String>> loadTouristSpots() {
-        List<Map<String, String>> spots = new ArrayList<>();
-        String csvFile = "static/data/국내 지역별 관광명소 데이터.csv";
-        
-        try (CSVReader reader = new CSVReader(
-                new InputStreamReader(
-                        new ClassPathResource(csvFile).getInputStream(),
-                        "EUC-KR" // Adjust encoding if needed
-                ))) {
-            
-            String[] headers = reader.readNext(); // Skip header
-            String[] line;
-            
-            while ((line = reader.readNext()) != null) {
-                Map<String, String> spot = new HashMap<>();
-                for (int i = 0; i < headers.length && i < line.length; i++) {
-                    spot.put(headers[i].trim(), line[i].trim());
-                }
-                spots.add(spot);
-            }
-        } catch (IOException | CsvValidationException e) {
-            log.error("Error reading tourist spots CSV", e);
-        }
-        
-        return spots;
+        List<Place> places = placeRepository.findAll();
+        return places.stream()
+                .map(place -> {
+                    Map<String, String> spot = new HashMap<>();
+                    spot.put("name", place.getName());
+                    spot.put("categoryCode", place.getCategoryCode());
+                    spot.put("address", place.getAddress());
+                    spot.put("city", place.getCity());
+                    spot.put("region", place.getRegion());
+                    if (place.getLatitude() != null) {
+                        spot.put("latitude", String.valueOf(place.getLatitude()));
+                    }
+                    if (place.getLongitude() != null) {
+                        spot.put("longitude", String.valueOf(place.getLongitude()));
+                    }
+                    spot.put("imageUrl", place.getImageUrl());
+                    spot.put("description", place.getDescription());
+                    spot.put("priceRange", place.getPriceRange());
+                    return spot;
+                })
+                .collect(Collectors.toList());
     }
 
     public List<Map<String, Object>> findNearbyAccommodations(double lat, double lng, int radius) {

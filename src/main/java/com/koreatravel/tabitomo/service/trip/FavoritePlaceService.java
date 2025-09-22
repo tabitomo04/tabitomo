@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -24,9 +25,9 @@ public class FavoritePlaceService {
     private final MemberRepository memberRepository;
     private final PlaceRepository placeRepository;
 
-    public void addFavorite(String email, Long placeId) {
-        MemberEntity member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new NoSuchElementException("회원을 찾을 수 없습니다: " + email));
+    public void addFavorite(UUID memberId, Long placeId) {
+        MemberEntity member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NoSuchElementException("회원을 찾을 수 없습니다: " + memberId));
         Place place = placeRepository.findById(placeId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 장소를 찾을 수 없습니다."));
 
@@ -42,9 +43,9 @@ public class FavoritePlaceService {
         favoritePlaceRepository.save(favoritePlace);
     }
 
-    public void removeFavorite(String email, Long placeId) {
-        MemberEntity member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new NoSuchElementException("회원을 찾을 수 없습니다: " + email));
+    public void removeFavorite(UUID memberId, Long placeId) {
+        MemberEntity member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NoSuchElementException("회원을 찾을 수 없습니다: " + memberId));
         FavoritePlace favoritePlace = favoritePlaceRepository.findByMemberAndPlace_Id(member, placeId)
                 .orElseThrow(() -> new IllegalArgumentException("즐겨찾기 정보를 찾을 수 없습니다."));
 
@@ -52,23 +53,23 @@ public class FavoritePlaceService {
     }
 
     @Transactional(readOnly = true)
-    public List<FavoritePlace> getFavorites(String email) {
-        MemberEntity member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new NoSuchElementException("회원을 찾을 수 없습니다: " + email));
+    public List<FavoritePlace> getFavorites(UUID memberId) {
+        MemberEntity member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NoSuchElementException("회원을 찾을 수 없습니다: " + memberId));
         return favoritePlaceRepository.findByMember(member);
     }
 
     @Transactional(readOnly = true)
-    public Page<FavoritePlace> getFavorites(String email, Pageable pageable) {
-        MemberEntity member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new NoSuchElementException("회원을 찾을 수 없습니다: " + email));
+    public Page<FavoritePlace> getFavorites(UUID memberId, Pageable pageable) {
+        MemberEntity member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NoSuchElementException("회원을 찾을 수 없습니다: " + memberId));
         return favoritePlaceRepository.findByMember(member, pageable);
     }
 
     @Transactional(readOnly = true)
-    public boolean isFavorite(String email, Long placeId) {
-         MemberEntity member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new NoSuchElementException("회원을 찾을 수 없습니다: " + email));
+    public boolean isFavorite(UUID memberId, Long placeId) {
+         MemberEntity member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NoSuchElementException("회원을 찾을 수 없습니다: " + memberId));
         return favoritePlaceRepository.existsByMemberAndPlace_Id(member, placeId);
     }
 }

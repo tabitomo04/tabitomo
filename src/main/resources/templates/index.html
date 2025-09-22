@@ -41,7 +41,7 @@
                 <!-- Destination 1 -->
                 <div class="col-md-4">
                     <div class="card h-100">
-                        <img src="/image/local image/seoul.png" class="card-img-top" alt="서울">
+                        <img src="/image/local-image/seoul.png" class="card-img-top" alt="서울" onerror="this.onerror=null; this.src='/images/default-placeholder.png';">
                         <div class="card-body">
                             <h5 class="card-title" data-translatable>서울</h5>
                             <p class="card-text" data-translatable>현대적인 도시와 전통이 어우러진 대한민국의 수도</p>
@@ -52,7 +52,7 @@
                 <!-- Destination 2 -->
                 <div class="col-md-4">
                     <div class="card h-100">
-                        <img src="/image/local image/tokyo.jpg" class="card-img-top" alt="도쿄">
+                        <img src="/image/local-image/tokyo.jpg" class="card-img-top" alt="도쿄" onerror="this.onerror=null; this.src='/images/default-placeholder.png';">
                         <div class="card-body">
                             <h5 class="card-title" data-translatable>도쿄</h5>
                             <p class="card-text" data-translatable>화려한 네온사인과 전통이 공존하는 일본의 수도</p>
@@ -63,7 +63,7 @@
                 <!-- Destination 3 -->
                 <div class="col-md-4">
                     <div class="card h-100">
-                        <img src="/image/local image/bali.jpg" class="card-img-top" alt="발리">
+                        <img src="/image/local-image/bali.jpg" class="card-img-top" alt="발리" onerror="this.onerror=null; this.src='/images/default-placeholder.png';">
                         <div class="card-body">
                             <h5 class="card-title" data-translatable>발리</h5>
                             <p class="card-text" data-translatable>푸른 바다와 아름다운 해변으로 유명한 휴양지</p>
@@ -170,7 +170,8 @@
 </main>
 
 <!-- 설문조사 안내 모달 -->
-<div id="surveyModal" class="modal fade" tabindex="-1" aria-labelledby="surveyModalLabel" aria-hidden="true" th:if="${session.authenticatedEmail != null}">
+<div id="surveyModal" class="modal fade" tabindex="-1" aria-labelledby="surveyModalLabel" aria-hidden="true" 
+     th:if="${session != null and session.authenticatedEmail != null and session.showQuestionnairePrompt != null and session.showQuestionnairePrompt == true}">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
@@ -216,25 +217,43 @@
 
 <!-- Scripts -->
 <script th:inline="javascript">
-    // 설문조사 모달 표시
-    document.addEventListener('DOMContentLoaded', function() {
-        // 설문조사 모달 표시 (로그인 상태이고, 아직 설문을 완료하지 않은 경우)
-        const questionnaireCompleted = /*[[${session.questionnaireCompleted}]]*/ false;
-        const authenticated = /*[[${session.authenticatedEmail != null}]]*/ false;
-        
-        if (authenticated && questionnaireCompleted === false) {
-            const surveyModal = new bootstrap.Modal(document.getElementById('surveyModal'));
-            surveyModal.show();
-        }
-    });
-    
     // 설문조사 페이지로 이동
     function goToSurvey() {
-        window.location.href = '/question/start';
+        // Clear the flag when user chooses to take the survey
+        fetch('/auth/clear-questionnaire-prompt', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').getAttribute('content')
+            },
+            credentials: 'same-origin'
+        }).then(() => {
+            window.location.href = '/question/start';
+        });
     }
-    
-    // 챗봇 iframe 토글 기능
+
+    // Initialize when DOM is loaded
     document.addEventListener('DOMContentLoaded', function() {
+        // Show survey modal if the flag is set
+        const surveyModal = document.getElementById('surveyModal');
+        if (surveyModal) {
+            const modal = new bootstrap.Modal(surveyModal);
+            modal.show();
+            
+            // Clear the flag if user dismisses the modal
+            surveyModal.addEventListener('hidden.bs.modal', function() {
+                fetch('/auth/clear-questionnaire-prompt', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').getAttribute('content')
+                    },
+                    credentials: 'same-origin'
+                });
+            });
+        }
+        
+        // 챗봇 iframe 토글 기능
         const chatbotToggle = document.getElementById('chatbotToggle');
         const chatbotContainer = document.getElementById('chatbotIframeContainer');
         const closeChatbot = document.getElementById('closeChatbot');
@@ -320,5 +339,12 @@
         });
     });
 </script>
+
+<!-- Bootstrap Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Font Awesome -->
+<script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
+
 </body>
 </html>

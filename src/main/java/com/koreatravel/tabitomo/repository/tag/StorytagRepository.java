@@ -1,7 +1,9 @@
 package com.koreatravel.tabitomo.repository.tag;
 
+import com.koreatravel.tabitomo.domain.entity.storybook.StorybookEntity;
 import com.koreatravel.tabitomo.domain.entity.tag.StoryTagEntity;
 import com.koreatravel.tabitomo.domain.entity.tag.StoryTagId;
+import com.koreatravel.tabitomo.domain.entity.tag.TagMasterEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -19,4 +21,6 @@ public interface StorytagRepository extends JpaRepository<StoryTagEntity, StoryT
     default void deleteByStorybook_Booknum(Integer booknum) {
         deleteByBookNum(booknum);
     }
+
+    boolean existsByStorybookAndTag(StorybookEntity entity, TagMasterEntity tagentity);
 }

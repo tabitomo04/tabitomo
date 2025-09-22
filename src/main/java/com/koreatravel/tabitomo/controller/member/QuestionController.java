@@ -3,10 +3,13 @@ package com.koreatravel.tabitomo.controller.member;
 import com.koreatravel.tabitomo.PathConstants;
 import com.koreatravel.tabitomo.domain.dto.member.MemberProfileDTO;
 import com.koreatravel.tabitomo.domain.dto.member.QuestionAnswersDTO;
-import com.koreatravel.tabitomo.domain.entity.member.AddInfoEntity;
-import com.koreatravel.tabitomo.repository.member.AddInfoRepository;
+import com.koreatravel.tabitomo.domain.dto.member.AddInfoDTO;
 import com.koreatravel.tabitomo.service.member.AddInfoService;
 import com.koreatravel.tabitomo.service.member.MemberService;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,14 +22,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.validation.Valid;
 
-import java.util.*;
 
 @Slf4j
 @Controller
 @RequiredArgsConstructor
 public class QuestionController {
     private final AddInfoService addInfoService;
-    private final AddInfoRepository addInfoRepository;
     private final MemberService memberService;
 
     @GetMapping(PathConstants.QUESTION_START)
@@ -45,10 +46,10 @@ public class QuestionController {
             return "redirect:/";
         }
 
-        // Load all questions by category
-        Map<Integer, List<AddInfoEntity>> questionsByCategory = new HashMap<>();
+        // 서비스를 통해 모든 카테고리의 질문을 로드
+        Map<Integer, List<AddInfoDTO>> questionsByCategory = new HashMap<>();
         for (int i = 1; i <= 5; i++) {
-            questionsByCategory.put(i, addInfoRepository.findByInfoHighNum(i));
+            questionsByCategory.put(i, addInfoService.getAddInfoByType(i));
         }
         model.addAttribute("questionsByCategory", questionsByCategory);
         model.addAttribute("questionAnswers", new QuestionAnswersDTO());
@@ -78,31 +79,46 @@ public class QuestionController {
 
         // 3. 유효성 검사
         if (bindingResult.hasErrors()) {
-            // Load all questions by category for the form
-            Map<Integer, List<AddInfoEntity>> questionsByCategory = new HashMap<>();
+            // 서비스를 통해 모든 카테고리의 질문을 로드
+            Map<Integer, List<AddInfoDTO>> questionsByCategory = new HashMap<>();
             for (int i = 1; i <= 5; i++) {
-                questionsByCategory.put(i, addInfoRepository.findByInfoHighNum(i));
+                questionsByCategory.put(i, addInfoService.getAddInfoByType(i));
             }
+            // 모델 대신 RedirectAttributes를 사용하여 데이터 전달
             redirectAttributes.addFlashAttribute("questionsByCategory", questionsByCategory);
-            return "question/form";
+            redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.questionAnswers", bindingResult);
+            redirectAttributes.addFlashAttribute("questionAnswers", answers);
+            return "redirect:" + PathConstants.QUESTION_FORM;
         }
 
         try {
             // 4. 답변 저장
             saveAnswers(userProfile.getId(), answers);
             
-            // 5. 세션 업데이트
-            userProfile.setQuestionnaireCompleted(true);
-            session.setAttribute("user", userProfile);
-            session.setAttribute("questionnaireCompleted", true);
-            
-            // 6. DB 업데이트
+            // 5. 회원 설문 상태 업데이트
             memberService.updateQuestionnaireStatus(userProfile.getId(), true);
+            
+            // 6. 세션 업데이트를 위해 새로운 객체 생성 (기존 userProfile의 필드값을 유지하면서 questionnaireCompleted만 업데이트)
+            MemberProfileDTO updatedProfile = MemberProfileDTO.builder()
+                .id(userProfile.getId())
+                .email(userProfile.getEmail())
+                .nickname(userProfile.getNickname())
+                .profileImageUrl(userProfile.getProfileImageUrl())
+                .introduction(userProfile.getIntroduction())
+                .dateOfBirth(userProfile.getDateOfBirth())
+                .gender(userProfile.getGender())
+                .questionnaireCompleted(true) // 설문 완료 상태로 업데이트
+                .role(userProfile.getRole())
+                .build();
+            
+            // 7. 세션 업데이트
+            session.setAttribute("user", updatedProfile);
+            session.setAttribute("questionnaireCompleted", true);
             
             return "redirect:" + PathConstants.QUESTION_COMPLETE;
         } catch (Exception e) {
             log.error("Error saving answers: ", e);
-            redirectAttributes.addFlashAttribute("error", "답변 저장 중 오류가 발생했습니다.");
+            redirectAttributes.addFlashAttribute("error", "답변 저장 중 오류가 발생했습니다: " + e.getMessage());
             return "redirect:" + PathConstants.QUESTION_FORM;
         }
     }

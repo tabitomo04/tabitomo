@@ -85,7 +85,7 @@
         </div>
 
         <div th:if="${storylist != null and !storylist.isEmpty()}">
-            <div th:if="${!all}">
+            <div th:if="${(!all) and (storylist.size() > 3)}">
                 <button class="more" th:onclick="|location.href='@{/mypage(all=true)}'|" data-translatable>더 보기 +</button>
             </div>
             <div th:if="${all}">
@@ -233,7 +233,7 @@
 
         <div th:if="${templist != null and !templist.isEmpty()}">
             <form action="/storybook/update" method="get" onsubmit="return checkRadio()">
-                <table>
+                <table id="temptable">
                     <tr>
                         <th class="col-select" data-translatable>선택</th>
                         <th class="col-title" data-translatable>제목</th>
@@ -251,7 +251,7 @@
                                                    onclick="return confirm('정말 삭제할까요?')">&times;</a></td>
                     </tr>
                 </table>
-                <button type="submit" class="btn" data-translatable>불러오기</button>
+                <button type="submit" class="tempbtn" data-translatable>불러오기</button>
             </form>
         </div>
 

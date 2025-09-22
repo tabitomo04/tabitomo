@@ -11,6 +11,7 @@ import com.koreatravel.tabitomo.service.storybook.EditorService;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,9 +19,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Controller
@@ -29,6 +28,9 @@ public class EditorController {
 
     @Autowired
     private EditorService editorService;
+    @Autowired
+    private MessageSource messageSource;
+
 
     // 에디터 페이지 열기
     @GetMapping(PathConstants.STORYBOOK_WRITE)
@@ -45,10 +47,15 @@ public class EditorController {
     @PostMapping(PathConstants.STORYBOOK_SAVE)
     @ResponseBody
     public ResponseEntity<Map<String,Object>> save(@RequestBody SaveRequestDTO saveRequestDTO,
-                                                   HttpSession session) {
+                                                   @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        System.out.println("컨트롤러");
         Map<String,Object> response = new HashMap<>();
         try {
-            String userEmail = (String) session.getAttribute("userEmail");
+
+            if (userDetails == null) {
+                throw new RuntimeException("로그인된 사용자가 없습니다.");
+            }
+            String userEmail = userDetails.getEmail();
             Integer booknum;
 
             if ("temp".equals(saveRequestDTO.getSavetype())) {
@@ -95,11 +102,15 @@ public class EditorController {
     @PostMapping(PathConstants.STORYBOOK_TEMPSAVE)
     @ResponseBody
     public ResponseEntity<Map<String,Object>> tempsave(@RequestBody SaveRequestDTO saveRequestDTO,
-                                                       HttpSession session) {
+                                                       @AuthenticationPrincipal UserDetailsImpl userDetails) {
         Map<String, Object> response = new HashMap<>();
 
         try {
-            String userEmail = (String) session.getAttribute("userEmail");
+
+            if (userDetails == null) {
+                throw new RuntimeException("로그인된 사용자가 없습니다.");
+            }
+            String userEmail = userDetails.getEmail();
             // 스토리북 저장
             Integer tempId = editorService.tempsave(saveRequestDTO, userEmail);
 
@@ -139,7 +150,6 @@ public class EditorController {
             model.addAttribute("templist",tempsaveList);
 
         }
-
 
 
         try {
@@ -306,7 +316,33 @@ public class EditorController {
         return taglist;
     }
 
+//    @GetMapping("/{lang}")
+//    public Map<String, String> getMessages(@PathVariable String lang, Locale locale) {
+//        Locale localeObj;
+//        switch(lang) {
+//            case "en": localeObj = Locale.ENGLISH; break;
+//            case "ja": localeObj = Locale.JAPANESE; break;
+//            default: localeObj = Locale.KOREAN; break;
+//        }
+//
+//        // 메시지 키 리스트 (CKEditor에서 필요한 것만)
+//        List<String> keys = Arrays.asList(
+//                "editor.bold",
+//                "editor.italic",
+//                "editor.save",
+//                "editor.cancel"
+//        );
+//
+//        Map<String, String> translations = new HashMap<>();
+//        for(String key : keys) {
+//            translations.put(key, messageSource.getMessage(key, null, localeObj));
+//        }
+//
+//        return translations;
+//    }
+}
+
 
 
     
-}
+

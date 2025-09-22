@@ -7,17 +7,21 @@ import com.koreatravel.tabitomo.domain.dto.auth.SignUpDTO;
 import com.koreatravel.tabitomo.service.member.AuthService;
 import com.koreatravel.tabitomo.service.member.MemberService;
 import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.UUID;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-import java.util.List;
-import java.util.UUID;
-
-import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,8 +31,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
 import org.springframework.validation.BindingResult;
+import org.springframework.web.client.RestTemplate;
 
 @Slf4j
 @Controller
@@ -39,6 +43,7 @@ public class AuthController {
     private final AuthService authService;
 
     private final MemberService memberService;
+    private final RestTemplate restTemplate;
 
     // 로그인 페이지 이동
     @GetMapping("/login")
@@ -159,9 +164,149 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/clear-questionnaire-prompt")
+    public ResponseEntity<?> clearQuestionnairePrompt(HttpSession session) {
+        session.removeAttribute("showQuestionnairePrompt");
+        return ResponseEntity.ok().build();
+    }
+    
     @PostMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();
         return "redirect:/";
+    }
+
+    // 인증번호 발송
+    @PostMapping("/send-verification-code")
+    public ResponseEntity<?> sendVerificationCode(@RequestParam String email) {
+        try {
+            // 이메일 유효성 검사
+            if (email == null || email.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(
+                    Map.of("success", false, "message", "이메일을 입력해주세요.")
+                );
+            }
+
+            // 이메일 형식 검증
+            if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+                return ResponseEntity.badRequest().body(
+                    Map.of("success", false, "message", "유효하지 않은 이메일 형식입니다.")
+                );
+            }
+
+            // 기존 이메일 인증 컨트롤러의 엔드포인트 호출
+            Map<String, String> request = new HashMap<>();
+            request.put("email", email);
+            
+            // EmailVerificationController의 sendVerificationEmail 호출
+            ResponseEntity<?> verificationResponse = restTemplate.postForEntity(
+                "http://localhost:8080/api/email/send-verification",
+                request,
+                Map.class
+            );
+
+            if (verificationResponse.getStatusCode() == HttpStatus.OK) {
+                Map<String, Object> response = (Map<String, Object>) verificationResponse.getBody();
+                if (response != null && Boolean.TRUE.equals(response.get("success"))) {
+                    return ResponseEntity.ok(Map.of(
+                        "success", true,
+                        "message", "인증번호가 발송되었습니다.",
+                        "code", response.get("verificationCode") // 테스트용으로만 반환
+                    ));
+                }
+            }
+            
+            return ResponseEntity.badRequest().body(
+                Map.of("success", false, "message", "인증번호 발송에 실패했습니다.")
+            );
+            
+        } catch (Exception e) {
+            log.error("인증번호 발송 중 오류 발생", e);
+            return ResponseEntity.internalServerError().body(
+                Map.of("success", false, "message", "인증번호 발송 중 오류가 발생했습니다.")
+            );
+        }
+    }
+
+    // 인증번호 확인
+    @PostMapping("/verify-code")
+    public ResponseEntity<?> verifyCode(
+            @RequestParam String email,
+            @RequestParam String code) {
+        try {
+            // 유효성 검사
+            if (email == null || email.trim().isEmpty() || code == null || code.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(
+                    Map.of("success", false, "message", "이메일과 인증번호를 입력해주세요.")
+                );
+            }
+
+            // EmailVerificationController의 verifyEmailCode 호출
+            Map<String, String> request = new HashMap<>();
+            request.put("email", email);
+            request.put("code", code);
+            
+            ResponseEntity<?> verificationResponse = restTemplate.postForEntity(
+                "http://localhost:8080/api/email/verify",
+                request,
+                Map.class
+            );
+
+            if (verificationResponse.getStatusCode() == HttpStatus.OK) {
+                Map<String, Object> response = (Map<String, Object>) verificationResponse.getBody();
+                if (response != null && Boolean.TRUE.equals(response.get("success"))) {
+                    // 비밀번호 재설정을 위한 임시 토큰 생성 (실제 구현에서는 JWT 등을 사용할 수 있음)
+                    String resetToken = UUID.randomUUID().toString();
+                    // 토큰 저장 (실제 구현에서는 Redis 등을 사용)
+                    authService.storeResetToken(email, resetToken);
+                    
+                    return ResponseEntity.ok(Map.of(
+                        "success", true,
+                        "message", "인증이 완료되었습니다.",
+                        "token", resetToken
+                    ));
+                }
+            }
+            
+            return ResponseEntity.badRequest().body(
+                Map.of("success", false, "message", "잘못된 인증번호입니다.")
+            );
+            
+        } catch (Exception e) {
+            log.error("인증번호 확인 중 오류 발생", e);
+            return ResponseEntity.internalServerError().body(
+                Map.of("success", false, "message", "인증번호 확인 중 오류가 발생했습니다.")
+            );
+        }
+    }
+
+    // 비밀번호 재설정
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(
+            @RequestParam String email,
+            @RequestParam String token,
+            @RequestParam String newPassword) {
+        try {
+            boolean success = authService.verifyAndResetPassword(email, token, newPassword);
+            
+            if (success) {
+                return ResponseEntity.ok().body(Map.of(
+                    "success", true,
+                    "message", "비밀번호가 성공적으로 재설정되었습니다."
+                ));
+            } else {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "비밀번호 재설정에 실패했습니다. 토큰이 유효하지 않거나 만료되었습니다."
+                ));
+            }
+            
+        } catch (Exception e) {
+            log.error("비밀번호 재설정 중 오류 발생: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                "success", false,
+                "message", "서버 오류가 발생했습니다."
+            ));
+        }
     }
 }

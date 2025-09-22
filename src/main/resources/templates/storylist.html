@@ -80,8 +80,8 @@
     </div>
   </div>
 
-
-  <div th:if="${pagelist == null or pagelist.isEmpty()}" class="no-results">
+     <div th:if="${storylist == null or storylist.isEmpty()}" th:text="'storylist: ' + ${storylist}"></div>
+  <div th:if="${(storylist == null or storylist.isEmpty()) and (pagelist == null or pagelist.isEmpty())}" class="no-results">
     <img th:src="@{/images/pabicone.clear.png}" alt="검색결과 없음" >
     <p data-translatable>검색 결과가 없습니다.</p>
   </div>
@@ -145,7 +145,7 @@
 
     <div th:if="${templist != null and !templist.isEmpty()}">
     <form action="/storybook/update" method="get" onsubmit="return checkRadio()">
-      <table>
+      <table id="temptable">
         <tr>
           <th class="col-select" data-translatable>선택</th>
           <th class="col-title" data-translatable>제목</th>
@@ -163,7 +163,7 @@
                                      onclick="return confirm('정말 삭제할까요?')">&times;</a></td>
         </tr>
       </table>
-      <button type="submit" class="btn" data-translatable>불러오기</button>
+      <button type="submit" class="tempbtn" data-translatable>불러오기</button>
     </form>
     </div>
 

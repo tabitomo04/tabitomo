@@ -48,10 +48,10 @@
             
             <!-- When Not Authenticated -->
             <div class="d-flex" sec:authorize="!isAuthenticated()">
-                <a th:href="@{/login}" class="btn btn-outline-light me-2">
+                <a th:href="@{/auth/login}" class="btn btn-outline-light me-2">
                     <i class="fas fa-sign-in-alt"></i> <span data-translatable>로그인</span>
                 </a>
-                <a th:href="@{/signup}" class="btn btn-primary">
+                <a th:href="@{/auth/signup}" class="btn btn-primary">
                     <i class="fas fa-user-plus"></i> <span data-translatable>회원가입</span>
                 </a>
             </div>

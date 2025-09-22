@@ -4,11 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>스토리북 개별 페이지</title>
+
+
+  <!-- Common CSS/JS from header fragment -->
+  <link rel="icon" th:href="@{/image/pabicone.png}" type="image/png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script th:src="@{/js/translation.js}"></script>
+
+  <!-- Page-specific CSS from storylist.html -->
   <link rel="stylesheet"th:href="@{/css/storyview.css}">
   <link rel="stylesheet" th:href="@{/css/style.css}">
   <link rel="stylesheet" th:href="@{/css/modal.css}">
-
-
 
   <script th:src="@{/js/jquery-3.7.1.min.js}"></script>
   <script th:src="@{/js/main.js}"></script>
@@ -56,40 +66,48 @@ document.addEventListener('click', function(e) {
   </script>
 </head>
 <body>
-<div class="container">
+
+<!-- Header -->
+<div th:insert="~{fragments/header :: header}"></div>
+
+<!-- Navigation Menu -->
+<div th:insert="~{fragments/menu :: menu}"></div>
+
+
+<div class="story-container">
   <!-- 태그 -->
   <div class="tags">
-    <span th:each="tagName : ${post.tags}" th:text="'#' + ${tagName}"></span>
+    <span th:each="tagName : ${post.tags}" th:text="'#' + ${tagName}" data-translatable></span>
   </div>
 
   <!-- 제목 & 부제목 -->
 
-  <div class="header">
-    <span class="title" th:text="${post.title}"></span>
+  <div class="story-header">
+    <span class="title" th:text="${post.title}" data-translatable></span>
     <div class="dropdown">
       <a class="more-btn" onclick="toggleDropdown(this)">⋮</a>
       <div class="dropdown-content">
-        <a th:href="@{'/storybook/update?booknum=' + ${post.booknum}}">수정</a>
+        <a th:href="@{'/storybook/update?booknum=' + ${post.booknum}}" data-translatable>수정</a>
         <a th:href="@{'/storybook/delete?booknum=' + ${post.booknum}}"
-           onclick="return confirm('정말 삭제하시겠습니까?');">삭제</a>
+           onclick="return confirm('정말 삭제하시겠습니까?');" data-translatable>삭제</a>
       </div>
     </div>
   </div>
-  <div th:text="${post.subtitle}" class="subtitle"></div>
+  <div th:text="${post.subtitle}" class="subtitle" data-translatable></div>
 
   <!-- 메타 정보 -->
   <div class="meta">
     <div>
-      <span th:text="${post.nickname}"></span> · <span th:text="${#temporals.format(post.createDate, 'yy.MM.dd')}"></span>
+      <span th:text="${post.nickname}" data-translatable></span> · <span th:text="${#temporals.format(post.createDate, 'yy.MM.dd')}"></span>
     </div>
     <div class="actions">
-      <button class="urlbtn" data-tooltip="복사되었습니다!" onclick="clip()">URL 공유</button>
+      <button class="urlbtn" data-tooltip="복사되었습니다!" onclick="clip()" data-translatable>URL 공유</button>
       <!-- 로그인 상태에 따라 좋아요 버튼 표시 -->
       <div th:if="${#authentication?.isAuthenticated()}">
-        <button id="likeBtn" onclick="toggleLike()"><span>❤</span><span id="like-count" th:text="${post.likes}"></span></button>
+        <button id="likeBtn" onclick="toggleLike()"><span>❤   </span><span id="like-count" th:text="${post.likes}"></span></button>
       </div>
       <div th:unless="${#authentication?.isAuthenticated()}" class="like-login-prompt">
-        <button id="likeBtn" onclick="showLoginPrompt()"><span>❤</span><span id="like-count" th:text="${post.likes}"></span></button>
+        <button id="likeBtn" onclick="showLoginPrompt()"><span>❤   </span><span id="like-count" th:text="${post.likes}"></span></button>
       </div>
     </div>
   </div>
@@ -179,5 +197,10 @@ $(document).ready(function() {
     });
 });
 </script>
+
+<!-- Footer -->
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+
 </body>
 </html>

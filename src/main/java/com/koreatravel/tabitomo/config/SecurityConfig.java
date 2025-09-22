@@ -132,6 +132,14 @@ public class SecurityConfig {
                             "/storybook/write",       // 스토리북 작성
                             "/storybook/editor/**"    // 스토리북 에디터
                         ).authenticated()
+
+                        // 챗봇 관련 경로를 permitAll()로 설정**
+                        .requestMatchers(
+                                "/chatbot/intro",   // 챗봇 소개 페이지 경로
+                                "/api/chat/**",  // 챗봇 관련 API 경로 (실제 사용하는 API 경로로 수정)
+                                "/api/send"        // 예시로 챗봇 메시지 전송 API도 추가
+                        ).permitAll()
+
                         // 그 외 모든 요청은 인증 필요
                         .anyRequest().authenticated()
                 )

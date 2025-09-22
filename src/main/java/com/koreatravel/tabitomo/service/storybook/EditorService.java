@@ -96,7 +96,7 @@ public class EditorService {
 
 
     @Transactional
-    public Integer tempsave(SaveRequestDTO saveRequestDTO) {
+    public Integer tempsave(SaveRequestDTO saveRequestDTO, String userEmail) {
         TempsaveEntity entity;
 
         if (saveRequestDTO.getTempId() != null) {
@@ -130,11 +130,16 @@ public class EditorService {
             mediaRepository.deleteByNumAndStatus(saveRequestDTO.getTempId(), "temp");
         }
         else {
+
+            MemberEntity member = memberRepository.findByEmail(userEmail)
+                    .orElseThrow(() -> new RuntimeException("회원 없음"));
+
             // 새 임시저장
             entity = TempsaveEntity.builder()
                     .title(saveRequestDTO.getTitle())
                     .subtitle(saveRequestDTO.getSubtitle())
                     .content(saveRequestDTO.getContent())
+                    .member(member)
                     .tags(String.join(",", saveRequestDTO.getTemptags()))
                     .build();
         }
@@ -191,8 +196,8 @@ public class EditorService {
      * 마이페이지의 스토리북 리스트 가져오기
      * @return 쿼리에 해당하는 리스트 가져옴
      */
-    public List<StorybookListDTO> getMyStorybookList() {
-        return storybookRepository.StorybookList(Sort.by(Sort.Direction.DESC, "createDate"));
+    public List<StorybookListDTO> getMyStorybookList(String email) {
+        return storybookRepository.StorybookList(email);
     }
 
     /**
@@ -254,7 +259,7 @@ public class EditorService {
      * @return
      */
     @Transactional
-    public Integer saveTempAsPost(SaveRequestDTO saveRequestDTO) {
+    public Integer saveTempAsPost(SaveRequestDTO saveRequestDTO, String userEmail) {
         // 기존 temp 글 삭제
         if (saveRequestDTO.getTempId() != null) {
 
@@ -279,12 +284,15 @@ public class EditorService {
             mediaRepository.deleteByNumAndStatus(saveRequestDTO.getTempId(),"temp");
             tempsaveRepository.deleteById(saveRequestDTO.getTempId());
         }
+        MemberEntity member = memberRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("회원 없음"));
 
         // 스토리북 새 글로 저장
         StorybookEntity entity = StorybookEntity.builder()
                 .title(saveRequestDTO.getTitle())
                 .subtitle(saveRequestDTO.getSubtitle())
                 .content(saveRequestDTO.getContent())
+                .member(member)
                 .build();
 
         entity = storybookRepository.save(entity);
@@ -312,7 +320,7 @@ public class EditorService {
      * @return
      */
     @Transactional
-    public Integer savePost(SaveRequestDTO saveRequestDTO) {
+    public Integer savePost(SaveRequestDTO saveRequestDTO, String userEmail) {
         StorybookEntity entity;
 
         if (saveRequestDTO.getBooknum() != null) {
@@ -365,11 +373,15 @@ public class EditorService {
             mediaRepository.deleteByNumAndStatus(saveRequestDTO.getBooknum(), "upload");
 
         } else {
+            MemberEntity member = memberRepository.findByEmail(userEmail)
+                    .orElseThrow(() -> new RuntimeException("회원 없음"));
+
             // 새 글 저장
             entity = StorybookEntity.builder()
                     .title(saveRequestDTO.getTitle())
                     .subtitle(saveRequestDTO.getSubtitle())
                     .content(saveRequestDTO.getContent())
+                    .member(member)
                     .build();
             entity = storybookRepository.save(entity);
 
@@ -466,8 +478,8 @@ public void tempdel(Integer tempId) {
      * 임시저장 리스트 가져오기
      * @return 임시저장된 글 목록
      */
-    public List<TempsaveDTO> getTempsaveList() {
-        return tempsaveRepository.findAll().stream()
+    public List<TempsaveDTO> getTempsaveList(String email) {
+        return tempsaveRepository.findByMember_Email(email).stream()
                 .map(entity -> TempsaveDTO.builder()
                         .tempId(entity.getTempId())
                         .title(entity.getTitle())

@@ -16,7 +16,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -84,7 +86,7 @@ public class MemberController {
         }
 
         // 내 스토리북 리스트
-        List<StorybookListDTO> storybookList = editorService.getMyStorybookList();
+        List<StorybookListDTO> storybookList = editorService.getMyStorybookList(email);
         if (!all) {
             storybookList = storybookList.stream().limit(3).toList();
         }
@@ -92,7 +94,7 @@ public class MemberController {
         model.addAttribute("all", all);
 
         // 임시저장 리스트
-        List<TempsaveDTO> tempsaveList = editorService.getTempsaveList();
+        List<TempsaveDTO> tempsaveList = editorService.getTempsaveList(email);
         model.addAttribute("templist", tempsaveList);
 
 

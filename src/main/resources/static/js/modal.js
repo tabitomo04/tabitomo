@@ -97,14 +97,15 @@
                }
 
       // 다른 페이지로 이동하는 태크 클릭 시 모달 띄우기 (현재는 a태그로 설정)
+      document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('a').forEach(link => {
           link.addEventListener('click', function(e) {
               if (isEditing) {
                   e.preventDefault();
-
+                    console.log('클릭됨')
                   // savetype 가져와서 temp인 경우는 임시저장, post인 경우 저장
                   const savetype = document.querySelector('#savetype')?.value;
-
+                    console.log(savetype);
                   if (savetype === 'temp') {
                    LeaveModal(function(result) {
                         if (result === 'yes') {
@@ -136,6 +137,7 @@
               }//isEditing if문 끝
           });
       });
+    });
 
       // 저장 AJAX 함수
         function save() {

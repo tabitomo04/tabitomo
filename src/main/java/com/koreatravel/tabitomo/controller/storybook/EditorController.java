@@ -8,6 +8,7 @@ import com.koreatravel.tabitomo.domain.dto.storybook.StorybookDTO;
 import com.koreatravel.tabitomo.domain.dto.storybook.StorybookListDTO;
 import com.koreatravel.tabitomo.domain.dto.storybook.TempsaveDTO;
 import com.koreatravel.tabitomo.service.storybook.EditorService;
+import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -43,17 +44,19 @@ public class EditorController {
      */
     @PostMapping(PathConstants.STORYBOOK_SAVE)
     @ResponseBody
-    public ResponseEntity<Map<String,Object>> save(@RequestBody SaveRequestDTO saveRequestDTO) {
+    public ResponseEntity<Map<String,Object>> save(@RequestBody SaveRequestDTO saveRequestDTO,
+                                                   HttpSession session) {
         Map<String,Object> response = new HashMap<>();
         try {
+            String userEmail = (String) session.getAttribute("userEmail");
             Integer booknum;
 
             if ("temp".equals(saveRequestDTO.getSavetype())) {
                 // 임시저장 → 최종 저장
-                booknum = editorService.saveTempAsPost(saveRequestDTO);
+                booknum = editorService.saveTempAsPost(saveRequestDTO, userEmail);
             } else {
                 // 기존 글 수정 또는 새 글 저장
-                booknum = editorService.savePost(saveRequestDTO);
+                booknum = editorService.savePost(saveRequestDTO, userEmail);
             }
 
             // 미디어 저장
@@ -91,12 +94,14 @@ public class EditorController {
      */
     @PostMapping(PathConstants.STORYBOOK_TEMPSAVE)
     @ResponseBody
-    public ResponseEntity<Map<String,Object>> tempsave(@RequestBody SaveRequestDTO saveRequestDTO) {
+    public ResponseEntity<Map<String,Object>> tempsave(@RequestBody SaveRequestDTO saveRequestDTO,
+                                                       HttpSession session) {
         Map<String, Object> response = new HashMap<>();
 
         try {
+            String userEmail = (String) session.getAttribute("userEmail");
             // 스토리북 저장
-            Integer tempId = editorService.tempsave(saveRequestDTO);
+            Integer tempId = editorService.tempsave(saveRequestDTO, userEmail);
 
             // 미디어 테이블에 저장
             editorService.tempsavemedia(tempId, saveRequestDTO.getContent());
@@ -120,14 +125,21 @@ public class EditorController {
      */
     @GetMapping(PathConstants.STORYBOOK_LIST)
     public String storylist(Model model,
+                            @AuthenticationPrincipal UserDetailsImpl userDetails,
                             @RequestParam(defaultValue = "random") String sort,
                             @RequestParam(name = "page", defaultValue = "0") int page,
                             @RequestParam(name = "size", defaultValue = "6") int size,
                             @RequestParam(name = "keyword", required = false) String keyword){
 
-        // 임시저장 리스트
-        List<TempsaveDTO> tempsaveList = editorService.getTempsaveList();
-        model.addAttribute("templist",tempsaveList);
+        String email = null;
+        if(userDetails != null){
+            email = userDetails.getEmail();
+            // 임시저장 리스트
+            List<TempsaveDTO> tempsaveList = editorService.getTempsaveList(email);
+            model.addAttribute("templist",tempsaveList);
+
+        }
+
 
 
         try {
@@ -293,5 +305,8 @@ public class EditorController {
         List<String> taglist = editorService.gettaglist();
         return taglist;
     }
+
+
+
     
 }

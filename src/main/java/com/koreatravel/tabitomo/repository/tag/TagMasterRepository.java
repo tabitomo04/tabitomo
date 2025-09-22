@@ -12,6 +12,6 @@ public interface TagMasterRepository extends JpaRepository<TagMasterEntity, Inte
     Optional<TagMasterEntity> findBytagName(String tagName);
 
     // 랜덤 태그 가져오기
-    @Query(value = "SELECT tag_name FROM tagmaster ORDER BY RAND() LIMIT 10", nativeQuery = true)
+    @Query(value = "SELECT tag_name FROM tag_master ORDER BY RAND() LIMIT 10", nativeQuery = true)
     List<String> findRandomTagNames();
 }

@@ -25,7 +25,7 @@ public class FavoritePlaceController {
             return ResponseEntity.status(401).body("인증이 필요합니다.");
         }
         try {
-            List<FavoritePlace> favorites = favoritePlaceService.getFavorites(userDetails.getEmail());
+            List<FavoritePlace> favorites = favoritePlaceService.getFavorites(userDetails.getMemberId());
             return ResponseEntity.ok(favorites);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -39,7 +39,7 @@ public class FavoritePlaceController {
         }
         try {
             String placeId = payload.get("placeId");
-            favoritePlaceService.addFavorite(userDetails.getEmail(), Long.parseLong(placeId));
+            favoritePlaceService.addFavorite(userDetails.getMemberId(), Long.parseLong(placeId));
             return ResponseEntity.ok().body(Collections.singletonMap("message", "즐겨찾기에 추가되었습니다."));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -53,7 +53,7 @@ public class FavoritePlaceController {
         }
         try {
             String placeId = payload.get("placeId");
-            favoritePlaceService.removeFavorite(userDetails.getEmail(), Long.parseLong(placeId));
+            favoritePlaceService.removeFavorite(userDetails.getMemberId(), Long.parseLong(placeId));
             return ResponseEntity.ok().body(Collections.singletonMap("message", "즐겨찾기에서 삭제되었습니다."));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -65,7 +65,7 @@ public class FavoritePlaceController {
         if (userDetails == null) {
             return ResponseEntity.status(401).body(Collections.singletonMap("isFavorite", false));
         }
-        boolean isFavorite = favoritePlaceService.isFavorite(userDetails.getEmail(), Long.parseLong(placeId));
+        boolean isFavorite = favoritePlaceService.isFavorite(userDetails.getMemberId(), Long.parseLong(placeId));
         return ResponseEntity.ok(Collections.singletonMap("isFavorite", isFavorite));
     }
 }

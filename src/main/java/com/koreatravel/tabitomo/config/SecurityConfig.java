@@ -36,7 +36,7 @@ public class SecurityConfig {
         http
                 // CSRF 보호 활성화 (여행 추천 및 API 요청에 대해서는 CSRF 보호 비활성화)
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/favorites/**", "/api/**", "/trip/**", "/api/translate/**")
+                        .ignoringRequestMatchers("/api/favorites/**", "/api/**", "/trip/**", "/api/translate/**", "/upload", "/storybook/save", "/storybook/tempsave")
                 )
                 // 세션 정책 설정
                 .sessionManagement(session -> session
@@ -73,6 +73,7 @@ public class SecurityConfig {
                     .deleteCookies("JSESSIONID")
                     .permitAll()
                 )
+
                 // 예외 처리
                 .exceptionHandling(exception -> exception
                     .authenticationEntryPoint((request, response, authException) -> {
@@ -124,11 +125,15 @@ public class SecurityConfig {
                             "/storybook/list",        // 스토리북 목록
                             "/storybook/detail/**"    // 스토리북 상세 보기
                         ).permitAll()
+                        // CKEditor 업로드 허용
+                        .requestMatchers("/upload").permitAll()
                         // 인증이 필요한 경로
                         .requestMatchers(
                             "/mypage/**",            // 마이페이지
                             "/storybook/write",       // 스토리북 작성
-                            "/storybook/editor/**"    // 스토리북 에디터
+                            "/storybook/editor/**",    // 스토리북 에디터
+                            "/storybook/save",
+                            "/storybook/tempsave"
                         ).authenticated()
 
                         // 챗봇 관련 경로를 permitAll()로 설정**

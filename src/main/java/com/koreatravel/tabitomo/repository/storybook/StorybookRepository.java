@@ -24,7 +24,7 @@ public interface StorybookRepository extends JpaRepository<StorybookEntity, Inte
             "    s.created_at AS createDate, " +
             "    (SELECT m.media_url " +
             "     FROM media m " +
-            "     WHERE m.book_num = s.book_num AND m.media_type = 'image' " +
+            "     WHERE m.num = s.book_num AND m.media_type = 'image' AND m.status = 'upload'" +
             "     ORDER BY m.uploaded_at ASC " +
             "     LIMIT 1) AS thumbnail, " +
             "    m.nickname AS nickname " +
@@ -44,7 +44,7 @@ public interface StorybookRepository extends JpaRepository<StorybookEntity, Inte
             "    s.created_at AS createDate, " +
             "    (SELECT m.media_url " +
             "     FROM media m " +
-            "     WHERE m.book_num = s.book_num AND m.media_type = 'image' " +
+            "     WHERE m.num = s.book_num AND m.media_type = 'image' AND m.status = 'upload'" +
             "     ORDER BY m.uploaded_at ASC " +
             "     LIMIT 1) AS thumbnail, " +
             "    m.nickname AS nickname " +
@@ -63,7 +63,7 @@ public interface StorybookRepository extends JpaRepository<StorybookEntity, Inte
             "    s.created_at AS createDate, " +
             "    (SELECT m.media_url " +
             "     FROM media m " +
-            "     WHERE m.book_num = s.book_num AND m.media_type = 'image' " +
+            "     WHERE m.num = s.book_num AND m.media_type = 'image' AND m.status = 'upload'" +
             "     ORDER BY m.uploaded_at ASC " +
             "     LIMIT 1) AS thumbnail, " +
             "    m.nickname AS nickname " +
@@ -85,7 +85,7 @@ public interface StorybookRepository extends JpaRepository<StorybookEntity, Inte
             "    s.created_at AS createDate, " +
             "    (SELECT m.media_url " +
             "     FROM media m " +
-            "     WHERE m.num = s.booknum AND m.media_type = 'image' " + // m.게시물번호_컬럼 = s.고유번호_컬럼
+            "     WHERE m.num = s.booknum AND m.media_type = 'image' AND m.status = 'upload'" + // m.게시물번호_컬럼 = s.고유번호_컬럼
             "     ORDER BY m.uploaded_at ASC " + // m.업로드시간_컬럼
             "     LIMIT 1) AS thumbnail, " +
             "     u.nickname AS nickname " +

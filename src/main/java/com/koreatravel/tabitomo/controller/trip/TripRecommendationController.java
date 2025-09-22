@@ -185,7 +185,7 @@ public class TripRecommendationController {
 
         if (userDetails != null) {
             String email = userDetails.getEmail();
-            List<FavoritePlace> favoritePlaces = favoritePlaceService.getFavorites(email);
+            List<FavoritePlace> favoritePlaces = favoritePlaceService.getFavorites(userDetails.getId());
             model.addAttribute("favoritePlaces", favoritePlaces);
             log.info("Loaded {} favorite places for user {}", favoritePlaces.size(), email);
         } else {

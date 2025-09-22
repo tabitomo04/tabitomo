@@ -303,7 +303,7 @@ let editorInstance;
         const saveRequestDTO = {
                 booknum: $('#booknum').val() || null,
                 tempId: $('#tempId').val() || null,
-                tags: tagify.value.map(t => t.value),
+                temptags: tagify.value.map(t => t.value).join(","),
                 savetype: $('#savetype').val(),
                 title: $('#title').val(),
                 subtitle: $('#subtitle').val(),
@@ -320,7 +320,7 @@ let editorInstance;
                 if (response.status === "success" && response.tempId) {
                     alert('임시저장되었습니다.');
                     isEditing = false;
-                    window.location.href = '/mypage';
+                    window.location.href = '/member/mypage';
                 } else {
                     alert('저장 완료. 그러나 게시물번호를 받을 수 없습니다.');
                         }

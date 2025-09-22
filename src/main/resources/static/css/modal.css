@@ -64,10 +64,8 @@
            max-height: 50%;
            overflow-y: auto;
            text-align: center;
-           position: fixed;
-           top: 50%;
-           left: 50%;
-           transform: translate(-50%, -50%);
+           position: relative;
+
          }
      .col-select { width: 10%; }
      .col-title { width: 30%; }
@@ -79,20 +77,29 @@
            cursor: pointer;
            color: red;
        }
-      table {
+      #temptable {
          border-collapse: collapse; /* 테두리 겹침 방지 */
          width: 100%;
        }
 
-       th {
+      #temptable th {
          border-bottom: 2px solid #333; /* 헤더 아래 구분선 */
          text-align: center;
          padding: 8px;
        }
 
-       td {
+      #temptable td {
          padding: 8px;
          border-bottom: 1px solid #ccc; /* 각 행 아래 구분선 */
+       }
+
+    .tempbtn {
+         padding: 10px 18px;
+         border: 1px solid #333;
+         background: #fff;
+         border-radius: 8px;
+         cursor: pointer;
+         font-size: 15px;
        }
 
      .col-del a {

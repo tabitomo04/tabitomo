@@ -6,9 +6,12 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
-    
+
+    private static final String UPLOAD_DIR = System.getProperty("user.dir") + "/uploadedImages/";
+
     @Bean
     public RestTemplate restTemplate() {
         return new RestTemplate();
@@ -31,5 +34,9 @@ public class WebConfig implements WebMvcConfigurer {
                 "classpath:/static/fonts/",
                 "classpath:/static/"
             );
+
+        // CKEditor 업로드 파일 매핑
+        registry.addResourceHandler("/uploadedImages/**")
+                .addResourceLocations("file:" + UPLOAD_DIR + "/");
     }
 }

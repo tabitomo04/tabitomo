@@ -305,10 +305,15 @@ public class EditorService {
                                     .tagName(tagName)
                                     .build()
                     ));
-            StoryTagEntity storytag = new StoryTagEntity();
-            storytag.setStorybook(entity);
-            storytag.setTag(tagentity);
-            storytagRepository.save(storytag);
+
+            boolean exists = storytagRepository.existsByStorybookAndTag(entity, tagentity);
+            if (!exists) {
+                StoryTagEntity storytag = new StoryTagEntity();
+                storytag.setStorybook(entity);
+                storytag.setTag(tagentity);
+                storytagRepository.save(storytag);
+            }
+
         }
 
         return entity.getBooknum();

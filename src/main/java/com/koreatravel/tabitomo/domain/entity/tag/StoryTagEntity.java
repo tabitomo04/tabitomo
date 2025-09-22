@@ -47,10 +47,10 @@ public class StoryTagEntity {
             oldStorybook.getTags().remove(this);
         }
         
-        // Add to new storybook's tags
-        if (storybook != null && !storybook.getTags().contains(this)) {
-            storybook.getTags().add(this);
-        }
+//        // Add to new storybook's tags
+//        if (storybook != null && !storybook.getTags().contains(this)) {
+//            storybook.getTags().add(this);
+//        }
     }
     
     // Helper method to set both the relationship and the ID
@@ -69,7 +69,7 @@ public class StoryTagEntity {
         }
         this.id.setTagId(tag != null ? tag.getTagId() : null);
     }
-    
+
     // Helper method to get bookNum
     public Integer getBookNum() {
         return id != null ? id.getBookNum() : null;

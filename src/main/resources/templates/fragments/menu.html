@@ -34,6 +34,11 @@
                         <i class="fas fa-users"></i> <span data-translatable>스토리북</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/chatbot/intro}" th:classappend="${#strings.startsWith(requestURI, '/chatbot/intro')} ? 'active' : ''">
+                        <i class="fas fa-comment-dots"></i> <span data-translatable>챗봇 사용</span>
+                    </a>
+                </li>
                 <li class="nav-item" sec:authorize="hasAuthority('admin')">
                     <a class="nav-link" th:href="@{/admin}" th:classappend="${#strings.startsWith(requestURI, '/admin')} ? 'active' : ''">
                         <i class="fas fa-user-shield"></i> <span data-translatable>관리자 페이지</span>
@@ -60,7 +65,7 @@
                     <i class="fas fa-user"></i> 
                     <span sec:authentication="principal.nickname">Nickname</span><span data-translatable>님</span>
                 </span>
-                <form th:action="@{/logout}" method="post" class="d-inline">
+                <form th:action="@{/auth/logout}" method="post" class="d-inline">
                     <button type="submit" class="btn btn-outline-light">
                         <i class="fas fa-sign-out-alt"></i> <span data-translatable>로그아웃</span>
                     </button>

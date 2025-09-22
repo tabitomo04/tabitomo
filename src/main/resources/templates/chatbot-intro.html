@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      lang="ko">
+
+<head th:replace="~{fragments/header :: head}"></head>
+<body>
+<!-- Header -->
+<div th:replace="~{fragments/header :: header}"></div>
+
+<!-- Navigation Menu -->
+<div th:replace="~{fragments/menu :: menu}"></div>
+
+<!-- Main Content -->
+<main class="py-5">
+    <section class="hero-section text-center py-5 bg-light rounded-3 mb-5">
+        <div class="container px-4">
+            <h1 class="display-4 fw-bold mb-4">Tabitomo 챗봇, 당신의 여행 비서</h1>
+            <p class="lead mb-4">로그인하고 나만의 여행 정보를 더욱 편리하게 찾아보세요.</p>
+            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                <!-- 로그인 유도 버튼 -->
+                <a href="/login" class="btn btn-primary btn-lg px-4 gap-3">로그인하고 챗봇 사용하기</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="chatbot-info mb-5">
+        <div class="container">
+            <div class="row g-4 align-items-center">
+                <div class="col-md-6 order-md-2">
+                    <h2 class="h3 mb-3">Tabitomo의 챗봇 토모가 도와드릴게요</h2>
+                    <p>저 토모는 사용자의 여행 취향과 선호도를 분석하여 맞춤형 답변을 해주고, 그 외의 사이트나 여러 정보를 실시간으로 제공합니다. 복잡한 검색 없이 챗봇에게 뭐든지 물어보세요. 가장 완벽한 답변을 찾아드릴게요!</p>
+                </div>
+                <div class="col-md-6 order-md-1 text-center">
+                    <!-- 챗봇 이미지 예시 -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="how-to-use-section py-5 bg-light rounded-3 mb-5">
+        <div class="container">
+            <h2 class="text-center mb-5">어떻게 사용하나요?</h2>
+            <div class="row g-4">
+                <div class="col-md-4 text-center">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-sign-in-alt fa-3x text-primary"></i>
+                    </div>
+                    <h3 class="h5">1. 로그인하기</h3>
+                    <p>간단한 회원가입 후 Tabitomo에 로그인하세요.</p>
+                </div>
+                <div class="col-md-4 text-center">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-comment-dots fa-3x text-primary"></i>
+                    </div>
+                    <h3 class="h5">2. 챗봇 버튼 클릭</h3>
+                    <p>로그인 후, 오른쪽 아래에 나타나는 챗봇 버튼을 클릭하세요.</p>
+                </div>
+                <div class="col-md-4 text-center">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-lightbulb fa-3x text-primary"></i>
+                    </div>
+                    <h3 class="h5">3. 질문하기</h3>
+                    <p>여행과 관련된 모든 것을 챗봇에게 물어보고 답변을 받으세요.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- Footer -->
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<!-- Styles and Scripts -->
+<style>
+    /* 아이콘 컨테이너 스타일 */
+    .feature-icon {
+        background-color: #e9ecef;
+        width: 80px;
+        height: 80px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        margin-bottom: 3rem;
+    }
+    .feature-icon i {
+        color: #fff;
+    }
+</style>
+
+<script>
+    // 이 페이지에서는 챗봇 토글 스크립트를 비활성화합니다.
+    // 사용자가 로그인 버튼을 누르도록 유도하기 위함입니다.
+</script>
+</body>
+</html>

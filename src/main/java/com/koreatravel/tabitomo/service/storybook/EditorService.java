@@ -552,10 +552,14 @@ public void tempdel(Integer tempId) {
      */
     @Transactional
     public boolean isLiked(Integer booknum, UUID memberId) {
+        System.out.println("서비스");
         StorybookEntity bookentity = storybookRepository.findById(booknum)
                 .orElseThrow(() -> new RuntimeException("해당 booknum 존재하지 않음"));
         MemberEntity memberentity = memberRepository.findById(memberId)
                 .orElseThrow(() -> new RuntimeException("해당 memberId 존재하지 않음"));
+
+        System.out.println("bookentity: " + bookentity);
+        System.out.println("memberentity: " + memberentity);
         return likedbookRepository.existsByStorybookAndMember(bookentity, memberentity);
     }
 
@@ -563,8 +567,8 @@ public void tempdel(Integer tempId) {
      * 스토리 리스트 페이지 (랜덤)
      * @return
      */
-    public List<StorybookListDTO> getStorybookList(String sort) {
-        return storybookRepository.findListRandom();
+    public List<StorybookListDTO> getStorybookList(UUID loginUserId, String sort) {
+        return storybookRepository.findListRandom(loginUserId);
     }
 
     /**
@@ -574,9 +578,9 @@ public void tempdel(Integer tempId) {
      * @param size
      * @return
      */
-    public Page<StorybookListDTO> gethotORnewList(String sort, int page, int size) {
+    public Page<StorybookListDTO> gethotORnewList(UUID loginUserId, String sort, int page, int size) {
         Pageable pageable = PageRequest.of(page,size);
-        return storybookRepository.hotORnewPage(sort,pageable);
+        return storybookRepository.hotORnewPage(loginUserId,sort,pageable);
     }
 
     // 태그의 화이트리스트 배열 가져오기
@@ -591,9 +595,9 @@ public void tempdel(Integer tempId) {
      * @param size
      * @return
      */
-    public Page<StorybookListDTO> getSearchList(String keyword, int page, int size) {
+    public Page<StorybookListDTO> getSearchList(UUID loginUserId, String keyword, int page, int size) {
         Pageable pageable = PageRequest.of(page,size);
-        return storybookRepository.findbykeyword(keyword, pageable);
+        return storybookRepository.findbykeyword(loginUserId, keyword, pageable);
     }
 }
 

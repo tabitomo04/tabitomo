@@ -1,23 +1,7 @@
 // Initialize when DOM is loaded
-    document.addEventListener('DOMContentLoaded', function() {
-        // Show survey modal if the flag is set
-        const surveyModal = document.getElementById('surveyModal');
-        if (surveyModal) {
-            const modal = new bootstrap.Modal(surveyModal);
-            modal.show();
+// 파일을 로드하는 역할
 
-            // Clear the flag if user dismisses the modal
-            surveyModal.addEventListener('hidden.bs.modal', function() {
-                fetch('/auth/clear-questionnaire-prompt', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').getAttribute('content')
-                    },
-                    credentials: 'same-origin'
-                });
-            });
-        }
+    document.addEventListener('DOMContentLoaded', function() {
 
         // 챗봇 iframe 토글 기능
         const chatbotToggle = document.getElementById('chatbotToggle');
@@ -63,34 +47,3 @@
             closeChatbot.style.display = 'none';
         }
     });
-
-    // 메시지 추가
-    function appendMessage(sender, text) {
-        const chatBody = document.getElementById('chatbotBody');
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `chatbot-message ${sender}-message`;
-
-        if (sender === 'user') {
-            messageDiv.style.justifyContent = 'flex-end';
-            messageDiv.innerHTML = `
-                <div class="chatbot-text">
-                    <p style="background-color: #e3f2fd;">${text}</p>
-                </div>
-                <div class="chatbot-avatar" style="background-color: #6c757d; margin-right: 0; margin-left: 10px;">
-                    <i class="fas fa-user"></i>
-                </div>
-            `;
-        } else {
-            messageDiv.innerHTML = `
-                <div class="chatbot-avatar">
-                    <i class="fas fa-robot"></i>
-                </div>
-                <div class="chatbot-text">
-                    <p>${text}</p>
-                </div>
-            `;
-        }
-
-        chatBody.appendChild(messageDiv);
-        chatBody.scrollTop = chatBody.scrollHeight;
-    }

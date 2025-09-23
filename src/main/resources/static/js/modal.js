@@ -15,12 +15,6 @@
       console.log(isEditing);
       }
 
-      // 이벤트 등록
-      // 입력 감지되면 checkEditing() 함수로 이동
-      document.querySelector('#title').addEventListener('input', checkEditing);
-      document.querySelector('#subtitle').addEventListener('input', checkEditing);
-      // 에디터 데이터 내용 변경 감지
-      editorInstance.model.document.on('change:data', () => {checkEditing();});
 
       // beforeunload 이벤트 (페이지를 떠날 때 경고창)
       window.addEventListener('beforeunload', function(e) {
@@ -98,6 +92,19 @@
 
       // 다른 페이지로 이동하는 태크 클릭 시 모달 띄우기 (현재는 a태그로 설정)
       document.addEventListener('DOMContentLoaded', () => {
+         // 입력 감지 이벤트
+            const titleInput = document.querySelector('#title');
+            const subtitleInput = document.querySelector('#subtitle');
+
+            if (titleInput) titleInput.addEventListener('input', checkEditing);
+            if (subtitleInput) subtitleInput.addEventListener('input', checkEditing);
+
+            // 에디터 변경 감지
+            if (editorInstance) {
+                editorInstance.model.document.on('change:data', () => {
+                    checkEditing();
+                });
+            }
       document.querySelectorAll('a').forEach(link => {
           link.addEventListener('click', function(e) {
               if (isEditing) {

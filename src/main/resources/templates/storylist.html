@@ -67,18 +67,21 @@
 
  <div id="story-container">
   <div class="grid" th:if="${storylist != null}">
-    <div th:if="${storylist}" th:each="storylist, status: ${storylist}">
-      <a class="link" th:href="@{'/storybook/detail?booknum=' + ${storylist.booknum}}">
+    <div th:each="story, status: ${storylist}">
+      <a class="link" th:href="@{'/storybook/detail?booknum=' + ${story.booknum}}">
         <div class="card">
-          <div class="likes">❤ <span th:text="${storylist.likes}"></span></div>
-          <div class="thumbnail">
-              <img th:src="${storylist.thumbnail != null ? storylist.thumbnail : '/image/tomo.png'}" alt="썸네일">
+          <div class="likes">
+              <span th:text="'❤'" th:style="${story.isLiked} ? 'color:red' : 'color:black'"></span>
+              <span th:text="${story.likes}"></span>
           </div>
-          <h3 th:text="${storylist.title}" data-translatable></h3>
-          <p th:text="${storylist.subtitle}" data-translatable></p>
+          <div class="thumbnail">
+              <img th:src="${story.thumbnail != null ? story.thumbnail : '/image/tomo.png'}" alt="썸네일">
+          </div>
+          <h3 th:text="${story.title}" data-translatable></h3>
+          <p th:text="${story.subtitle}" data-translatable></p>
           <div class="meta">
-            <span th:text="${storylist.nickname}"></span>
-            <span th:text="${#temporals.format(storylist.createDate, 'yy.MM.dd')}"></span>
+            <span th:text="${story.nickname}"></span>
+            <span th:text="${#temporals.format(story.createDate, 'yy.MM.dd')}"></span>
           </div>
         </div>
       </a>
@@ -95,7 +98,10 @@
     <div th:if="${pagelist}" th:each="pagelist, status: ${pagelist}">
       <a class="link" th:href="@{'/storybook/detail?booknum=' + ${pagelist.booknum}}">
         <div class="card">
-          <div class="likes"><span id="heart">❤</span> <span th:text="${pagelist.likes}"></span></div>
+            <div class="likes">
+                <span th:text="'❤'" th:style="${pagelist.isLiked} ? 'color:red' : 'color:black'"></span>
+                <span th:text="${pagelist.likes}"></span>
+            </div>
           <div class="thumbnail">
               <img th:src="${pagelist.thumbnail != null ? pagelist.thumbnail : '/image/tomo.png'}" alt="썸네일">
           </div>

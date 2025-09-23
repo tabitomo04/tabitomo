@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 public class ForbiddenWordService {
 
     private final ForbiddenWordRepository forbiddenWordRepository;
-    private Set<String> forbiddenWords;
+    private final Set<String> forbiddenWords;
 
     public ForbiddenWordService(ForbiddenWordRepository forbiddenWordRepository) {
         this.forbiddenWordRepository = forbiddenWordRepository;
@@ -20,6 +20,12 @@ public class ForbiddenWordService {
                 .collect(Collectors.toSet());
     }
 
+    /**
+     * 입력된 텍스트에 금지어가 포함되어 있는지 확인합니다.
+     *
+     * @param text 확인할 텍스트
+     * @return 금지어가 포함되어 있으면 true, 아니면 false
+     */
     public boolean containsForbiddenWord(String text) {
         if (text == null || text.trim().isEmpty()) {
             return false;
@@ -28,5 +34,14 @@ public class ForbiddenWordService {
         // 금지어 목록을 순회하며 입력 텍스트에 포함되어 있는지 확인
         return forbiddenWords.stream()
                 .anyMatch(lowerCaseText::contains);
+    }
+
+    /**
+     * (디버깅용) 현재 서비스에 로드된 금지어 목록을 반환합니다.
+     *
+     * @return 금지어 목록 Set
+     */
+    public Set<String> getForbiddenWordsForDebugging() {
+        return this.forbiddenWords;
     }
 }

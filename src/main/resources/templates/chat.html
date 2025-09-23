@@ -168,12 +168,13 @@ categorySection.prepend(categoryCloseBtn);
             communicationError: '通信エラー:',
             goHome: '最初へ',
             goBack: '戻る',
-            noData: 'データの読み込み中にエラーが発生しました。',
+            noData: 'データの読み込み中にエラーが発生했습니다。',
             languageChanged: '言語が日本語に変更されました。新しい会話を始めてください。'
         }
     };
 
     let isHelpfulValue = null; // ✅ '예'/'아니오' 값을 저장할 변수 추가
+    let isSending = false; // ✅ 메시지 전송 중인지 상태를 추적하는 플래그 추가
 
     // ✅ UI 텍스트를 업데이트하는 함수
     function updateUITexts(lang) {
@@ -411,23 +412,29 @@ categorySection.prepend(categoryCloseBtn);
 
     // ✅ 금지어 검사 함수
     async function containsForbiddenWord(text) {
-        try {
-            const response = await fetch('/chat/check-word', {
-                method: 'POST',
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    word: text
-                })
-            });
-            const data = await response.json();
-            return data.isForbidden;
-        } catch (error) {
-            console.error("금지어 검사 API 호출 실패. 에러:", error);
-            return false;
+    try {
+        const response = await fetch('/chat/check-word', {
+            method: 'POST',
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ word: text })
+        });
+
+        // 🚨 중요: 서버 응답이 성공(200 OK)인지 확인합니다.
+        // 4xx, 5xx 에러인 경우 false를 반환하여 금지어로 처리합니다.
+        if (!response.ok) {
+            console.error(`서버 에러: ${response.status} ${response.statusText}`);
+            return true;
         }
+
+        const data = await response.json();
+        return data.isForbidden;
+
+    } catch (error) {
+        console.error("금지어 검사 API 호출 실패. 에러:", error);
+        // 네트워크 에러 시에도 안전하게 금지어로 처리
+        return true;
     }
+}
 
     // ✅ 봇 메시지 표시 함수
     function displayBotMessage(message) {
@@ -443,17 +450,27 @@ categorySection.prepend(categoryCloseBtn);
 
     // ✅ 메시지 전송 함수 (언어 파라미터 포함)
     async function sendMessage() {
+        // ✅ 이미 전송 중이면 함수를 종료
+        if (isSending) return;
+
         const userMessage = messageInput.value.trim();
         const lang = langSelect.value;
         const t = translations[lang];
 
         if (!userMessage) return;
 
+        // ✅ 수정된 부분: 금지어 검사 및 전송 차단 로직
         const isForbidden = await containsForbiddenWord(userMessage);
         if (isForbidden) {
+            // 사용자에게 경고 메시지를 띄우고 함수를 즉시 종료
             alert(t.alertForbiddenWord);
             return;
         }
+
+        // ✅ 전송 상태를 '전송 중'으로 변경하고 UI를 비활성화
+        isSending = true;
+        sendBtn.disabled = true;
+        messageInput.disabled = true;
 
         // 사용자 메시지를 화면에 추가하고, 기록에도 추가 후 저장
         addMessageToChat(userMessage, 'user');
@@ -489,6 +506,11 @@ categorySection.prepend(categoryCloseBtn);
             const errorMessage = `${t.communicationError} ${error.message}`;
             displayBotMessage(errorMessage);
             console.error("Fetch error:", error);
+        } finally {
+            // ✅ 네트워크 통신 완료 후 전송 상태를 '가능'으로 변경하고 UI 활성화
+            isSending = false;
+            sendBtn.disabled = false;
+            messageInput.disabled = false;
         }
     }
 
@@ -554,7 +576,7 @@ categorySection.prepend(categoryCloseBtn);
         };
 
         try {
-            const response = await fetch("/api/feedback", {
+            const response = await fetch("/chat/feedback", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -585,11 +607,28 @@ categorySection.prepend(categoryCloseBtn);
 
     // ✅ 이벤트 리스너 통합 및 정리
     sendBtn.addEventListener("click", sendMessage);
-    messageInput.addEventListener("keypress", (event) => {
+
+     // ✅ 수정된 부분: keypress 이벤트 리스너에 비동기 함수 사용 및 전송 차단 로직 추가
+    messageInput.addEventListener("keypress", async (event) => {
         if (event.key === "Enter") {
+            const userMessage = messageInput.value.trim();
+            const lang = langSelect.value;
+            const t = translations[lang];
+
+            if (!userMessage) return;
+
+            // 금지어 검사 및 전송 차단 로직
+            const isForbidden = await containsForbiddenWord(userMessage);
+            if (isForbidden) {
+                alert(t.alertForbiddenWord);
+                return; // 함수 즉시 종료
+            }
+
+            // 금지어가 아니면 메시지 전송
             sendMessage();
         }
     });
+
 
     newChatBtn.addEventListener("click", () => {
         localStorage.removeItem("chatHistory");
@@ -710,8 +749,6 @@ categorySection.prepend(categoryCloseBtn);
             feedbackArea.classList.remove('hidden');
         }
     });
-
-
 </script>
 </body>
 </html>

@@ -68,31 +68,44 @@ function checkEmail() {
     checkBtn.disabled = true;
     checkBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 확인 중...';
     
-    fetch(`/member/api/check-email?email=${encodeURIComponent(email)}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('이메일 확인 중 오류가 발생했습니다.');
-            }
-            return response.json();
-        })
-        .then(data => {
-            const resultDiv = document.getElementById('emailCheckResult');
-            if (data.exists) {
-                showMessage('emailCheckResult', data.message, 'error');
-                isEmailChecked = false;
-                isEmailVerified = false;
-                const verifyBtn = document.getElementById('emailVerifyBtn');
-                if (verifyBtn) verifyBtn.style.display = 'none';
-            } else {
-                showMessage('emailCheckResult', data.message + ' 이메일 인증을 진행해주세요.', 'success');
-                isEmailChecked = true;
-                const verifyBtn = document.getElementById('emailVerifyBtn');
-                if (verifyBtn) {
-                    verifyBtn.style.display = 'inline-block';
-                    verifyBtn.disabled = false;
-                }
-            }
-        })
+    // 이메일 형식 검증
+    const emailRegex = /^[A-Za-z0-9+_.-]+@(.+)\.(.+)$/;
+    if (!emailRegex.test(email)) {
+        showMessage('emailCheckResult', '유효하지 않은 이메일 형식입니다.', 'error');
+        checkBtn.disabled = false;
+        checkBtn.innerHTML = originalText;
+        return;
+    }
+    
+    // 이메일 인증 요청으로 변경
+    fetch('/api/email/send-verification', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ email: email })
+    })
+    .then(async response => {
+        const responseData = await response.json().catch(() => ({}));
+        
+        if (!response.ok) {
+            const errorMessage = responseData.message || '이메일 확인 중 오류가 발생했습니다.';
+            throw new Error(errorMessage);
+        }
+        
+        // 성공 시 처리
+        showMessage('emailCheckResult', '인증 코드가 이메일로 전송되었습니다. 인증을 진행해주세요.', 'success');
+        isEmailChecked = true;
+        const verifyBtn = document.getElementById('emailVerifyBtn');
+        if (verifyBtn) {
+            verifyBtn.style.display = 'inline-block';
+            verifyBtn.disabled = false;
+        }
+        
+        // 인증 모달 열기
+        openVerificationModal();
+    })
         .catch(error => {
             console.error('Error:', error);
             showMessage('emailCheckResult', error.message || '이메일 확인 중 오류가 발생했습니다.', 'error');

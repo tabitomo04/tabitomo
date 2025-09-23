@@ -24,5 +24,11 @@ public interface TripRepository extends JpaRepository<Trip, Long> {
 
     List<Trip> findAllByVisibility(String visibility);
 
+    Page<Trip> findAllByVisibility(String visibility, Pageable pageable);
+
+    Page<Trip> findAllByVisibilityAndTitleContainingIgnoreCase(String visibility, String title, Pageable pageable);
+
+    Page<Trip> findAllByVisibilityAndMemberNicknameContainingIgnoreCase(String visibility, String nickname, Pageable pageable);
+
     List<Trip> findByMemberNicknameAndVisibility(String nickname, String visibility);
 }

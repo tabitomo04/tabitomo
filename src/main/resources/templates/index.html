@@ -35,43 +35,24 @@
     </section>
 
     <!-- Popular Destinations -->
-    <section class="popular-destinations mb-5">
+    <section class="popular-destinations mb-5" th:if="${not #lists.isEmpty(cities)}">
         <div class="container">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2 class="h3 mb-0" data-translatable>인기 여행지</h2>
-                <a href="/tripselect/step1" class="btn btn-sm btn-outline-primary" data-translatable>전체보기</a>
+                <a href="/tripinformation" class="btn btn-sm btn-outline-primary" data-translatable>전체보기</a>
             </div>
             <div class="row g-4">
-                <!-- Destination 1 -->
-                <div class="col-md-4">
+                <!-- Dynamic Cities from Database -->
+                <div class="col-md-4" th:each="city : ${cities}">
                     <div class="card h-100">
-                        <img src="/image/local-image/seoul.png" class="card-img-top" alt="서울" onerror="this.onerror=null; this.src='/images/default-placeholder.png';">
+                        <img th:src="${city.image_url != null ? '/image/local-image/' + city.image_url : '/images/default-placeholder.png'}" 
+                             th:alt="${city.city}" 
+                             class="card-img-top" 
+                             onerror="this.onerror=null; this.src='/images/default-placeholder.png';">
                         <div class="card-body">
-                            <h5 class="card-title" data-translatable>서울</h5>
-                            <p class="card-text" data-translatable>현대적인 도시와 전통이 어우러진 대한민국의 수도</p>
-                            <a href="/travel/seoul" class="btn btn-sm btn-outline-primary" data-translatable>탐험하기</a>
-                        </div>
-                    </div>
-                </div>
-                <!-- Destination 2 -->
-                <div class="col-md-4">
-                    <div class="card h-100">
-                        <img src="/image/local-image/tokyo.jpg" class="card-img-top" alt="도쿄" onerror="this.onerror=null; this.src='/images/default-placeholder.png';">
-                        <div class="card-body">
-                            <h5 class="card-title" data-translatable>도쿄</h5>
-                            <p class="card-text" data-translatable>화려한 네온사인과 전통이 공존하는 일본의 수도</p>
-                            <a href="/travel/tokyo" class="btn btn-sm btn-outline-primary" data-translatable>탐험하기</a>
-                        </div>
-                    </div>
-                </div>
-                <!-- Destination 3 -->
-                <div class="col-md-4">
-                    <div class="card h-100">
-                        <img src="/image/local-image/bali.jpg" class="card-img-top" alt="발리" onerror="this.onerror=null; this.src='/images/default-placeholder.png';">
-                        <div class="card-body">
-                            <h5 class="card-title" data-translatable>발리</h5>
-                            <p class="card-text" data-translatable>푸른 바다와 아름다운 해변으로 유명한 휴양지</p>
-                            <a href="/travel/bali" class="btn btn-sm btn-outline-primary" data-translatable>탐험하기</a>
+                            <h5 class="card-title" th:text="${city.city}" data-translatable>도시명</h5>
+                            <p class="card-text" th:text="${city.description}" data-translatable>도시 설명이 여기에 표시됩니다.</p>
+                            <a th:href="@{/travel/} + ${city.city}" class="btn btn-sm btn-outline-primary" data-translatable>탐험하기</a>
                         </div>
                     </div>
                 </div>
@@ -246,12 +227,6 @@
         });
     });
 </script>
-
-<!-- Bootstrap Bundle with Popper -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- Font Awesome -->
-<script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
 
 </body>
 </html>

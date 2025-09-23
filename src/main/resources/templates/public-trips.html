@@ -11,21 +11,38 @@
 <!-- Navigation Menu -->
 <div th:replace="~{fragments/menu :: menu}"></div>
 
+<!-- chatbot -->
+<div th:replace="~{fragments/chatbot-button :: chatbot-container}"></div>
+<link rel="stylesheet" href="/css/chatbot.css">
+<script th:src="@{/js/chatbot.js}"></script>
+
 <!-- Main Content -->
 <main class="container py-5">
     <h1 class="mb-4" data-translatable>모두의 여행</h1>
     <p class="text-muted mb-4" data-translatable>다른 여행자들이 공유한 멋진 여행 계획을 둘러보세요.</p>
 
+    <!-- Search Form -->
+    <form th:action="@{/trips/public}" method="get" class="mb-4">
+        <div class="input-group">
+            <select name="searchType" class="form-select" style="max-width: 150px;">
+                <option value="title" th:selected="${param.searchType == 'title'}" data-translatable>여행 계획</option>
+                <option value="nickname" th:selected="${param.searchType == 'nickname'}" data-translatable>작성자</option>
+            </select>
+            <input type="text" name="keyword" class="form-control" placeholder="검색어를 입력하세요..." th:value="${param.keyword}" data-translatable="placeholder">
+            <button class="btn btn-primary" type="submit" data-translatable>검색</button>
+        </div>
+    </form>
+
     <section>
-        <div th:if="${trips == null or trips.isEmpty()}" class="alert alert-info" role="alert" data-translatable>
+        <div th:if="${trips == null or trips.empty}" class="alert alert-info" role="alert" data-translatable>
             아직 공개된 여행 계획이 없습니다.
         </div>
 
-        <div class="list-group" th:unless="${trips == null or trips.isEmpty()}">
+        <div class="list-group" th:unless="${trips == null or trips.empty}">
             <!-- Iterate over public trips -->
-            <a th:each="trip : ${trips}" th:href="@{/public-trips/{id}(id=${trip.id})}" class="list-group-item list-group-item-action flex-column align-items-start">
+            <a th:each="trip : ${trips.content}" th:href="@{/public-trips/{id}(id=${trip.id})}" class="list-group-item list-group-item-action flex-column align-items-start">
                 <div class="d-flex w-100 justify-content-between">
-                    <h5 class="mb-1" th:text="${trip.title}" data-translatable>여행 계획 이름</h5>
+                    <h5 class="mb-1" th:text="${trip.title}">여행 계획 이름</h5>
                     <small th:if="${trip.startDate != null}" 
                            th:text="${#temporals.format(trip.startDate, 'yyyy.MM.dd')} + ' ~ ' + ${#temporals.format(trip.endDate, 'yyyy.MM.dd')}">여행 기간</small>
                 </div>
@@ -40,6 +57,27 @@
             </a>
         </div>
     </section>
+
+    <!-- Pagination -->
+    <nav th:if="${trips.totalPages > 0}" aria-label="Page navigation" class="d-flex justify-content-center mt-4">
+        <ul class="pagination">
+            <li class="page-item" th:classappend="${trips.first} ? 'disabled'">
+                <a class="page-link" th:href="@{/trips/public(page=${trips.number - 1}, searchType=${param.searchType}, keyword=${param.keyword})}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                    <span data-translatable>이전</span>
+                </a>
+            </li>
+            <li class="page-item" th:each="pageNumber : ${#numbers.sequence(0, trips.totalPages - 1)}" th:classappend="${pageNumber == trips.number} ? 'active'">
+                <a class="page-link" th:href="@{/trips/public(page=${pageNumber}, searchType=${param.searchType}, keyword=${param.keyword})}" th:text="${pageNumber + 1}">1</a>
+            </li>
+            <li class="page-item" th:classappend="${trips.last} ? 'disabled'">
+                <a class="page-link" th:href="@{/trips/public(page=${trips.number + 1}, searchType=${param.searchType}, keyword=${param.keyword})}" aria-label="Next">
+                    <span data-translatable>다음</span>
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
 </main>
 
 <!-- Footer -->

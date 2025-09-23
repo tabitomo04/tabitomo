@@ -350,30 +350,15 @@ categorySection.prepend(categoryCloseBtn);
 
     // ✅ 공통 메시지 추가 함수 (user/bot 둘 다 사용)
     function addMessageToChat(message, sender) {
-        // 메시지 앞뒤 공백 제거
         message = message.trim();
-
-        // 마크다운 HTML 변환
-        let html = marked.parse(message, {
-            breaks: true // 줄바꿈을 <br>로 변환
-        });
-
-        // Marked가 한 줄짜리 텍스트를 <p>...</p>로 감싸는 현상 수정
-        // 이 정규식을 사용하면 <p> 태그를 제거하고 내용만 남김
+        let html = marked.parse(message, { breaks: true });
         html = html.replace(/^<p>(.*)<\/p>\n?$/, '$1');
-
-         // 마크다운 HTML 변환
-        // let html = marked.parse(message);
-
-        // 마지막 빈 <p> 제거
         html = html.replace(/<p>(\s|&nbsp;)*<\/p>$/g, '');
 
-        // 메시지 엘리먼트 생성
         const messageElement = document.createElement("div");
         messageElement.classList.add("message", sender);
         messageElement.innerHTML = html;
 
-        // 봇 메시지 처리
         if (sender === "bot") {
             const wrapper = document.createElement("div");
             wrapper.classList.add("bot-message-wrapper");
@@ -389,16 +374,12 @@ categorySection.prepend(categoryCloseBtn);
             chatBox.appendChild(messageElement);
         }
 
-        // show 클래스 부여 → transition
         setTimeout(() => {
             messageElement.classList.add("show");
         }, 50);
 
-        // 스크롤 하단 이동
         chatBox.scrollTop = chatBox.scrollHeight;
     }
-
-
 
     // ✅ 채팅 기록을 localStorage에 저장하는 함수
     function saveToLocalStorage(chatHistory) {
@@ -677,13 +658,6 @@ categorySection.prepend(categoryCloseBtn);
         }
     });
 
-    // ✅ 'X' 버튼 클릭 이벤트 리스너 추가
-    categoryCloseBtn.addEventListener("click", () => {
-        categorySection.classList.remove('visible');
-        toggleBtn.classList.remove('rotated');
-        backHistory = [];
-    });
-
     categorySection.addEventListener("click", async(event) => {
         const target = event.target.closest('button, div');
         if (target && target.tagName === 'BUTTON') {
@@ -736,6 +710,8 @@ categorySection.prepend(categoryCloseBtn);
             feedbackArea.classList.remove('hidden');
         }
     });
+
+
 </script>
 </body>
 </html>

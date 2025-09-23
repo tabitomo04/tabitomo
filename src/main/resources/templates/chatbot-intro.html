@@ -11,6 +11,11 @@
 <!-- Navigation Menu -->
 <div th:replace="~{fragments/menu :: menu}"></div>
 
+<!-- chatbot -->
+<div th:replace="~{fragments/chatbot-button :: chatbot-container}"></div>
+<link rel="stylesheet" href="/css/chatbot.css">
+<script th:src="@{/js/chatbot.js}"></script>
+
 <!-- Main Content -->
 <main class="py-5">
     <section class="hero-section text-center py-5 bg-light rounded-3 mb-5">

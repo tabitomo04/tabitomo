@@ -38,6 +38,11 @@
 <!-- Navigation Menu -->
 <div th:insert="~{fragments/menu :: menu}"></div>
 
+<!-- chatbot -->
+<div th:replace="~{fragments/chatbot-button :: chatbot-container}"></div>
+<link rel="stylesheet" href="/css/chatbot.css">
+<script th:src="@{/js/chatbot.js}"></script>
+
 <div class="container">
  <section class="py-5">
   <h1 id="listtitle" data-translatable>당신의 여행 이야기를 들려주세요</h1>

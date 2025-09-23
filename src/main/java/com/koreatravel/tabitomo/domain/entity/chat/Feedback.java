@@ -22,19 +22,21 @@ public class Feedback {
     @Column(name = "feedback_id")
     private Integer feedbackId;
 
+    @Column(name = "email", nullable = false, length = 50)
+    private String email;
+
+    @Column(name = "nickname", length = 30)
+    private String nickname;
+
     @Column(name = "rating", nullable = false)
-    private Integer rating; // 1-5점
+    private Integer rating;
 
     @Column(name = "feedback_text", columnDefinition = "TEXT")
     private String feedbackText;
 
-    @Column(name = "chat_history", columnDefinition = "TEXT")
-    private String chatHistory;
+    @Column(name = "is_helpful", nullable = false)
+    private Boolean isHelpful;
 
     @Column(name = "timestamp", nullable = false)
     private LocalDateTime timestamp;
-
-    @Column(name = "is_helpful", nullable = false)
-    private Boolean isHelpful;
 }
-

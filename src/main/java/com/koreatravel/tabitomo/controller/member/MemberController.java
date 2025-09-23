@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -160,11 +161,17 @@ public class MemberController {
 
         return "redirect:/member/mypage";
     }
-    
+
     @GetMapping("/trips/public")
-    public String publicTrips(Model model) {
-        List<Trip> trips = tripPlanService.findAllPublicTrips();
+    public String publicTrips(Model model,
+                              @RequestParam(defaultValue = "0") int page,
+                              @RequestParam(defaultValue = "title") String searchType,
+                              @RequestParam(defaultValue = "") String keyword) {
+        Pageable pageable = PageRequest.of(page, 10, Sort.by("createdAt").descending());
+        Page<Trip> trips = tripPlanService.findAllPublicTrips(pageable, searchType, keyword);
         model.addAttribute("trips", trips);
+        model.addAttribute("searchType", searchType);
+        model.addAttribute("keyword", keyword);
         return "public-trips";
     }
 

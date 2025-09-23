@@ -6,7 +6,6 @@ import com.koreatravel.tabitomo.domain.entity.member.LanguageEntity;
 import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
 import java.util.UUID;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,44 +68,58 @@ public class AuthService implements AuthServiceInterface {
      * @param languageId ID of the user's language
      * @throws IllegalStateException if email or nickname already exists
      */
+    @Transactional
     public void signup(SignUpDTO dto, int countryId, int languageId) {
+        log.info("Starting signup process for email: {}", dto.getEmail());
+        
         // Check if email already exists
         if (existsByEmail(dto.getEmail())) {
+            log.warn("Signup failed - Email already exists: {}", dto.getEmail());
             throw new IllegalStateException("이미 사용 중인 이메일입니다.");
         }
         
         // Check if nickname already exists
         if (existsByNickname(dto.getNickname())) {
+            log.warn("Signup failed - Nickname already exists: {}", dto.getNickname());
             throw new IllegalStateException("이미 사용 중인 닉네임입니다.");
         }
         
-        // Create new member - Let Hibernate generate the UUID
-        MemberEntity memberEntity = MemberEntity.builder()
-                .email(dto.getEmail())
-                .password(passwordEncoder.encode(dto.getPassword()))
-                .nickname(dto.getNickname())
-                .dateOfBirth(dto.getDateOfBirth())
-                .gender(dto.getGender())
-                .active(true)
-                .role("ROLE_USER")  // Set default role
-                .build();
-        
-        // Set country and language using their repositories
+        // Get country and language first
         CountryEntity country = countryRepository.findById(countryId);
         if (country == null) {
-            throw new IllegalStateException("Invalid country ID: " + countryId);
+            log.error("Invalid country ID: {}", countryId);
+            throw new IllegalStateException("유효하지 않은 국가 ID입니다.");
         }
-        
+                
         LanguageEntity language = languageRepository.findById(languageId);
         if (language == null) {
-            throw new IllegalStateException("Invalid language ID: " + languageId);
+            log.error("Invalid language ID: {}", languageId);
+            throw new IllegalStateException("유효하지 않은 언어 ID입니다.");
         }
         
-        // Set the relationships
-        memberEntity.setCountry(country);
-        memberEntity.setPreferredLanguage(language);
+        log.debug("Creating new member with email: {}", dto.getEmail());
         
-        memberRepository.save(memberEntity);
+        try {
+            // Create new member with all required fields
+            MemberEntity memberEntity = MemberEntity.builder()
+                    .email(dto.getEmail())
+                    .password(passwordEncoder.encode(dto.getPassword()))
+                    .nickname(dto.getNickname())
+                    .dateOfBirth(dto.getDateOfBirth())
+                    .gender(dto.getGender())
+                    .active(true)
+                    .role("ROLE_USER")
+                    .country(country)
+                    .preferredLanguage(language)
+                    .build();
+                    
+            log.debug("Saving member to database");
+            memberRepository.save(memberEntity);
+            log.info("Successfully created new user with email: {}", dto.getEmail());
+        } catch (Exception e) {
+            log.error("Error creating user: {}", e.getMessage(), e);
+            throw new IllegalStateException("회원 가입 중 오류가 발생했습니다. 다시 시도해주세요.");
+        }
     }
 
     /**

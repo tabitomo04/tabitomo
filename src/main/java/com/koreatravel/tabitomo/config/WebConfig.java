@@ -37,6 +37,6 @@ public class WebConfig implements WebMvcConfigurer {
 
         // CKEditor 업로드 파일 매핑
         registry.addResourceHandler("/uploadedImages/**")
-                .addResourceLocations("file:" + UPLOAD_DIR + "/");
+                .addResourceLocations("file:" + UPLOAD_DIR);
     }
 }

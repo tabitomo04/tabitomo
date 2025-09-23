@@ -117,7 +117,8 @@ public class EditorService {
             for (MediaEntity media : mediaList) {
                 // mediaUrl: /uploadedImages/파일명
                 String fileName = Paths.get(media.getMediaUrl()).getFileName().toString();
-                String filePath = "C:/workspace1/editorTest/uploadedImages/" + fileName;
+                String filePath = System.getProperty("user.dir") + "/uploadedImages/" + fileName;
+
 
                 File file = new File(filePath);
                 if (file.exists()) {
@@ -216,7 +217,8 @@ public class EditorService {
         for (MediaEntity media : mediaList) {
             // mediaUrl: /uploadedImages/파일명
             String fileName = Paths.get(media.getMediaUrl()).getFileName().toString();
-            String filePath = "C:/workspace1/editorTest/uploadedImages/" + fileName;
+            String filePath = System.getProperty("user.dir") + "/uploadedImages/" + fileName;
+
 
             File file = new File(filePath);
             if (file.exists()) {
@@ -272,7 +274,7 @@ public class EditorService {
             for (MediaEntity media : mediaList) {
                 // mediaUrl: /uploadedImages/파일명
                 String fileName = Paths.get(media.getMediaUrl()).getFileName().toString();
-                String filePath = "C:/workspace1/editorTest/uploadedImages/" + fileName;
+                String filePath = System.getProperty("user.dir") + "/uploadedImages/" + fileName;
 
                 File file = new File(filePath);
                 if (file.exists()) {
@@ -365,7 +367,8 @@ public class EditorService {
             for (MediaEntity media : mediaList) {
                 // mediaUrl: /uploadedImages/파일명
                 String fileName = Paths.get(media.getMediaUrl()).getFileName().toString();
-                String filePath = "C:/workspace1/editorTest/uploadedImages/" + fileName;
+                String filePath = System.getProperty("user.dir") + "/uploadedImages/" + fileName;
+
 
                 File file = new File(filePath);
                 if (file.exists()) {
@@ -461,7 +464,7 @@ public void tempdel(Integer tempId) {
     for (MediaEntity media : mediaList) {
         // mediaUrl: /uploadedImages/파일명
         String fileName = Paths.get(media.getMediaUrl()).getFileName().toString();
-        String filePath = "C:/workspace1/editorTest/uploadedImages/" + fileName;
+        String filePath = System.getProperty("user.dir") + "/uploadedImages/" + fileName;
 
         File file = new File(filePath);
         if (file.exists()) {

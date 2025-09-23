@@ -84,7 +84,7 @@
         </div>
     </div>
 
-    <!-- Schedules Table -->
+    <!-- Schedules -->
     <div class="card">
         <div class="card-header">
             <h5 class="mb-0" data-translatable>상세 일정</h5>
@@ -93,29 +93,37 @@
             <div th:if="${schedules.isEmpty()}" class="alert alert-info" data-translatable>
                 저장된 세부 일정이 없습니다.
             </div>
-            <div th:unless="${schedules.isEmpty()}" class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th style="width: 15%;" data-translatable>일차</th>
-                            <th style="width: 20%;" data-translatable>시간</th>
-                            <th data-translatable>장소</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr th:each="schedule : ${schedules}">
-                            <td>[[${schedule.day}]]<span data-translatable>일차</span></td>
-                            <td th:text="${schedule.startTime} + (${schedule.endTime != null and schedule.endTime != ''} ? ' ~ ' + ${schedule.endTime} : '')"></td>
-                            <td>
-                                <span th:text="${schedule.place.name}" data-translatable></span>
+            <div th:unless="${schedules.isEmpty()}">
+                <div th:each="schedule, iterStat : ${schedules}" th:with="isNewDay=${iterStat.index == 0 or schedules[iterStat.index - 1].day != schedule.day}">
+                    <!-- Day Header -->
+                    <h4 class="mt-4 mb-3" th:if="${isNewDay}" th:text="|${schedule.day}일차|"></h4>
+
+                    <!-- Schedule Card -->
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h5 class="card-title mb-1" th:text="${schedule.place.name}">장소 이름</h5>
+                                    <p class="card-text mb-1">
+                                        <small class="text-muted">
+                                            <i class="far fa-clock me-1"></i>
+                                            <span th:text="${schedule.startTime} + (${schedule.endTime != null and schedule.endTime != ''} ? ' ~ ' + ${schedule.endTime} : '')"></span>
+                                        </small>
+                                    </p>
+                                    <p class="card-text" th:if="${schedule.place.address != null}">
+                                        <small class="text-muted">
+                                            <i class="fas fa-map-marker-alt me-1"></i>
+                                            <span th:text="${schedule.place.address}"></span>
+                                        </small>
+                                    </p>
+                                </div>
                                 <span sec:authorize="isAuthenticated()">
-                                    <i class="far fa-star favorite-btn" th:data-place-id="${schedule.place.id}" style="cursor: pointer; color: #FFD700;"></i>
+                                    <i class="far fa-star favorite-btn" th:data-place-id="${schedule.place.id}" style="cursor: pointer; font-size: 1.5rem; color: #FFD700;"></i>
                                 </span>
-                                <div th:if="${schedule.place.address != null}" class="text-muted small" data-translatable th:text="${schedule.place.address}"></div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -134,75 +142,75 @@
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    function showToast(messageKey, defaultText) {
-        const toastNotification = document.getElementById('toastNotification');
-        if (!toastNotification) return;
+    document.addEventListener('DOMContentLoaded', function () {
+        function showToast(messageKey, defaultText) {
+            const toastNotification = document.getElementById('toastNotification');
+            if (!toastNotification) return;
 
-        const toastSpan = toastNotification.querySelector('span');
-        toastSpan.setAttribute('data-translatable', messageKey);
-        toastSpan.textContent = defaultText;
+            const toastSpan = toastNotification.querySelector('span');
+            toastSpan.setAttribute('data-translatable', messageKey);
+            toastSpan.textContent = defaultText;
 
-        if(window.translationManager) {
-            window.translationManager.applyCurrentLanguage(toastNotification);
+            if(window.translationManager) {
+                window.translationManager.applyCurrentLanguage(toastNotification);
+            }
+
+            toastNotification.classList.add('show');
+
+            setTimeout(() => {
+                toastNotification.classList.remove('show');
+            }, 3000);
         }
 
-        toastNotification.classList.add('show');
+        const favoriteButtons = document.querySelectorAll('.favorite-btn');
 
-        setTimeout(() => {
-            toastNotification.classList.remove('show');
-        }, 3000);
-    }
-
-    const favoriteButtons = document.querySelectorAll('.favorite-btn');
-
-    favoriteButtons.forEach(btn => {
-        const placeId = btn.dataset.placeId;
-        fetch(`/api/favorites/status?placeId=${placeId}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.isFavorite) {
-                    btn.classList.remove('far');
-                    btn.classList.add('fas');
-                }
-            })
-            .catch(() => {});
-    });
-
-    favoriteButtons.forEach(btn => {
-        btn.addEventListener('click', function () {
-            const placeId = this.dataset.placeId;
-            const isFavorite = this.classList.contains('fas');
-
-            fetch('/api/favorites', {
-                method: isFavorite ? 'DELETE' : 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ placeId: placeId })
-            })
-            .then(response => {
-                if (response.ok) {
-                    this.classList.toggle('far');
-                    this.classList.toggle('fas');
-                    if (isFavorite) {
-                        showToast('favorite.removed', '즐겨찾기에서 삭제되었습니다.');
-                    } else {
-                        showToast('favorite.added', '즐겨찾기에 추가되었습니다.');
+        favoriteButtons.forEach(btn => {
+            const placeId = btn.dataset.placeId;
+            fetch(`/api/favorites/status?placeId=${placeId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.isFavorite) {
+                        btn.classList.remove('far');
+                        btn.classList.add('fas');
                     }
-                } else {
-                    response.json().then(err => {
-                        showToast('favorite.error', '즐겨찾기 작업 중 오류가 발생했습니다.');
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('favorite.network.error', '네트워크 오류가 발생했습니다.');
+                })
+                .catch(() => {});
+        });
+
+        favoriteButtons.forEach(btn => {
+            btn.addEventListener('click', function () {
+                const placeId = this.dataset.placeId;
+                const isFavorite = this.classList.contains('fas');
+
+                fetch('/api/favorites', {
+                    method: isFavorite ? 'DELETE' : 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ placeId: placeId })
+                })
+                .then(response => {
+                    if (response.ok) {
+                        this.classList.toggle('far');
+                        this.classList.toggle('fas');
+                        if (isFavorite) {
+                            showToast('favorite.removed', '즐겨찾기에서 삭제되었습니다.');
+                        } else {
+                            showToast('favorite.added', '즐겨찾기에 추가되었습니다.');
+                        }
+                    } else {
+                        response.json().then(err => {
+                            showToast('favorite.error', '즐겨찾기 작업 중 오류가 발생했습니다.');
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('favorite.network.error', '네트워크 오류가 발생했습니다.');
+                });
             });
         });
     });
-});
 </script>
 
 </body>

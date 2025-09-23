@@ -19,18 +19,18 @@ public class FavoritePlace {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "member_id", nullable = false)
     @JsonIgnore
     private MemberEntity member;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "place_id")
+    @JoinColumn(name = "place_id", nullable = false)
     private Place place;
 
-    @Column(name = "member_email")
+    @Column(name = "member_email", nullable = false, length = 100)
     private String memberEmail;
 
     @CreationTimestamp

@@ -38,6 +38,7 @@ public class FavoritePlaceService {
         FavoritePlace favoritePlace = FavoritePlace.builder()
                 .member(member)
                 .place(place)
+                .memberEmail(member.getEmail())
                 .build();
 
         favoritePlaceRepository.save(favoritePlace);
@@ -68,7 +69,7 @@ public class FavoritePlaceService {
 
     @Transactional(readOnly = true)
     public boolean isFavorite(UUID memberId, Long placeId) {
-         MemberEntity member = memberRepository.findById(memberId)
+        MemberEntity member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new NoSuchElementException("회원을 찾을 수 없습니다: " + memberId));
         return favoritePlaceRepository.existsByMemberAndPlace_Id(member, placeId);
     }

@@ -7,10 +7,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.koreatravel.tabitomo.service.trip.CitiesService;
+import com.koreatravel.tabitomo.domain.dto.trip.CitiesDTO;
+
+import org.springframework.ui.Model;
+
+import com.koreatravel.tabitomo.service.storybook.EditorService;
+
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpHeaders;
+import java.util.List;
 
 @Slf4j
 @Controller
@@ -19,9 +28,15 @@ public class WebController {
 
     private final ResourceLoader resourceLoader;
 
+    private final CitiesService citiesService;
+
+    private final EditorService editorService;
+
     @GetMapping("/")
-    public String index() {
+    public String index(Model model) {
         log.debug("Accessing index page");
+        List<CitiesDTO> cities = citiesService.getRecommendCities();
+        model.addAttribute("cities", cities);
         return "index";
     }
 

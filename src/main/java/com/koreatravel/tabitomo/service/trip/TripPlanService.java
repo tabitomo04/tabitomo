@@ -207,6 +207,20 @@ public class TripPlanService {
     }
 
     @Transactional(readOnly = true)
+    public Page<Trip> findAllPublicTrips(Pageable pageable, String searchType, String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return tripRepository.findAllByVisibility("PUBLIC", pageable);
+        }
+        if ("title".equalsIgnoreCase(searchType)) {
+            return tripRepository.findAllByVisibilityAndTitleContainingIgnoreCase("PUBLIC", keyword, pageable);
+        } else if ("nickname".equalsIgnoreCase(searchType)) {
+            return tripRepository.findAllByVisibilityAndMemberNicknameContainingIgnoreCase("PUBLIC", keyword, pageable);
+        } else {
+            return tripRepository.findAllByVisibility("PUBLIC", pageable);
+        }
+    }
+
+    @Transactional(readOnly = true)
     public List<Trip> findAllTrips() {
         return tripRepository.findAll();
     }

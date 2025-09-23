@@ -10,9 +10,20 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link" th:href="@{/}" th:classappend="${#strings.equals(requestURI, '/')}">
+                    <a class="nav-link" th:href="@{/}" th:classappend="${#strings.equals(requestURI, '/') ? 'active' : ''}">
                         <i class="fas fa-home"></i> <span data-translatable>Home</span>
                     </a>
+                </li>
+                <li class="nav-item dropdown" th:classappend="${#strings.startsWith(requestURI, '/about') or #strings.startsWith(requestURI, '/contact') or #strings.startsWith(requestURI, '/privacy') or #strings.startsWith(requestURI, '/terms') ? 'active' : ''}">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-info-circle"></i> <span data-translatable>소개</span>
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" th:href="@{/about}" data-translatable>About Us</a></li>
+                        <li><a class="dropdown-item" th:href="@{/contact}" data-translatable>Contact</a></li>
+                        <li><a class="dropdown-item" th:href="@{/privacy}" data-translatable>Privacy Policy</a></li>
+                        <li><a class="dropdown-item" th:href="@{/terms}" data-translatable>Terms of Service</a></li>
+                    </ul>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" th:href="@{/tripselect/step1}" th:classappend="${#strings.startsWith(requestURI, '/tripselect')} ? 'active' : ''">
@@ -45,7 +56,7 @@
                     </a>
                 </li>
             </ul>
-            
+
             <!-- When Not Authenticated -->
             <div class="d-flex" sec:authorize="!isAuthenticated()">
                 <a th:href="@{/auth/login}" class="btn btn-outline-light me-2">
@@ -55,14 +66,14 @@
                     <i class="fas fa-user-plus"></i> <span data-translatable>회원가입</span>
                 </a>
             </div>
-            
+
             <!-- When Authenticated -->
             <div class="d-flex align-items-center" sec:authorize="isAuthenticated()">
                 <a th:href="@{/member/mypage}" class="btn btn-outline-light me-3">
                     <i class="fas fa-user-circle"></i> <span data-translatable>마이페이지</span>
                 </a>
                 <span class="navbar-text me-3">
-                    <i class="fas fa-user"></i> 
+                    <i class="fas fa-user"></i>
                     <span sec:authentication="principal.nickname">Nickname</span><span data-translatable>님</span>
                 </span>
                 <form th:action="@{/auth/logout}" method="post" class="d-inline">
@@ -71,7 +82,7 @@
                     </button>
                 </form>
             </div>
-           
+
         </div>
     </div>
 </nav>

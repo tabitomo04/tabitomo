@@ -57,16 +57,25 @@
          }
      .templistModal-content {
            background-color: #fff;
-           margin: 10% auto;
            padding: 20px;
+           margin: 10% auto;
            border-radius: 8px;
            width: 600px;
-           max-height: 50%;
-           overflow-y: auto;
+           max-height: 70vh;
            text-align: center;
            position: relative;
-
+           display: flex;
+           flex-direction: column;
          }
+        .table-container {
+          flex: 1;                     /* 남는 공간 차지 */
+          overflow-y: auto;            /* 리스트만 스크롤 */
+          margin: 10px 0;
+          border: 1px solid #ddd;
+          border-radius: 6px;
+          max-height: 400px;
+        }
+
      .col-select { width: 10%; }
      .col-title { width: 30%; }
      .col-subtitle { width: 35%; }
@@ -86,6 +95,7 @@
          border-bottom: 2px solid #333; /* 헤더 아래 구분선 */
          text-align: center;
          padding: 8px;
+         position: sticky;
        }
 
       #temptable td {
@@ -95,11 +105,12 @@
 
     .tempbtn {
          padding: 10px 18px;
-         border: 1px solid #333;
+         border: 2px solid #333;
          background: #fff;
          border-radius: 8px;
          cursor: pointer;
          font-size: 15px;
+         margin-top: 10px;
        }
 
      .col-del a {

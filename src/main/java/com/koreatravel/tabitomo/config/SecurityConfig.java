@@ -113,7 +113,8 @@ public class SecurityConfig {
                             "/css/**", 
                             "/js/**", 
                             "/image/**", 
-                            "/error"
+                            "/error",
+                            "/uploadedImages/**"       // 이미지 가져오기
                         ).permitAll()
                         .requestMatchers(
                                 "/trips/public", "/tripinformation",
@@ -137,9 +138,7 @@ public class SecurityConfig {
                         // 스토리북 관련 경로 설정
                         .requestMatchers(
                             "/storybook/list",        // 스토리북 목록
-                            "/storybook/detail/**",    // 스토리북 상세 보기
-                             "/uploadedImages/**"       // 이미지 가져오기
-
+                            "/storybook/detail/**"    // 스토리북 상세 보기
                         ).permitAll()
                         // CKEditor 업로드 허용
                         .requestMatchers("/upload").permitAll()

@@ -117,4 +117,23 @@ public interface StorybookRepository extends JpaRepository<StorybookEntity, Inte
             nativeQuery = true)
     Page<StorybookListDTO> findbykeyword(@Param("loginUserId") UUID loginUserId, @Param("keyword") String keyword, Pageable pageable);
 
+    // 홈 페이지에 출력할 좋아요 수 상위 3개
+    @Query(value = "SELECT " +
+            "    s.book_num AS booknum, " +
+            "    s.title AS title, " +
+            "    s.subtitle AS subtitle, " +
+            "    s.likes AS likes, " +
+            "    s.created_at AS createDate, " +
+            "    (SELECT md.media_url " +
+            "     FROM media md " +
+            "     WHERE md.num = s.book_num AND md.media_type = 'image' AND md.status = 'upload'" +
+            "     ORDER BY md.uploaded_at ASC " +
+            "     LIMIT 1) AS thumbnail, " +
+            "    m.nickname AS nickname " +
+            "FROM storybook s " +
+            "JOIN member m ON s.member_id = m.id " +
+            "ORDER BY s.likes DESC " +
+            "LIMIT 3 ",
+            nativeQuery = true)
+    List<StorybookListDTO> findmainStory();
 }

@@ -60,6 +60,47 @@
         </div>
     </section>
 
+
+    <!-- Storybook Section -->
+    <section class="popular-storybooks mb-5" th:if="${not #lists.isEmpty(storylist)}">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h3 mb-0" data-translatable>인기 스토리북</h2>
+                <a href="/storybook/list" class="btn btn-sm btn-outline-primary" data-translatable>전체보기</a>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4" th:each="story : ${storylist}">
+                    <div class="card h-100">
+                      <div class="thumbnail">
+                        <img th:src="${story.thumbnail != null ? story.thumbnail : '/image/tomo.png'}"
+                             alt="썸네일"
+                             class="card-img-top"
+                             onerror="this.onerror=null; this.src='/image/tomo.png';">
+                      </div>
+                          <div class="card-body">
+                              <div class="d-flex justify-content-between align-items-center mb-2">
+                                  <h5 class="card-title mb-0" th:text="${story.title}" data-translatable>제목</h5>
+                                  <span class="likes d-flex align-items-center gap-1">
+                                    <span th:text="'❤'" th:style="${story.isLiked} ? 'color:red' : 'color:black'"></span>
+                                    <span th:text="${story.likes}"></span>
+                                </span>
+                              </div>
+                            <p class="card-text" th:text="${story.subtitle}" data-translatable>부제목</p>
+                        </div>
+
+                        <div class="card-footer d-flex justify-content-between small text-muted" style="background-color: #ffffff;">
+                            <span th:text="${story.nickname}"></span>
+                            <span th:text="${#temporals.format(story.createDate, 'yy.MM.dd')}"></span>
+                        </div>
+
+                        <!-- 카드 전체 클릭 가능하도록 링크 -->
+                        <a th:href="@{'/storybook/detail?booknum=' + ${story.booknum}}" class="stretched-link"></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Features Section -->
     <section class="features-section py-5 bg-light rounded-3 mb-5" id="features">
         <div class="container px-4">

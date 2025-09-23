@@ -203,11 +203,6 @@ public class EditorController {
                 // 랜덤 정렬의 경우
                 List<StorybookListDTO> storybookList = editorService.getStorybookList(loginUserId,"random");
 
-                for (StorybookListDTO story : storybookList) {
-                    System.out.println("booknum: " + story.getBooknum());
-                    System.out.println("title: " + story.getTitle());
-                    System.out.println("isLiked: " + story.getIsLiked());
-                }
                 model.addAttribute("storylist", storybookList);
                 model.addAttribute("pagelist", null);
             } else {

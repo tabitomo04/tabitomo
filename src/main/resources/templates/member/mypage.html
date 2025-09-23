@@ -224,6 +224,7 @@
 <div id="templistModal" class="templistModal" style="display:none;">
     <div class="templistModal-content">
         <span id="closeBtn" class="close">&times;</span>
+
         <h2 th:if="${templist != null and !templist.isEmpty()}" data-translatable>임시저장본 리스트</h2>
 
         <div th:if="${templist == null or templist.isEmpty()}">
@@ -233,31 +234,29 @@
 
         <div th:if="${templist != null and !templist.isEmpty()}">
             <form action="/storybook/update" method="get" onsubmit="return checkRadio()">
-                <table id="temptable">
-                    <tr>
-                        <th class="col-select" data-translatable>선택</th>
-                        <th class="col-title" data-translatable>제목</th>
-                        <th class="col-subtitle" data-translatable>부제목</th>
-                        <th class="col-date" data-translatable>작성날짜</th>
-                        <th class="col-del" data-translatable>삭제</th>
-                    </tr>
+                <div class="table-container">
+                    <table id="temptable">
+                        <tr>
+                            <th class="col-select" data-translatable>선택</th>
+                            <th class="col-title" data-translatable>제목</th>
+                            <th class="col-subtitle" data-translatable>부제목</th>
+                            <th class="col-date" data-translatable>작성날짜</th>
+                            <th class="col-del" data-translatable>삭제</th>
+                        </tr>
 
-                    <tr th:if="${templist}" th:each="templist : ${templist}">
-                        <td class="col-select"><input type="radio" name="tempId" th:value="${templist.tempId}"></td>
-                        <td class="col-title" th:text="${templist.title}" data-translatable></td>
-                        <td class="col-subtitle" th:text="${templist.subtitle}" data-translatable></td>
-                        <td class="col-date" th:text="${#temporals.format(templist.updateDate, 'yy.MM.dd')}"></td>
-                        <td class="col-del del"><a th:href="@{'/storybook/tempdelete?tempId=' + ${templist.tempId}}"
-                                                   onclick="return confirm('정말 삭제할까요?')">&times;</a></td>
-                    </tr>
-                </table>
+                        <tr th:if="${templist}" th:each="templist : ${templist}">
+                            <td class="col-select"><input type="radio" name="tempId" th:value="${templist.tempId}"></td>
+                            <td class="col-title" th:text="${templist.title}" data-translatable></td>
+                            <td class="col-subtitle" th:text="${templist.subtitle}" data-translatable></td>
+                            <td class="col-date" th:text="${#temporals.format(templist.updateDate, 'yy.MM.dd')}"></td>
+                            <td class="col-del del"><a th:href="@{'/storybook/tempdelete?tempId=' + ${templist.tempId}}"
+                                                       onclick="return confirm('정말 삭제할까요?')">&times;</a></td>
+                        </tr>
+                    </table>
+                </div>
                 <button type="submit" class="tempbtn" data-translatable>불러오기</button>
             </form>
         </div>
-
-
-    </div>
-</div>
 <script>
     const modal = document.querySelector('#templistModal');
     const closeBtn = document.querySelector('#closeBtn');

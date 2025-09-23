@@ -52,41 +52,90 @@
     <button type="submit" data-translatable>검색</button>
   </form>
 
-  <div class="filters">
-    <div class="leftbutton">
-      <button th:onclick="|location.href='@{/storybook/list(sort = hot)}'|" >HOT</button>
-      <button th:onclick="|location.href='@{/storybook/list(sort = new)}'|" >NEW</button>
-    </div>
-    <div class="rightbutton" sec:authorize="isAuthenticated()">
-      <a class="storylistbtn" id="templistBtn" data-translatable>임시저장본</a>
-      <a class="storylistbtn primary" onclick="checkTemp()" th:href="@{'/storybook/write'}" data-translatable>새 스토리 작성</a>
-    </div>
-    <div class="rightbutton" sec:authorize="!isAuthenticated()">&nbsp;</div>
-  </div>
+     <div class="container mb-3 position-relative">
+             <!-- 왼쪽 버튼들 (HOT / NEW) -->
+             <div class="d-flex justify-content-center mb-2">
+                 <button type="button" class="btn btn-outline-dark me-2"
+                         th:onclick="|location.href='@{/storybook/list(sort=hot)}'|">HOT</button>
+                 <button type="button" class="btn btn-outline-dark"
+                         th:onclick="|location.href='@{/storybook/list(sort=new)}'|">NEW</button>
+             </div>
+
+             <!-- 오른쪽 버튼들 (로그인 사용자용) -->
+             <div class="d-flex justify-content-end flex-wrap">
+                 <a class="btn btn-outline-dark me-2 mb-2 w-auto" id="templistBtn"
+                    sec:authorize="isAuthenticated()" data-translatable>임시저장본</a>
+                 <a class="btn btn-dark border border-white mb-2 w-auto"
+                    onclick="checkTemp()"
+                    th:href="@{'/storybook/write'}"
+                    sec:authorize="isAuthenticated()"
+                    data-translatable>새 스토리 작성</a>
+             </div>
+
+             <!-- 오른쪽 버튼 빈 영역 (비로그인용) -->
+             <div class="d-flex justify-content-end" sec:authorize="!isAuthenticated()">&nbsp;</div>
+         </div>
+
   </section>
 
  <div id="story-container">
-  <div class="grid" th:if="${storylist != null}">
-    <div th:each="story, status: ${storylist}">
-      <a class="link" th:href="@{'/storybook/detail?booknum=' + ${story.booknum}}">
-        <div class="card">
-          <div class="likes">
-              <span th:text="'❤'" th:style="${story.isLiked} ? 'color:red' : 'color:black'"></span>
-              <span th:text="${story.likes}"></span>
-          </div>
-          <div class="thumbnail">
-              <img th:src="${story.thumbnail != null ? story.thumbnail : '/image/tomo.png'}" alt="썸네일">
-          </div>
-          <h3 th:text="${story.title}" data-translatable></h3>
-          <p th:text="${story.subtitle}" data-translatable></p>
-          <div class="meta">
-            <span th:text="${story.nickname}"></span>
-            <span th:text="${#temporals.format(story.createDate, 'yy.MM.dd')}"></span>
-          </div>
-        </div>
-      </a>
-    </div>
-  </div>
+<!--  <div class="grid" th:if="${storylist != null}">-->
+<!--    <div th:each="story, status: ${storylist}">-->
+<!--      <a class="link" th:href="@{'/storybook/detail?booknum=' + ${story.booknum}}">-->
+<!--        <div class="card">-->
+<!--          <div class="likes">-->
+<!--              <span th:text="'❤'" th:style="${story.isLiked} ? 'color:red' : 'color:black'"></span>-->
+<!--              <span th:text="${story.likes}"></span>-->
+<!--          </div>-->
+<!--          <div class="thumbnail">-->
+<!--              <img th:src="${story.thumbnail != null ? story.thumbnail : '/image/tomo.png'}" alt="썸네일">-->
+<!--          </div>-->
+<!--          <h3 th:text="${story.title}" data-translatable></h3>-->
+<!--          <p th:text="${story.subtitle}" data-translatable></p>-->
+<!--          <div class="meta">-->
+<!--            <span th:text="${story.nickname}"></span>-->
+<!--            <span th:text="${#temporals.format(story.createDate, 'yy.MM.dd')}"></span>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--      </a>-->
+<!--    </div>-->
+<!--  </div>-->
+
+ <div class="row g-4">
+     <div class="col-12 col-md-6 col-lg-4" th:each="story : ${storylist}">
+         <div class="card h-100 position-relative">
+             <!-- 썸네일 -->
+             <img th:src="${story.thumbnail != null ? story.thumbnail : '/image/tomo.png'}"
+                  alt="썸네일"
+                  class="card-img-top"
+                  onerror="this.onerror=null; this.src='/image/tomo.png';">
+
+             <!-- 카드 본문 -->
+             <div class="card-body">
+                 <!-- 제목 + 좋아요 하트 -->
+                 <div class="d-flex justify-content-between align-items-center mb-2">
+                     <h5 class="card-title mb-0 fs-6" th:text="${story.title}" data-translatable>제목</h5>
+                     <span class="d-flex align-items-center gap-1">
+                            <span th:text="'❤'" th:style="${story.isLiked} ? 'color:red' : 'color:black'"></span>
+                            <span th:text="${story.likes}"></span>
+                        </span>
+                 </div>
+
+                 <!-- 부제목 -->
+                 <p class="card-text mb-0 fs-6" th:text="${story.subtitle}" data-translatable>부제목</p>
+             </div>
+
+             <!-- 카드 하단 메타정보 -->
+             <div class="card-footer d-flex justify-content-between small text-muted" style="background-color: #fafafa">
+                 <span th:text="${story.nickname}"></span>
+                 <span th:text="${#temporals.format(story.createDate, 'yy.MM.dd')}"></span>
+             </div>
+
+             <!-- 카드 전체 클릭 -->
+             <a th:href="@{'/storybook/detail?booknum=' + ${story.booknum}}" class="stretched-link"></a>
+         </div>
+     </div>
+ </div>
 
 
   <div th:if="${(storylist == null or storylist.isEmpty()) and (pagelist == null or pagelist.isEmpty())}" class="no-results">
@@ -94,27 +143,41 @@
     <p data-translatable>검색 결과가 없습니다.</p>
   </div>
 
-  <div class="grid" th:if="${pagelist != null}">
-    <div th:if="${pagelist}" th:each="pagelist, status: ${pagelist}">
-      <a class="link" th:href="@{'/storybook/detail?booknum=' + ${pagelist.booknum}}">
-        <div class="card">
-            <div class="likes">
-                <span th:text="'❤'" th:style="${pagelist.isLiked} ? 'color:red' : 'color:black'"></span>
-                <span th:text="${pagelist.likes}"></span>
-            </div>
-          <div class="thumbnail">
-              <img th:src="${pagelist.thumbnail != null ? pagelist.thumbnail : '/image/tomo.png'}" alt="썸네일">
-          </div>
-          <h3 th:text="${pagelist.title}" data-translatable></h3>
-          <p th:text="${pagelist.subtitle}" data-translatable></p>
-          <div class="meta">
-            <span th:text="${pagelist.nickname}"></span>
-            <span th:text="${#temporals.format(pagelist.createDate, 'yy.MM.dd')}"></span>
-          </div>
-        </div>
-      </a>
-    </div>
-  </div>
+     <div class="row g-4">
+         <div class="col-12 col-md-6 col-lg-4" th:each="page : ${pagelist}">
+             <div class="card h-100 position-relative">
+                 <!-- 썸네일 -->
+                 <img th:src="${page.thumbnail != null ? page.thumbnail : '/image/tomo.png'}"
+                      alt="썸네일"
+                      class="card-img-top"
+                      onerror="this.onerror=null; this.src='/image/tomo.png';">
+
+                 <!-- 카드 본문 -->
+                 <div class="card-body">
+                     <!-- 제목 + 좋아요 하트 -->
+                     <div class="d-flex justify-content-between align-items-center mb-2">
+                         <h5 class="card-title mb-0 fs-6" th:text="${page.title}" data-translatable>제목</h5>
+                         <span class="d-flex align-items-center gap-1">
+                            <span th:text="'❤'" th:style="${page.isLiked} ? 'color:red' : 'color:black'"></span>
+                            <span th:text="${page.likes}"></span>
+                        </span>
+                     </div>
+
+                     <!-- 부제목 -->
+                     <p class="card-text mb-0 fs-6" th:text="${page.subtitle}" data-translatable>부제목</p>
+                 </div>
+
+                 <!-- 카드 하단 메타정보 -->
+                 <div class="card-footer d-flex justify-content-between small text-muted" style="background-color: #fafafa">
+                     <span th:text="${page.nickname}"></span>
+                     <span th:text="${#temporals.format(page.createDate, 'yy.MM.dd')}"></span>
+                 </div>
+
+                 <!-- 카드 전체 클릭 -->
+                 <a th:href="@{'/storybook/detail?booknum=' + ${page.booknum}}" class="stretched-link"></a>
+             </div>
+         </div>
+     </div>
  </div>
 
 
@@ -156,6 +219,7 @@
 
     <div th:if="${templist != null and !templist.isEmpty()}">
     <form action="/storybook/update" method="get" onsubmit="return checkRadio()">
+     <div class="table-container">
       <table id="temptable">
         <tr>
           <th class="col-select" data-translatable>선택</th>
@@ -174,6 +238,7 @@
                                      onclick="return confirm('정말 삭제할까요?')">&times;</a></td>
         </tr>
       </table>
+     </div>
       <button type="submit" class="tempbtn" data-translatable>불러오기</button>
     </form>
     </div>

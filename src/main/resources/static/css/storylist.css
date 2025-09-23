@@ -30,53 +30,7 @@
       cursor: pointer;
       font-size: 15px;
     }
-    .filters {
-       display: flex;
-       align-items: center;
-       width: 100%;
-       margin-bottom: 15px;
-       position: relative;
-    }
 
-    .leftbutton {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 10px;
-    }
-
-   .filters button {
-     border: 1px solid #111;
-     padding: 6px 14px;
-     border-radius: 6px;
-     background: #fff;
-     cursor: pointer;
-   }
-
-   .rightbutton {
-    margin-left: auto;
-      display: flex;
-      gap: 10px;
-   }
-   .storylistbtn {
-      border: 1px solid #333;
-      background: #fff;
-      padding: 8px 12px;
-      margin: 5px;
-      cursor: pointer;
-      border-radius: 5px;
-      font-size: 14px;
-      text-decoration: none;
-      color: inherit;
-   }
-
-   .storylistbtn.primary {
-      background: black;
-      color: white;
-      text-decoration: none;
-
-   }
 
     .grid {
       display: grid;

@@ -1,5 +1,6 @@
 package com.koreatravel.tabitomo.controller;
 
+import com.koreatravel.tabitomo.domain.dto.storybook.StorybookListDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.CacheControl;
@@ -37,6 +38,8 @@ public class WebController {
         log.debug("Accessing index page");
         List<CitiesDTO> cities = citiesService.getRecommendCities();
         model.addAttribute("cities", cities);
+        List<StorybookListDTO> storybookList = editorService.getmainStory();
+        model.addAttribute("storylist", storybookList);
         return "index";
     }
 

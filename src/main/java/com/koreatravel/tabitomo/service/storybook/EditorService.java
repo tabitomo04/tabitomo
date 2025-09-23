@@ -602,5 +602,9 @@ public void tempdel(Integer tempId) {
         Pageable pageable = PageRequest.of(page,size);
         return storybookRepository.findbykeyword(loginUserId, keyword, pageable);
     }
+
+    public List<StorybookListDTO> getmainStory() {
+        return storybookRepository.findmainStory();
+    }
 }
 

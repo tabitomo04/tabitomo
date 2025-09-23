@@ -88,9 +88,20 @@ public class EditorController {
      * @return 스토리북 출력 페이지
      */
     @GetMapping(PathConstants.STORYBOOK_DETAIL)
-    public String view(@RequestParam("booknum") Integer booknum, Model model) {
+    public String view(@RequestParam("booknum") Integer booknum, Model model,
+                       @AuthenticationPrincipal UserDetailsImpl userDetails) {
         StorybookDTO dto = editorService.getstory(booknum);
+
+        boolean isAuthor = false;
+        if (userDetails != null) {
+            UUID loginUserId = userDetails.getId(); // UUID 타입
+            if (dto.getMemberId() != null && loginUserId.equals(dto.getMemberId())) {
+                isAuthor = true;
+            }
+        }
+
         model.addAttribute("post",dto);
+        model.addAttribute("isAuthor",isAuthor);
         return "storyview";
     }
 

@@ -1,48 +1,4 @@
 
-     .profile-container {
-       max-width: 1000px;
-       margin: 0 auto;
-       padding: 20px;
-     }
-
-     .profile-header {
-       display: flex;
-       gap: 20px;
-       align-items: flex-start;
-       margin-bottom: 40px;
-     }
-
-     .profile-img {
-       width: 100px;
-       height: 100px;
-       border-radius: 50%;
-     }
-
-     .profile-info h1 {
-       margin: 0;
-       font-size: 24px;
-     }
-
-     .email {
-       color: gray;
-       margin: 5px 0;
-     }
-
-     .intro {
-       margin: 10px 0;
-       font-size: 14px;
-       line-height: 1.5;
-     }
-
-     .tags span {
-       display: inline-block;
-       background: #f1f1f1;
-       margin: 2px;
-       padding: 5px 10px;
-       border-radius: 15px;
-       font-size: 12px;
-     }
-
      .storybtn {
        border: 1px solid #333;
        background: #fff;
@@ -85,21 +41,6 @@
        color: #555;
      }
 
-     .card-footer {
-       display: flex;
-       justify-content: space-between;
-       font-size: 12px;
-       margin-top: 10px;
-       color: #777;
-     }
-
-     .card-list.small .card {
-       flex: none;
-       width: 200px;
-       font-size: 14px;
-       text-align: center;
-     }
-
      .morebtn {
        display: block;
        margin: 10px auto;
@@ -125,6 +66,7 @@
      text-decoration: none;
      color: inherit;
      }
+
      .grid {
        display: grid;
        grid-template-columns: repeat(3, 1fr);
@@ -184,6 +126,10 @@
          height: 90%;
          object-fit: cover;
          object-position: center center;
+     }
+
+     #heart {
+        color: red;
      }
 
 

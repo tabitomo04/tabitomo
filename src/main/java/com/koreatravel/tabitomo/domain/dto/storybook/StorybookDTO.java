@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,7 +23,7 @@ public class StorybookDTO {
     private LocalDateTime updateDate;
     private Integer likes;
     private List<String> tags;
-    private Long memberId;
+    private UUID memberId;
     private String nickname;
 
 }

@@ -27,6 +27,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Slf4j
 @Controller
@@ -56,6 +57,8 @@ public class MemberController {
         }
         String email = userDetails.getEmail();
 
+        UUID memberId = userDetails.getId();
+
         MemberProfileDTO profile = memberService.getMemberProfile(userDetails.getId());
         model.addAttribute("profile", profile);
 
@@ -84,7 +87,7 @@ public class MemberController {
         }
 
         // 내 스토리북 리스트
-        List<StorybookListDTO> storybookList = editorService.getMyStorybookList(email);
+        List<StorybookListDTO> storybookList = editorService.getMyStorybookList(memberId);
         if (!all) {
             storybookList = storybookList.stream().limit(3).toList();
         }

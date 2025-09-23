@@ -86,6 +86,8 @@ public class EditorService {
                 .title(entity.getTitle())
                 .subtitle(entity.getSubtitle())
                 .content(entity.getContent())
+                .memberId(entity.getMember().getId())
+                .nickname(entity.getMember().getNickname())
                 .createDate(entity.getCreateDate())
                 .likes(entity.getLikes())
                 .tags(tagNames)
@@ -196,8 +198,8 @@ public class EditorService {
      * 마이페이지의 스토리북 리스트 가져오기
      * @return 쿼리에 해당하는 리스트 가져옴
      */
-    public List<StorybookListDTO> getMyStorybookList(String email) {
-        return storybookRepository.StorybookList(email);
+    public List<StorybookListDTO> getMyStorybookList(UUID memberId) {
+        return storybookRepository.StorybookList(memberId);
     }
 
     /**

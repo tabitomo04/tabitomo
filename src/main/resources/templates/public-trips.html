@@ -11,6 +11,11 @@
 <!-- Navigation Menu -->
 <div th:replace="~{fragments/menu :: menu}"></div>
 
+<!-- chatbot -->
+<div th:replace="~{fragments/chatbot-button :: chatbot-container}"></div>
+<link rel="stylesheet" href="/css/chatbot.css">
+<script th:src="@{/js/chatbot.js}"></script>
+
 <!-- Main Content -->
 <main class="container py-5">
     <h1 class="mb-4" data-translatable>모두의 여행</h1>

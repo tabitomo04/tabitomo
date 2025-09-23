@@ -677,13 +677,6 @@ categorySection.prepend(categoryCloseBtn);
         }
     });
 
-    // ✅ 'X' 버튼 클릭 이벤트 리스너 추가
-    categoryCloseBtn.addEventListener("click", () => {
-        categorySection.classList.remove('visible');
-        toggleBtn.classList.remove('rotated');
-        backHistory = [];
-    });
-
     categorySection.addEventListener("click", async(event) => {
         const target = event.target.closest('button, div');
         if (target && target.tagName === 'BUTTON') {
@@ -736,6 +729,8 @@ categorySection.prepend(categoryCloseBtn);
             feedbackArea.classList.remove('hidden');
         }
     });
+
+
 </script>
 </body>
 </html>

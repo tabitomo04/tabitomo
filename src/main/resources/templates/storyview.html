@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -84,7 +85,8 @@ document.addEventListener('click', function(e) {
 
   <div class="story-header">
     <span class="title" th:text="${post.title}" data-translatable></span>
-    <div class="dropdown">
+
+    <div class="dropdown" th:if="${isAuthor}">
       <a class="more-btn" onclick="toggleDropdown(this)">⋮</a>
       <div class="dropdown-content">
         <a th:href="@{'/storybook/update?booknum=' + ${post.booknum}}" data-translatable>수정</a>
@@ -92,6 +94,8 @@ document.addEventListener('click', function(e) {
            onclick="return confirm('정말 삭제하시겠습니까?');" data-translatable>삭제</a>
       </div>
     </div>
+
+
   </div>
   <div th:text="${post.subtitle}" class="subtitle" data-translatable></div>
 
@@ -147,13 +151,13 @@ function toggleLike() {
     }
     
     const booknum = $("#booknum").val();
-    const email = $("#email").val();
+    const loginEmail = /*[[${loginEmail}]]*/ ''
     const btn = $("#likeBtn");
 
     $.ajax({
         url: liked ? "/unlike" : "/like",
         method: "POST",
-        data: { booknum, email },
+        data: { booknum, email: loginEmail },
         success: function(res) {
             // 서버가 반환한 좋아요 수로 화면 업데이트
             $("#like-count").text(res.likes);
@@ -178,12 +182,12 @@ $(document).ready(function() {
     }
     
     const booknum = $("#booknum").val();
-    const email = $("#email").val();
+    const loginEmail = /*[[${loginEmail}]]*/ ''
 
     $.ajax({
         url: "/isLiked", // 서버에서 좋아요 상태 확인
         method: "GET",
-        data: { booknum, email },
+        data: { booknum, email: loginEmail },
         success: function(res) {
             // 서버가 알려준 liked 상태 반영
             liked = res.liked;

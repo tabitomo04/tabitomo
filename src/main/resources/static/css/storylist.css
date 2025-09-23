@@ -84,13 +84,9 @@
       gap: 20px;
     }
     .card {
-      border: 1px solid #ccc;
-      border-radius: 10px;
       padding: 14px;
-      display: flex;
-      flex-direction: column;
       justify-content: space-between;
-      height: 240px;
+      background: #fafafa;
     }
     .card .likes {
       text-align: right;
@@ -98,10 +94,11 @@
       margin-bottom: 6px;
     }
     .card h3 {
-      font-size: 15px;
-      margin: 0 0 8px;
-      font-weight: bold;
-    }
+       font-size: 15px;
+       margin: 0 0 8px;
+       font-weight: bold;
+     }
+
     .card p {
       font-size: 13px;
       color: #444;
@@ -155,5 +152,9 @@
         font-size: 20px;
         font-weight: bold;
         color: #333;
+    }
+
+    #heart {
+        color: red;
     }
 

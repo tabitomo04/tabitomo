@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
 public interface StorybookRepository extends JpaRepository<StorybookEntity, Integer> {
@@ -22,18 +23,18 @@ public interface StorybookRepository extends JpaRepository<StorybookEntity, Inte
             "    s.subtitle AS subtitle, " +
             "    s.likes AS likes, " +
             "    s.created_at AS createDate, " +
-            "    (SELECT m.media_url " +
-            "     FROM media m " +
-            "     WHERE m.num = s.book_num AND m.media_type = 'image' AND m.status = 'upload'" +
-            "     ORDER BY m.uploaded_at ASC " +
+            "    (SELECT md.media_url " +
+            "     FROM media md " +
+            "     WHERE md.num = s.book_num AND md.media_type = 'image' AND md.status = 'upload'" +
+            "     ORDER BY md.uploaded_at ASC " +
             "     LIMIT 1) AS thumbnail, " +
             "    m.nickname AS nickname " +
             "FROM storybook s " +
             "JOIN member m ON s.member_id = m.id " +
-            "WHERE m.email = :email " +
+            "WHERE m.id = :memberId " +
             "ORDER BY s.created_at DESC",
             nativeQuery = true)
-    List<StorybookListDTO> StorybookList(@Param("email") String email);
+    List<StorybookListDTO> StorybookList(@Param("memberId") UUID memberId);
 
     // 스토리북 리스트 페이지의 랜덤 리스트 쿼리
     @Query(value = "SELECT " +
@@ -42,10 +43,10 @@ public interface StorybookRepository extends JpaRepository<StorybookEntity, Inte
             "    s.subtitle AS subtitle, " +
             "    s.likes AS likes, " +
             "    s.created_at AS createDate, " +
-            "    (SELECT m.media_url " +
-            "     FROM media m " +
-            "     WHERE m.num = s.book_num AND m.media_type = 'image' AND m.status = 'upload'" +
-            "     ORDER BY m.uploaded_at ASC " +
+            "    (SELECT md.media_url " +
+            "     FROM media md " +
+            "     WHERE md.num = s.book_num AND md.media_type = 'image' AND md.status = 'upload'" +
+            "     ORDER BY md.uploaded_at ASC " +
             "     LIMIT 1) AS thumbnail, " +
             "    m.nickname AS nickname " +
             "FROM storybook s " +
@@ -61,10 +62,10 @@ public interface StorybookRepository extends JpaRepository<StorybookEntity, Inte
             "    s.subtitle AS subtitle, " +
             "    s.likes AS likes, " +
             "    s.created_at AS createDate, " +
-            "    (SELECT m.media_url " +
-            "     FROM media m " +
-            "     WHERE m.num = s.book_num AND m.media_type = 'image' AND m.status = 'upload'" +
-            "     ORDER BY m.uploaded_at ASC " +
+            "    (SELECT md.media_url " +
+            "     FROM media md " +
+            "     WHERE md.num = s.book_num AND md.media_type = 'image' AND md.status = 'upload'" +
+            "     ORDER BY md.uploaded_at ASC " +
             "     LIMIT 1) AS thumbnail, " +
             "    m.nickname AS nickname " +
             "FROM storybook s " +
@@ -78,21 +79,21 @@ public interface StorybookRepository extends JpaRepository<StorybookEntity, Inte
 
     // 검색
     @Query(value = "SELECT " +
-            "    s.booknum AS booknum, " +
+            "    s.book_num AS booknum, " +
             "    s.title AS title, " +
             "    s.subtitle AS subtitle, " +
             "    s.likes AS likes, " +
             "    s.created_at AS createDate, " +
-            "    (SELECT m.media_url " +
-            "     FROM media m " +
-            "     WHERE m.num = s.booknum AND m.media_type = 'image' AND m.status = 'upload'" + // m.게시물번호_컬럼 = s.고유번호_컬럼
-            "     ORDER BY m.uploaded_at ASC " + // m.업로드시간_컬럼
+            "    (SELECT md.media_url " +
+            "     FROM media md " +
+            "     WHERE md.num = s.book_num AND md.media_type = 'image' AND md.status = 'upload'" + // m.게시물번호_컬럼 = s.고유번호_컬럼
+            "     ORDER BY md.uploaded_at ASC " + // m.업로드시간_컬럼
             "     LIMIT 1) AS thumbnail, " +
-            "     u.nickname AS nickname " +
+            "     m.nickname AS nickname " +
             "FROM storybook s " +
-            "JOIN storytag st ON s.booknum = st.booknum " +
-            "JOIN TagMaster tm ON st.tag_id = tm.tag_id " +
-            "JOIN member u ON s.email = u.email " +
+            "JOIN story_tag st ON s.book_num = st.booknum " +
+            "JOIN tag_master tm ON st.tag_id = tm.tag_id " +
+            "JOIN member m ON s.member_id = m.id " +
             "WHERE tm.tag_name LIKE CONCAT('%', :keyword, '%') " +
             "ORDER BY s.created_at DESC",
             nativeQuery = true)

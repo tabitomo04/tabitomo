@@ -68,9 +68,9 @@
             <div th:if="${storylist}" th:each="storylist, status: ${storylist}">
                 <a class="link" th:href="@{'/storybook/detail?booknum=' + ${storylist.booknum}}">
                     <div class="card">
-                        <div class="likes">❤ <span th:text="${storylist.likes}"></span></div>
+                        <div class="likes"><span id="heart">❤</span> </span> <span th:text="${storylist.likes}"></span></div>
                         <div class="thumbnail">
-                            <img th:src="@{${storylist.thumbnail}}" alt="썸네일">
+                            <img th:src="${storylist.thumbnail != null ? storylist.thumbnail : '/image/tomo.png'}" alt="썸네일">
                         </div>
                         <h3 th:text="${storylist.title}" data-translatable></h3>
                         <p th:text="${storylist.subtitle}" data-translatable></p>

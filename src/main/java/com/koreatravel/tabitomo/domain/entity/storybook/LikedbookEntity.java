@@ -26,7 +26,7 @@ public class LikedbookEntity {
     private Integer likeId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "booknum", nullable = false)
+    @JoinColumn(name = "book_num", nullable = false)
     private StorybookEntity storybook;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -147,7 +147,8 @@ public class SecurityConfig {
                             "/storybook/write",       // 스토리북 작성
                             "/storybook/editor/**",    // 스토리북 에디터
                             "/storybook/save",
-                            "/storybook/tempsave"
+                            "/storybook/tempsave",
+                            "/uploadedImages/**"       // 이미지 가져오기
                         ).authenticated()
 
                         // 챗봇 관련 경로를 permitAll()로 설정**

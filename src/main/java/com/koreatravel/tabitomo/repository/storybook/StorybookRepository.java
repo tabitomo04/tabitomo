@@ -48,12 +48,18 @@ public interface StorybookRepository extends JpaRepository<StorybookEntity, Inte
             "     WHERE md.num = s.book_num AND md.media_type = 'image' AND md.status = 'upload'" +
             "     ORDER BY md.uploaded_at ASC " +
             "     LIMIT 1) AS thumbnail, " +
-            "    m.nickname AS nickname " +
+            "    m.nickname AS nickname, " +
+            "EXISTS ( " +
+            "     SELECT 1 " +
+            "     FROM likedbook l " +
+            "     WHERE l.book_num = s.book_num " +
+            "       AND l.member_id = :memberId " +
+            "       ) AS isLiked " +
             "FROM storybook s " +
             "JOIN member m ON s.member_id = m.id " +
             "ORDER BY RAND() LIMIT 6",
             nativeQuery = true)
-    List<StorybookListDTO> findListRandom();
+    List<StorybookListDTO> findListRandom(@Param("memberId") UUID memberId);
 
     // 스토리북 리스트의 HOT, NEW 페이징 리스트 쿼리
     @Query(value = "SELECT " +
@@ -67,7 +73,13 @@ public interface StorybookRepository extends JpaRepository<StorybookEntity, Inte
             "     WHERE md.num = s.book_num AND md.media_type = 'image' AND md.status = 'upload'" +
             "     ORDER BY md.uploaded_at ASC " +
             "     LIMIT 1) AS thumbnail, " +
-            "    m.nickname AS nickname " +
+            "    m.nickname AS nickname, " +
+            "EXISTS ( " +
+            "     SELECT 1 " +
+            "     FROM likedbook l " +
+            "     WHERE l.book_num = s.book_num " +
+            "       AND l.member_id = :memberId " +
+            "       ) AS isLiked " +
             "FROM storybook s " +
             "JOIN member m ON s.member_id = m.id " +
             "ORDER BY " +
@@ -75,7 +87,7 @@ public interface StorybookRepository extends JpaRepository<StorybookEntity, Inte
             "    CASE WHEN :sort = 'new' THEN s.created_at END DESC",
             countQuery = "SELECT COUNT(*) FROM storybook s",
             nativeQuery = true)
-    Page<StorybookListDTO> hotORnewPage(@Param("sort") String sort, Pageable pageable);
+    Page<StorybookListDTO> hotORnewPage(@Param("memberId") UUID memberId, @Param("sort") String sort, Pageable pageable);
 
     // 검색
     @Query(value = "SELECT " +
@@ -89,7 +101,13 @@ public interface StorybookRepository extends JpaRepository<StorybookEntity, Inte
             "     WHERE md.num = s.book_num AND md.media_type = 'image' AND md.status = 'upload'" + // m.게시물번호_컬럼 = s.고유번호_컬럼
             "     ORDER BY md.uploaded_at ASC " + // m.업로드시간_컬럼
             "     LIMIT 1) AS thumbnail, " +
-            "     m.nickname AS nickname " +
+            "     m.nickname AS nickname, " +
+            "EXISTS ( " +
+            "     SELECT 1 " +
+            "     FROM likedbook l " +
+            "     WHERE l.book_num = s.book_num " +
+            "       AND l.member_id = :loginUserId " +
+            "       ) AS isLiked " +
             "FROM storybook s " +
             "JOIN story_tag st ON s.book_num = st.booknum " +
             "JOIN tag_master tm ON st.tag_id = tm.tag_id " +
@@ -97,6 +115,6 @@ public interface StorybookRepository extends JpaRepository<StorybookEntity, Inte
             "WHERE tm.tag_name LIKE CONCAT('%', :keyword, '%') " +
             "ORDER BY s.created_at DESC",
             nativeQuery = true)
-    Page<StorybookListDTO> findbykeyword(@Param("keyword") String keyword, Pageable pageable);
+    Page<StorybookListDTO> findbykeyword(@Param("loginUserId") UUID loginUserId, @Param("keyword") String keyword, Pageable pageable);
 
 }

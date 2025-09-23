@@ -92,6 +92,7 @@ public class EditorController {
                        @AuthenticationPrincipal UserDetailsImpl userDetails) {
         StorybookDTO dto = editorService.getstory(booknum);
 
+        // 수정 삭제 토글을 위한 작성자 본인인지 판단
         boolean isAuthor = false;
         if (userDetails != null) {
             UUID loginUserId = userDetails.getId(); // UUID 타입
@@ -100,8 +101,13 @@ public class EditorController {
             }
         }
 
+        // 로그인 여부 판단
+        boolean isAuthenticated = (userDetails != null);
+
         model.addAttribute("post",dto);
         model.addAttribute("isAuthor",isAuthor);
+        model.addAttribute("isAuthenticated", isAuthenticated);
+
         return "storyview";
     }
 
@@ -153,6 +159,7 @@ public class EditorController {
                             @RequestParam(name = "size", defaultValue = "6") int size,
                             @RequestParam(name = "keyword", required = false) String keyword){
 
+        UUID loginUserId = userDetails != null ? userDetails.getId() : null;
         String email = null;
         if(userDetails != null){
             email = userDetails.getEmail();
@@ -161,7 +168,6 @@ public class EditorController {
             model.addAttribute("templist",tempsaveList);
 
         }
-
 
         try {
             // Ensure page is at least 0
@@ -173,7 +179,7 @@ public class EditorController {
 
             if (keyword != null && !keyword.isEmpty()) {
                 // 검색 키워드 있을 때
-                Page<StorybookListDTO> searchList = editorService.getSearchList(keyword, page, size);
+                Page<StorybookListDTO> searchList = editorService.getSearchList(loginUserId,keyword, page, size);
                 if (searchList.getTotalElements() == 0) {
                     model.addAttribute("pagelist", null);
                 } else {
@@ -195,12 +201,18 @@ public class EditorController {
             }
             else if (sort == null || "random".equals(sort)) {
                 // 랜덤 정렬의 경우
-                List<StorybookListDTO> storybookList = editorService.getStorybookList("random");
+                List<StorybookListDTO> storybookList = editorService.getStorybookList(loginUserId,"random");
+
+                for (StorybookListDTO story : storybookList) {
+                    System.out.println("booknum: " + story.getBooknum());
+                    System.out.println("title: " + story.getTitle());
+                    System.out.println("isLiked: " + story.getIsLiked());
+                }
                 model.addAttribute("storylist", storybookList);
                 model.addAttribute("pagelist", null);
             } else {
                 // 인기순(hot) 또는 최신순(new) 정렬의 경우
-                Page<StorybookListDTO> hotORnewList = editorService.gethotORnewList(sort, page, size);
+                Page<StorybookListDTO> hotORnewList = editorService.gethotORnewList(loginUserId,sort, page, size);
                 
                 // 모델에 데이터 추가
                 model.addAttribute("pagelist", hotORnewList.getContent());
@@ -301,6 +313,7 @@ public class EditorController {
             @RequestParam Integer booknum,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
+
         int likes = editorService.unlikeBook(booknum, userDetails.getId());
         return ResponseEntity.ok(Map.of("likes", likes, "liked", false));
     }
@@ -315,8 +328,13 @@ public class EditorController {
     public ResponseEntity<Map<String, Object>> isLiked(
             @RequestParam Integer booknum,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
-
-        boolean liked = editorService.isLiked(booknum, userDetails.getId());
+        System.out.println("컨트롤러");
+        boolean liked = false;
+        if (userDetails != null) {
+            liked = editorService.isLiked(booknum, userDetails.getId());
+            System.out.println("userId: " + userDetails.getId());
+        }
+        System.out.println("liked: "+ liked);
         return ResponseEntity.ok(Map.of("liked", liked));
     }
 

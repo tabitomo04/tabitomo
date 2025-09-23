@@ -1,3 +1,7 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
 <div class="chatbot-container" sec:authorize="isAuthenticated()" th:fragment="chatbot-container">
   <button id="chatbotToggle" class="chatbot-toggle">
     <i class="fas fa-comment-dots"></i>
@@ -9,4 +13,5 @@
     <i class="fas fa-times"></i>
   </button>
 </div>
-
+</body>
+</html>

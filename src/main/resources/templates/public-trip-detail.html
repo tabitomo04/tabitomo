@@ -49,7 +49,7 @@
                     <img th:case="'세종특별자치시'" th:src="@{/image/korean local image/세종특별자치시.jpg}" class="img-fluid rounded" th:alt="${trip.accommodation.region}">
                     <img th:case="'서울특별시'" th:src="@{/image/korean local image/서울특별시.jpeg}" class="img-fluid rounded" th:alt="${trip.accommodation.region}">
                     <img th:case="'경상남도'" th:src="@{/image/korean local image/경상남도.png}" class="img-fluid rounded" th:alt="${trip.accommodation.region}">
-                    <img th:case="*'" th:src="@{/image/korean local image/{region}.jpg(region=${trip.accommodation.region})}" class="img-fluid rounded" th:alt="${trip.accommodation.region}" onerror="this.style.display='none'">
+                    <img th:case="*" th:src="@{/image/korean local image/{region}.jpg(region=${trip.accommodation.region})}" class="img-fluid rounded" th:alt="${trip.accommodation.region}" onerror="this.style.display='none'">
                 </th:block>
             </div>
 

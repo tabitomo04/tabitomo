@@ -42,7 +42,19 @@
 <main class="container py-5">
     <!-- Trip Title and Dates -->
     <div class="plan-summary mb-4">
-        <h1 class="mb-3" th:text="${trip.title}" data-translatable>여행 계획 이름</h1>
+        <div class="d-flex align-items-center mb-3">
+            <h1 class="mb-0 me-3" th:text="${trip.title}" data-translatable>여행 계획 이름</h1>
+            <div th:if="${trip.accommodation != null and trip.accommodation.region != null}">
+                <th:block th:switch="${trip.accommodation.region}">
+                    <img th:case="'제주도'" th:src="@{/image/korean local image/제주도.jpeg}" class="rounded" th:alt="${trip.accommodation.region}" style="height: 50px; width: 50px; object-fit: cover;">
+                    <img th:case="'제주특별자치도'" th:src="@{/image/korean local image/제주도.jpeg}" class="rounded" th:alt="${trip.accommodation.region}" style="height: 50px; width: 50px; object-fit: cover;">
+                    <img th:case="'세종특별자치시'" th:src="@{/image/korean local image/세종특별자치시.jpg}" class="rounded" th:alt="${trip.accommodation.region}" style="height: 50px; width: 50px; object-fit: cover;">
+                    <img th:case="'서울특별시'" th:src="@{/image/korean local image/서울특별시.jpeg}" class="rounded" th:alt="${trip.accommodation.region}" style="height: 50px; width: 50px; object-fit: cover;">
+                    <img th:case="'경상남도'" th:src="@{/image/korean local image/경상남도.png}" class="rounded" th:alt="${trip.accommodation.region}" style="height: 50px; width: 50px; object-fit: cover;">
+                    <img th:case="*" th:src="@{/image/korean local image/{region}.jpg(region=${trip.accommodation.region})}" class="rounded" th:alt="${trip.accommodation.region}" style="height: 50px; width: 50px; object-fit: cover;" onerror="this.style.display='none'">
+                </th:block>
+            </div>
+        </div>
         <p class="lead" th:if="${trip.startDate != null and trip.endDate != null}">
             <strong data-translatable>여행 기간:</strong>
             <span th:text="${#temporals.format(trip.startDate, 'yyyy-MM-dd')}"></span> ~
@@ -57,22 +69,15 @@
         </div>
         <div class="card-body">
             <div th:if="${trip.accommodation != null}">
-                <div class="row align-items-center">
-                    <div class="col-md-4" th:if="${trip.accommodation.imageUrl != null and !trip.accommodation.imageUrl.isEmpty()}">
-                        <img th:src="${trip.accommodation.imageUrl}" class="img-fluid rounded" alt="숙소 이미지">
-                    </div>
-                    <div th:classappend="${trip.accommodation.imageUrl != null and !trip.accommodation.imageUrl.isEmpty()} ? 'col-md-8' : 'col-md-12'">
-                        <h5 th:text="${trip.accommodation.name}" data-translatable>숙소 이름</h5>
-                        <p class="mb-1" th:if="${trip.accommodation.address != null}">
-                            <i class="fas fa-map-marker-alt me-1 text-muted"></i>
-                            <span th:text="${trip.accommodation.address}" data-translatable></span>
-                        </p>
-                        <p class="mb-0 text-muted" th:if="${trip.accommodation.description != null}">
-                            <i class="fas fa-info-circle me-1"></i>
-                            <span th:text="${trip.accommodation.description}" data-translatable></span>
-                        </p>
-                    </div>
-                </div>
+                <h5 th:text="${trip.accommodation.name}" data-translatable>숙소 이름</h5>
+                <p class="mb-1" th:if="${trip.accommodation.address != null}">
+                    <i class="fas fa-map-marker-alt me-1 text-muted"></i>
+                    <span th:text="${trip.accommodation.address}" data-translatable></span>
+                </p>
+                <p class="mb-0 text-muted" th:if="${trip.accommodation.description != null}">
+                    <i class="fas fa-info-circle me-1"></i>
+                    <span th:text="${trip.accommodation.description}" data-translatable></span>
+                </p>
             </div>
             <div th:unless="${trip.accommodation != null}">
                 <p class="mb-0" data-translatable>저장된 추천 숙소 정보가 없습니다.</p>

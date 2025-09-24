@@ -204,6 +204,7 @@ let editorInstance;
         simpleUpload:{
             uploadUrl : 'http://localhost:8080/upload'
         },
+
         mediaEmbed: {
             previewsInData: true
         }

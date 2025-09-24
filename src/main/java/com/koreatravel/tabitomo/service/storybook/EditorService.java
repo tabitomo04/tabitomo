@@ -113,21 +113,21 @@ public class EditorService {
             // temp 미디어 조회
             List<MediaEntity> mediaList = mediaRepository.findByNumAndStatus(saveRequestDTO.getTempId(), "temp");
 
-            // 서버 파일 삭제
-            for (MediaEntity media : mediaList) {
-                // mediaUrl: /tabitomo/uploadedImages/파일명
-                String fileName = Paths.get(media.getMediaUrl()).getFileName().toString();
-                String filePath = System.getProperty("user.dir") + "/tabitomo/uploadedImages/" + fileName;
-
-
-                File file = new File(filePath);
-                if (file.exists()) {
-                    boolean deleted = file.delete();
-                    if (!deleted) {
-                        System.out.println("파일 삭제 실패: " + filePath);
-                    }
-                }
-            }
+//            // 서버 파일 삭제
+//            for (MediaEntity media : mediaList) {
+//                // mediaUrl: /tabitomo/uploadedImages/파일명
+//                String fileName = Paths.get(media.getMediaUrl()).getFileName().toString();
+//                String filePath = System.getProperty("user.dir") + "/tabitomo/uploadedImages/" + fileName;
+//
+//
+//                File file = new File(filePath);
+//                if (file.exists()) {
+//                    boolean deleted = file.delete();
+//                    if (!deleted) {
+//                        System.out.println("파일 삭제 실패: " + filePath);
+//                    }
+//                }
+//            }
 
             // 기존 임시저장 글의 미디어 삭제 (temp)
             mediaRepository.deleteByNumAndStatus(saveRequestDTO.getTempId(), "temp");
@@ -213,21 +213,21 @@ public class EditorService {
         // 미디어 조회
         List<MediaEntity> mediaList = mediaRepository.findByNumAndStatus(booknum, "upload");
 
-        // 서버 파일 삭제
-        for (MediaEntity media : mediaList) {
-            // mediaUrl: /tabitomo/tabitomo/uploadedImages/파일명
-            String fileName = Paths.get(media.getMediaUrl()).getFileName().toString();
-            String filePath = System.getProperty("user.dir") + "/tabitomo/uploadedImages/" + fileName;
-
-
-            File file = new File(filePath);
-            if (file.exists()) {
-                boolean deleted = file.delete();
-                if (!deleted) {
-                    System.out.println("파일 삭제 실패: " + filePath);
-                }
-            }
-        }
+//        // 서버 파일 삭제
+//        for (MediaEntity media : mediaList) {
+//            // mediaUrl: /tabitomo/tabitomo/uploadedImages/파일명
+//            String fileName = Paths.get(media.getMediaUrl()).getFileName().toString();
+//            String filePath = System.getProperty("user.dir") + "/tabitomo/uploadedImages/" + fileName;
+//
+//
+//            File file = new File(filePath);
+//            if (file.exists()) {
+//                boolean deleted = file.delete();
+//                if (!deleted) {
+//                    System.out.println("파일 삭제 실패: " + filePath);
+//                }
+//            }
+//        }
         // 미디어 데이터 삭제
         mediaRepository.deleteByNum(booknum);
 
@@ -270,20 +270,20 @@ public class EditorService {
             // 미디어 조회
             List<MediaEntity> mediaList = mediaRepository.findByNumAndStatus(saveRequestDTO.getTempId(), "temp");
 
-            // 서버 파일 삭제
-            for (MediaEntity media : mediaList) {
-                // mediaUrl: /tabitomo/uploadedImages/파일명
-                String fileName = Paths.get(media.getMediaUrl()).getFileName().toString();
-                String filePath = System.getProperty("user.dir") + "/tabitomo/uploadedImages/" + fileName;
-
-                File file = new File(filePath);
-                if (file.exists()) {
-                    boolean deleted = file.delete();
-                    if (!deleted) {
-                        System.out.println("파일 삭제 실패: " + filePath);
-                    }
-                }
-            }
+//            // 서버 파일 삭제
+//            for (MediaEntity media : mediaList) {
+//                // mediaUrl: /tabitomo/uploadedImages/파일명
+//                String fileName = Paths.get(media.getMediaUrl()).getFileName().toString();
+//                String filePath = System.getProperty("user.dir") + "/tabitomo/uploadedImages/" + fileName;
+//
+//                File file = new File(filePath);
+//                if (file.exists()) {
+//                    boolean deleted = file.delete();
+//                    if (!deleted) {
+//                        System.out.println("파일 삭제 실패: " + filePath);
+//                    }
+//                }
+//            }
 
             mediaRepository.deleteByNumAndStatus(saveRequestDTO.getTempId(),"temp");
             tempsaveRepository.deleteById(saveRequestDTO.getTempId());
@@ -363,21 +363,21 @@ public class EditorService {
             // 미디어 조회
             List<MediaEntity> mediaList = mediaRepository.findByNumAndStatus(saveRequestDTO.getBooknum(), "upload");
 
-            // 서버 파일 삭제
-            for (MediaEntity media : mediaList) {
-                // mediaUrl: /tabitomo/uploadedImages/파일명
-                String fileName = Paths.get(media.getMediaUrl()).getFileName().toString();
-                String filePath = System.getProperty("user.dir") + "/tabitomo/uploadedImages/" + fileName;
-
-
-                File file = new File(filePath);
-                if (file.exists()) {
-                    boolean deleted = file.delete();
-                    if (!deleted) {
-                        System.out.println("파일 삭제 실패: " + filePath);
-                    }
-                }
-            }
+//            // 서버 파일 삭제
+//            for (MediaEntity media : mediaList) {
+//                // mediaUrl: /tabitomo/uploadedImages/파일명
+//                String fileName = Paths.get(media.getMediaUrl()).getFileName().toString();
+//                String filePath = System.getProperty("user.dir") + "/tabitomo/uploadedImages/" + fileName;
+//
+//
+//                File file = new File(filePath);
+//                if (file.exists()) {
+//                    boolean deleted = file.delete();
+//                    if (!deleted) {
+//                        System.out.println("파일 삭제 실패: " + filePath);
+//                    }
+//                }
+//            }
 
             // 기존 미디어 삭제 (upload)
             mediaRepository.deleteByNumAndStatus(saveRequestDTO.getBooknum(), "upload");
@@ -460,20 +460,20 @@ public void tempdel(Integer tempId) {
     // 미디어 조회
     List<MediaEntity> mediaList = mediaRepository.findByNumAndStatus(tempId, "temp");
 
-    // 서버 파일 삭제
-    for (MediaEntity media : mediaList) {
-        // mediaUrl: /tabitomo/uploadedImages/파일명
-        String fileName = Paths.get(media.getMediaUrl()).getFileName().toString();
-        String filePath = System.getProperty("user.dir") + "/tabitomo/uploadedImages/" + fileName;
-
-        File file = new File(filePath);
-        if (file.exists()) {
-            boolean deleted = file.delete();
-            if (!deleted) {
-                System.out.println("파일 삭제 실패: " + filePath);
-            }
-        }
-    }
+//    // 서버 파일 삭제
+//    for (MediaEntity media : mediaList) {
+//        // mediaUrl: /tabitomo/uploadedImages/파일명
+//        String fileName = Paths.get(media.getMediaUrl()).getFileName().toString();
+//        String filePath = System.getProperty("user.dir") + "/tabitomo/uploadedImages/" + fileName;
+//
+//        File file = new File(filePath);
+//        if (file.exists()) {
+//            boolean deleted = file.delete();
+//            if (!deleted) {
+//                System.out.println("파일 삭제 실패: " + filePath);
+//            }
+//        }
+//    }
         // 미디어 데이터 삭제
         mediaRepository.deleteByNum(tempId);
 

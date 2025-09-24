@@ -48,7 +48,6 @@ public class EditorController {
     @ResponseBody
     public ResponseEntity<Map<String,Object>> save(@RequestBody SaveRequestDTO saveRequestDTO,
                                                    @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        System.out.println("컨트롤러");
         Map<String,Object> response = new HashMap<>();
         try {
             if (userDetails == null) {

@@ -10,7 +10,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    private static final String UPLOAD_DIR = System.getProperty("user.dir") + "/uploadedImages/";
+    private static final String UPLOAD_DIR = System.getProperty("user.dir") + "/tabitomo/uploadedImages/";
 
     @Bean
     public RestTemplate restTemplate() {
@@ -37,6 +37,6 @@ public class WebConfig implements WebMvcConfigurer {
 
         // CKEditor 업로드 파일 매핑
         registry.addResourceHandler("/uploadedImages/**")
-                .addResourceLocations("file:" + UPLOAD_DIR);
+                .addResourceLocations("file:" + UPLOAD_DIR + "/");
     }
 }

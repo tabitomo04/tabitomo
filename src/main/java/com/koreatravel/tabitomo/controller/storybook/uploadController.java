@@ -1,8 +1,6 @@
 package com.koreatravel.tabitomo.controller.storybook;
 
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -52,5 +50,13 @@ public class uploadController {
             e.printStackTrace();
         }
         return response;
+    }
+
+    @GetMapping("/check-dir")
+    @ResponseBody
+    public String checkWorkingDir() {
+        String dir = System.getProperty("user.dir");
+        System.out.println("현재 작업 디렉터리: " + dir);
+        return dir;
     }
 }

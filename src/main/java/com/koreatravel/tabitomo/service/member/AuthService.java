@@ -193,7 +193,22 @@ public class AuthService implements AuthServiceInterface {
     }
     
     @Override
-    public boolean resetPassword(String email, String newPassword) {
+    public boolean verifyAndResetPassword(String email, String token, String newPassword) {
+        // 토큰 유효성 검사
+        String storedToken = resetTokens.get(email);
+        Long expirationTime = tokenExpiration.get(email);
+        
+        if (storedToken == null || !storedToken.equals(token)) {
+            return false; // 토큰이 일치하지 않음
+        }
+        
+        if (expirationTime == null || System.currentTimeMillis() > expirationTime) {
+            // 토큰 만료
+            resetTokens.remove(email);
+            tokenExpiration.remove(email);
+            return false;
+        }
+        
         // 비밀번호 업데이트
         try {
             MemberEntity member = memberRepository.findByEmail(email)
@@ -201,6 +216,10 @@ public class AuthService implements AuthServiceInterface {
                 
             member.setPassword(passwordEncoder.encode(newPassword));
             memberRepository.save(member);
+            
+            // 토큰 사용 후 삭제
+            resetTokens.remove(email);
+            tokenExpiration.remove(email);
             
             return true;
         } catch (Exception e) {

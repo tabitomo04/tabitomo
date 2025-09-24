@@ -103,9 +103,10 @@ public class AuthController {
             // 서비스를 통해 로그인 처리 및 사용자 프로필 가져오기
             MemberProfileDTO memberProfile = authService.login(email, password);
             
-            // 세션에 사용자 정보 저장 (MemberProfileDTO에 이미 questionnaireCompleted 필드가 있음)
-            session.setAttribute("user", memberProfile);
+            // 세션에 최소한의 사용자 정보만 저장
+            session.setAttribute("userId", memberProfile.getId());
             session.setAttribute("authenticatedEmail", email);
+            // 설문조사 완료 여부는 세션에만 저장 (MemberProfileDTO 대신)
             session.setAttribute("questionnaireCompleted", memberProfile.isQuestionnaireCompleted());
             
             // 세션에 저장된 값 확인 로그

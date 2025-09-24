@@ -106,8 +106,8 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
                 session.invalidate();
                 session = request.getSession(true); // 새로운 세션 생성
                 
-                // 세션에 사용자 정보 저장
-                session.setAttribute("user", memberProfile);
+                // 세션에 최소한의 사용자 정보만 저장
+                session.setAttribute("userId", memberProfile.getId());
                 session.setAttribute("authenticatedEmail", email);
                 session.setAttribute("questionnaireCompleted", memberProfile.isQuestionnaireCompleted());
                 

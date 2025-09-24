@@ -49,7 +49,7 @@
                     <img th:case="'세종특별자치시'" th:src="@{/image/korean local image/세종특별자치시.jpg}" class="img-fluid rounded" th:alt="${trip.accommodation.region}">
                     <img th:case="'서울특별시'" th:src="@{/image/korean local image/서울특별시.jpeg}" class="img-fluid rounded" th:alt="${trip.accommodation.region}">
                     <img th:case="'경상남도'" th:src="@{/image/korean local image/경상남도.png}" class="img-fluid rounded" th:alt="${trip.accommodation.region}">
-                    <img th:case="*" th:src="@{/image/korean local image/{region}.jpg(region=${trip.accommodation.region})}" class="img-fluid rounded" th:alt="${trip.accommodation.region}" onerror="this.style.display='none'">
+                    <img th:case="*'" th:src="@{/image/korean local image/{region}.jpg(region=${trip.accommodation.region})}" class="img-fluid rounded" th:alt="${trip.accommodation.region}" onerror="this.style.display='none'">
                 </th:block>
             </div>
 
@@ -77,11 +77,11 @@
                         <h5 th:text="${trip.accommodation.name}" data-translatable>숙소 이름</h5>
                         <p class="mb-1" th:if="${trip.accommodation.address != null}">
                             <i class="fas fa-map-marker-alt me-1 text-muted"></i>
-                            <span th:text="${trip.accommodation.address}" data-translatable></span>
+                            <span th:text="${trip.accommodation.address}" data-translatable>주소</span>
                         </p>
                         <p class="mb-0 text-muted" th:if="${trip.accommodation.description != null}">
                             <i class="fas fa-info-circle me-1"></i>
-                            <span th:text="${trip.accommodation.description}" data-translatable></span>
+                            <span th:text="${trip.accommodation.description}" data-translatable>설명</span>
                         </p>
                     </div>
                     <div th:unless="${trip.accommodation != null}">
@@ -104,12 +104,12 @@
                     </div>
                     <div th:unless="${schedules.isEmpty()}">
                         <div th:each="schedule, iterStat : ${schedules}" th:with="isNewDay=${iterStat.index == 0 or schedules[iterStat.index - 1].day != schedule.day}">
-                            <h4 class="mt-4 mb-3" th:if="${isNewDay}" th:text="|${schedule.day}일차|"></h4>
+                            <h4 class="mt-4 mb-3" th:if="${isNewDay}"><span th:text="${schedule.day}"></span><span data-translatable>일차</span></h4>
                             <div class="card mb-3">
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-start">
                                         <div>
-                                            <h5 class="card-title mb-1" th:text="${schedule.place.name}">장소 이름</h5>
+                                            <h5 class="card-title mb-1" th:text="${schedule.place.name}" data-translatable>장소 이름</h5>
                                             <p class="card-text mb-1">
                                                 <small class="text-muted">
                                                     <i class="far fa-clock me-1"></i>
@@ -119,7 +119,7 @@
                                             <p class="card-text" th:if="${schedule.place.address != null}">
                                                 <small class="text-muted">
                                                     <i class="fas fa-map-marker-alt me-1"></i>
-                                                    <span th:text="${schedule.place.address}"></span>
+                                                    <span th:text="${schedule.place.address}" data-translatable>주소</span>
                                                 </small>
                                             </p>
                                         </div>
@@ -146,9 +146,75 @@
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Script content remains the same
+document.addEventListener('DOMContentLoaded', function () {
+    function showToast(messageKey, defaultText) {
+        const toastNotification = document.getElementById('toastNotification');
+        if (!toastNotification) return;
+
+        const toastSpan = toastNotification.querySelector('span');
+        toastSpan.setAttribute('data-translatable', messageKey);
+        toastSpan.textContent = defaultText;
+
+        if(window.translationManager) {
+            window.translationManager.applyCurrentLanguage(toastNotification);
+        }
+
+        toastNotification.classList.add('show');
+
+        setTimeout(() => {
+            toastNotification.classList.remove('show');
+        }, 3000);
+    }
+
+    const favoriteButtons = document.querySelectorAll('.favorite-btn');
+
+    favoriteButtons.forEach(btn => {
+        const placeId = btn.dataset.placeId;
+        fetch(`/api/favorites/status?placeId=${placeId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.isFavorite) {
+                    btn.classList.remove('far');
+                    btn.classList.add('fas');
+                }
+            })
+            .catch(() => {});
     });
+
+    favoriteButtons.forEach(btn => {
+        btn.addEventListener('click', function () {
+            const placeId = this.dataset.placeId;
+            const isFavorite = this.classList.contains('fas');
+
+            fetch('/api/favorites', {
+                method: isFavorite ? 'DELETE' : 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ placeId: placeId })
+            })
+            .then(response => {
+                if (response.ok) {
+                    this.classList.toggle('far');
+                    this.classList.toggle('fas');
+                    if (isFavorite) {
+                        showToast('favorite.removed', '즐겨찾기에서 삭제되었습니다.');
+                    } else {
+                        showToast('favorite.added', '즐겨찾기에 추가되었습니다.');
+                    }
+                } else {
+                    response.json().then(err => {
+                        showToast('favorite.error', '즐겨찾기 작업 중 오류가 발생했습니다.');
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('favorite.network.error', '네트워크 오류가 발생했습니다.');
+            });
+        });
+    });
+});
 </script>
 
 </body>

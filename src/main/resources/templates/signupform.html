@@ -106,37 +106,40 @@
   <div th:replace="~{fragments/header :: header}"></div>
   <div th:replace="~{fragments/menu :: menu}"></div>
 
-  <main class="main-content">
     <div class="container">
       <div class="form-container">
         <h1 class="form-title" data-translatable>회원가입</h1>
         <form th:action="@{/auth/signup}" th:object="${member}" method="post" onsubmit="return handleSubmit(event)">
           <!-- 이메일 입력 필드 -->
+          <input type="hidden" id="email" name="email" th:field="*{email}">
           <div class="mb-3">
-            <label for="emailId" class="form-label" data-translatable>이메일</label>
+            <div class="form-label" data-translatable>이메일</div>
             <div class="d-flex align-items-center gap-2">
-              <div class="d-flex align-items-center flex-grow-1">
+              <div class="d-flex align-items-center flex-grow-1" role="group" aria-label="이메일 주소 입력">
                 <input type="text" class="form-control" id="emailId" name="emailId" placeholder="아이디" required 
-                        style="max-width: 180px;" onchange="resetEmailCheck()" th:field="*{emailId}" data-translatable="placeholder">
-                <span class="mx-2">@</span>
+                        style="max-width: 180px;" onchange="resetEmailCheck()" th:field="*{emailId}" 
+                        data-translatable="placeholder" aria-label="이메일 아이디">
+                <span class="mx-2" aria-hidden="true">@</span>
                 <input type="text" class="form-control" id="emailDomain" name="emailDomain" placeholder="도메인" required 
-                        style="max-width: 180px;" onchange="resetEmailCheck()" th:field="*{emailDomain}" data-translatable="placeholder">
+                        style="max-width: 180px;" onchange="resetEmailCheck()" th:field="*{emailDomain}" 
+                        data-translatable="placeholder" aria-label="이메일 도메인">
               </div>
               <button type="button" class="btn btn-outline-primary" 
                        style="min-width: 100px; white-space: nowrap;"
-                       onclick="checkEmail()" data-translatable>
+                       onclick="checkEmail()" id="emailCheckBtn"
+                       data-translatable>
                 중복확인
               </button>
               <button type="button" id="emailVerifyBtn" class="btn btn-outline-success ms-2" 
                       style="display: none; min-width: 100px; white-space: nowrap;"
-                      data-translatable>
+                      aria-label="이메일 인증" data-translatable>
                 인증하기
               </button>
             </div>
             <div id="emailCheckResult" class="validation-message mt-1"></div>
           </div>
 
-          <!-- 비밀번호 입력 -->
+{{ ... }}
           <div class="mb-4">
             <label for="password" class="form-label" data-translatable>비밀번호</label>
             <input type="password" class="form-control" id="password" name="password" th:field="*{password}" placeholder="8자 이상의 영문, 숫자, 특수문자 조합" data-translatable="placeholder">

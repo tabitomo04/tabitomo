@@ -11,19 +11,13 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.UUID;
 
 import jakarta.servlet.http.Cookie;
-<<<<<<< Updated upstream
-=======
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
->>>>>>> Stashed changes
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
-import org.springframework.http.MediaType;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -34,6 +28,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.client.RestTemplate;
+
+import org.springframework.web.bind.annotation.CookieValue;
+
 
 @Slf4j
 @Controller
@@ -48,56 +45,17 @@ public class AuthController {
 
     // 로그인 페이지 이동
     @GetMapping("/login")
-<<<<<<< Updated upstream
     public String loginPage(@CookieValue(value = "savedEmail", required = false) String savedEmail,
                           @RequestParam(value = "error", required = false) String error,
                           Model model) {
-=======
-    public String loginPage(
-            @CookieValue(value = "savedEmail", required = false) String savedEmail,
-            @RequestParam(value = "error", required = false) String error,
-            @RequestParam(value = "message", required = false) String message,
-            @RequestParam(value = "expired", required = false) String expired,
-            @RequestParam(value = "logout", required = false) String logout,
-            HttpServletRequest request,
-            Model model) {
-        
-        // 저장된 이메일이 있으면 모델에 추가
->>>>>>> Stashed changes
         if (savedEmail != null && !savedEmail.isEmpty()) {
             model.addAttribute("savedEmail", savedEmail);
             model.addAttribute("rememberEmail", true);
         }
         
-<<<<<<< Updated upstream
         // 에러 파라미터가 있는 경우 모델에 추가
         if (error != null && !error.isEmpty()) {
             model.addAttribute("error", error);
-=======
-        // 에러 메시지 처리
-        if (error != null) {
-            String errorMessage = message;
-            
-            if (errorMessage == null || errorMessage.isEmpty()) {
-                if ("true".equals(error)) {
-                    errorMessage = "이메일 또는 비밀번호가 일치하지 않습니다.";
-                } else if ("unauthorized".equals(error)) {
-                    errorMessage = "로그인이 필요한 서비스입니다.";
-                } else if (expired != null) {
-                    errorMessage = "세션이 만료되었습니다. 다시 로그인해주세요.";
-                    model.addAttribute("error", "expired");
-                } else {
-                    errorMessage = "로그인 중 오류가 발생했습니다.";
-                }
-            }
-            
-            model.addAttribute("error", error);
-            model.addAttribute("message", errorMessage);
-        } 
-        // 로그아웃 메시지 처리
-        else if (logout != null) {
-            model.addAttribute("message", "로그아웃 되었습니다.");
->>>>>>> Stashed changes
         }
         
         return "loginform";
@@ -246,110 +204,6 @@ public class AuthController {
     public String logout(HttpSession session) {
         session.invalidate();
         return "redirect:/";
-    }
-
-    // 인증번호 발송
-    @PostMapping("/send-verification-code")
-    public ResponseEntity<?> sendVerificationCode(@RequestParam String email) {
-        try {
-            // 이메일 유효성 검사
-            if (email == null || email.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(
-                    Map.of("success", false, "message", "이메일을 입력해주세요.")
-                );
-            }
-
-            // 이메일 형식 검증
-            if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
-                return ResponseEntity.badRequest().body(
-                    Map.of("success", false, "message", "유효하지 않은 이메일 형식입니다.")
-                );
-            }
-
-            // 기존 이메일 인증 컨트롤러의 엔드포인트 호출
-            Map<String, String> request = new HashMap<>();
-            request.put("email", email);
-            
-            // EmailVerificationController의 sendVerificationEmail 호출
-            ResponseEntity<?> verificationResponse = restTemplate.postForEntity(
-                "http://localhost:8080/api/email/send-verification",
-                request,
-                Map.class
-            );
-
-            if (verificationResponse.getStatusCode() == HttpStatus.OK) {
-                Map<String, Object> response = (Map<String, Object>) verificationResponse.getBody();
-                if (response != null && Boolean.TRUE.equals(response.get("success"))) {
-                    return ResponseEntity.ok(Map.of(
-                        "success", true,
-                        "message", "인증번호가 발송되었습니다.",
-                        "code", response.get("verificationCode") // 테스트용으로만 반환
-                    ));
-                }
-            }
-            
-            return ResponseEntity.badRequest().body(
-                Map.of("success", false, "message", "인증번호 발송에 실패했습니다.")
-            );
-            
-        } catch (Exception e) {
-            log.error("인증번호 발송 중 오류 발생", e);
-            return ResponseEntity.internalServerError().body(
-                Map.of("success", false, "message", "인증번호 발송 중 오류가 발생했습니다.")
-            );
-        }
-    }
-
-    // 인증번호 확인
-    @PostMapping("/verify-code")
-    public ResponseEntity<?> verifyCode(
-            @RequestParam String email,
-            @RequestParam String code) {
-        try {
-            // 유효성 검사
-            if (email == null || email.trim().isEmpty() || code == null || code.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(
-                    Map.of("success", false, "message", "이메일과 인증번호를 입력해주세요.")
-                );
-            }
-
-            // EmailVerificationController의 verifyEmailCode 호출
-            Map<String, String> request = new HashMap<>();
-            request.put("email", email);
-            request.put("code", code);
-            
-            ResponseEntity<?> verificationResponse = restTemplate.postForEntity(
-                "http://localhost:8080/api/email/verify",
-                request,
-                Map.class
-            );
-
-            if (verificationResponse.getStatusCode() == HttpStatus.OK) {
-                Map<String, Object> response = (Map<String, Object>) verificationResponse.getBody();
-                if (response != null && Boolean.TRUE.equals(response.get("success"))) {
-                    // 비밀번호 재설정을 위한 임시 토큰 생성 (실제 구현에서는 JWT 등을 사용할 수 있음)
-                    String resetToken = UUID.randomUUID().toString();
-                    // 토큰 저장 (실제 구현에서는 Redis 등을 사용)
-                    authService.storeResetToken(email, resetToken);
-                    
-                    return ResponseEntity.ok(Map.of(
-                        "success", true,
-                        "message", "인증이 완료되었습니다.",
-                        "token", resetToken
-                    ));
-                }
-            }
-            
-            return ResponseEntity.badRequest().body(
-                Map.of("success", false, "message", "잘못된 인증번호입니다.")
-            );
-            
-        } catch (Exception e) {
-            log.error("인증번호 확인 중 오류 발생", e);
-            return ResponseEntity.internalServerError().body(
-                Map.of("success", false, "message", "인증번호 확인 중 오류가 발생했습니다.")
-            );
-        }
     }
     
     // 비밀번호 재설정

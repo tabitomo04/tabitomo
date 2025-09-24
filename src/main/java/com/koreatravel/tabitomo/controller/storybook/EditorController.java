@@ -51,7 +51,6 @@ public class EditorController {
         System.out.println("컨트롤러");
         Map<String,Object> response = new HashMap<>();
         try {
-
             if (userDetails == null) {
                 throw new RuntimeException("로그인된 사용자가 없습니다.");
             }

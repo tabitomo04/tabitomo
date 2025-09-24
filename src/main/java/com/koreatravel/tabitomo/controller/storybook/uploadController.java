@@ -13,7 +13,7 @@ import java.util.UUID;
 @RestController
 public class uploadController {
 
-    private static final String UPLOAD_DIR = System.getProperty("user.dir") + "/uploadedImages/"; // 실제 이미지 저장 경로
+    private static final String UPLOAD_DIR = System.getProperty("user.dir") + "/tabitomo/uploadedImages/"; // 실제 이미지 저장 경로
     private MultipartFile file;
 
     /**
@@ -24,7 +24,6 @@ public class uploadController {
     @PostMapping("/upload")
     public Map<String, Object> uploadImage(@RequestParam("upload") MultipartFile file) {
         this.file = file;
-
         Map<String, Object> response = new HashMap<>();
 
         try {

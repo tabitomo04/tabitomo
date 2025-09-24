@@ -115,9 +115,9 @@ public class EditorService {
 
             // 서버 파일 삭제
             for (MediaEntity media : mediaList) {
-                // mediaUrl: /uploadedImages/파일명
+                // mediaUrl: /tabitomo/uploadedImages/파일명
                 String fileName = Paths.get(media.getMediaUrl()).getFileName().toString();
-                String filePath = System.getProperty("user.dir") + "/uploadedImages/" + fileName;
+                String filePath = System.getProperty("user.dir") + "/tabitomo/uploadedImages/" + fileName;
 
 
                 File file = new File(filePath);
@@ -215,9 +215,9 @@ public class EditorService {
 
         // 서버 파일 삭제
         for (MediaEntity media : mediaList) {
-            // mediaUrl: /uploadedImages/파일명
+            // mediaUrl: /tabitomo/tabitomo/uploadedImages/파일명
             String fileName = Paths.get(media.getMediaUrl()).getFileName().toString();
-            String filePath = System.getProperty("user.dir") + "/uploadedImages/" + fileName;
+            String filePath = System.getProperty("user.dir") + "/tabitomo/uploadedImages/" + fileName;
 
 
             File file = new File(filePath);
@@ -272,9 +272,9 @@ public class EditorService {
 
             // 서버 파일 삭제
             for (MediaEntity media : mediaList) {
-                // mediaUrl: /uploadedImages/파일명
+                // mediaUrl: /tabitomo/uploadedImages/파일명
                 String fileName = Paths.get(media.getMediaUrl()).getFileName().toString();
-                String filePath = System.getProperty("user.dir") + "/uploadedImages/" + fileName;
+                String filePath = System.getProperty("user.dir") + "/tabitomo/uploadedImages/" + fileName;
 
                 File file = new File(filePath);
                 if (file.exists()) {
@@ -365,9 +365,9 @@ public class EditorService {
 
             // 서버 파일 삭제
             for (MediaEntity media : mediaList) {
-                // mediaUrl: /uploadedImages/파일명
+                // mediaUrl: /tabitomo/uploadedImages/파일명
                 String fileName = Paths.get(media.getMediaUrl()).getFileName().toString();
-                String filePath = System.getProperty("user.dir") + "/uploadedImages/" + fileName;
+                String filePath = System.getProperty("user.dir") + "/tabitomo/uploadedImages/" + fileName;
 
 
                 File file = new File(filePath);
@@ -462,9 +462,9 @@ public void tempdel(Integer tempId) {
 
     // 서버 파일 삭제
     for (MediaEntity media : mediaList) {
-        // mediaUrl: /uploadedImages/파일명
+        // mediaUrl: /tabitomo/uploadedImages/파일명
         String fileName = Paths.get(media.getMediaUrl()).getFileName().toString();
-        String filePath = System.getProperty("user.dir") + "/uploadedImages/" + fileName;
+        String filePath = System.getProperty("user.dir") + "/tabitomo/uploadedImages/" + fileName;
 
         File file = new File(filePath);
         if (file.exists()) {

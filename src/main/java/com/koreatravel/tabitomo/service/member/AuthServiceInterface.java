@@ -9,6 +9,5 @@ public interface AuthServiceInterface {
     void signup(SignUpDTO dto, int countryId, int languageId);
     MemberProfileDTO login(String email, String password);
     MemberProfileDTO getMemberProfileByEmail(String email);
-    void storeResetToken(String email, String token);
-    boolean verifyAndResetPassword(String email, String token, String newPassword);
+    boolean resetPassword(String email, String newPassword);
 }

@@ -274,6 +274,13 @@ function validatePassword(password) {
     return passwordRegex.test(password);
 }
 
+// 전역 변수로 이메일 전송 상태 관리
+let emailSendCount = 0;
+const MAX_EMAIL_SEND_ATTEMPTS = 5;
+let lastEmailSentTime = 0;
+const EMAIL_RESEND_DELAY = 60000; // 1분 (밀리초)
+let isEmailSent = false;
+
 // 인증번호 발송
 async function sendVerificationCode() {
     const email = document.getElementById('resetEmail').value.trim();
@@ -293,67 +300,162 @@ async function sendVerificationCode() {
         return;
     }
     
+    // 이미 성공적으로 이메일을 보낸 경우 다음 단계로 이동
+    if (isEmailSent && email === resetEmail) {
+        goToNextStep();
+        return;
+    }
+    
+    // 이메일이 변경된 경우 카운터 초기화
+    if (email !== resetEmail) {
+        emailSendCount = 0;
+        isEmailSent = false;
+    }
+    
+    // 이메일 전송 횟수 초과 확인
+    if (emailSendCount >= MAX_EMAIL_SEND_ATTEMPTS) {
+        emailError.textContent = '인증번호 발송 횟수를 초과했습니다. 나중에 다시 시도해주세요.';
+        emailError.style.display = 'block';
+        return;
+    }
+    
+    // 재전송 대기 시간 확인
+    const currentTime = Date.now();
+    if (currentTime - lastEmailSentTime < EMAIL_RESEND_DELAY) {
+        const remainingTime = Math.ceil((EMAIL_RESEND_DELAY - (currentTime - lastEmailSentTime)) / 1000);
+        emailError.textContent = `잠시 후 다시 시도해주세요. (${remainingTime}초 남음)`;
+        emailError.style.display = 'block';
+        return;
+    }
+    
     // 버튼 로딩 상태 설정
     const originalText = sendBtn.innerHTML;
     sendBtn.disabled = true;
     sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 전송 중...';
     
     try {
-        // 실제 API 호출로 대체해야 함
-        const response = await fetch('/api/auth/send-verification', {
+        // 서버에 인증번호 발송 요청
+        const response = await fetch('/api/email/send-verification', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.content || ''
+            },
             body: JSON.stringify({ email })
         });
 
         if (!response.ok) {
-            throw new Error('인증번호 발송에 실패했습니다.');
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || '인증번호 발송에 실패했습니다.');
         }
 
         const data = await response.json();
-        verificationCode = data.verificationCode || '123456'; // 테스트용 코드 (실제로는 서버에서 받아옴)
+        
+        if (!data.success) {
+            throw new Error(data.message || '인증번호 발송에 실패했습니다.');
+        }
+        
+        // 성공적으로 이메일을 보냈으므로 상태 업데이트
+        emailSendCount++;
+        lastEmailSentTime = Date.now();
+        resetEmail = email;
+        isEmailSent = true;
         
         // 다음 단계로 이동
         goToNextStep();
         
         // 인증번호 입력 필드로 포커스 이동
         setTimeout(() => {
-            document.getElementById('verificationCode').focus();
+            const codeInput = document.getElementById('verificationCode');
+            if (codeInput) {
+                codeInput.focus();
+            }
         }, 100);
+        
+        // 1분 후에 재전송 버튼 활성화
+        setTimeout(() => {
+            if (sendBtn) {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '인증번호 재전송';
+            }
+        }, EMAIL_RESEND_DELAY);
+        
     } catch (error) {
         console.error('Error:', error);
         emailError.textContent = error.message || '인증번호 발송 중 오류가 발생했습니다.';
         emailError.style.display = 'block';
-    } finally {
-        // 버튼 상태 복원
-        sendBtn.disabled = false;
-        sendBtn.innerHTML = originalText;
+        
+        // 오류 발생 시 버튼 상태만 복원
+        if (sendBtn) {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = originalText;
+        }
     }
 }
 
 // 인증번호 확인
-function verifyCode() {
+async function verifyCode() {
     const code = document.getElementById('verificationCode').value.trim();
     const codeError = document.getElementById('codeError');
+    const verifyBtn = document.getElementById('verifyCodeBtn');
     
     if (!code) {
         codeError.textContent = '인증번호를 입력해주세요.';
+        codeError.style.display = 'block';
         return false;
     }
     
-    if (code !== verificationCode) {
-        codeError.textContent = '인증번호가 일치하지 않습니다.';
-        return false;
-    }
+    // 버튼 로딩 상태 설정
+    const originalText = verifyBtn.innerHTML;
+    verifyBtn.disabled = true;
+    verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 확인 중...';
     
-    // 인증 성공
-    codeError.textContent = '';
-    goToNextStep();
-    return true;
+    try {
+        const email = document.getElementById('resetEmail').value.trim();
+        const response = await fetch('/api/email/verify', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.content || ''
+            },
+            body: JSON.stringify({
+                email: email,
+                code: code
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || '인증에 실패했습니다.');
+        }
+
+        const data = await response.json();
+        
+        if (!data.success) {
+            throw new Error(data.message || '인증에 실패했습니다.');
+        }
+        
+        // 인증 성공
+        codeError.textContent = '';
+        codeError.style.display = 'none';
+        goToNextStep();
+        return true;
+    } catch (error) {
+        console.error('Error:', error);
+        codeError.textContent = error.message || '인증 중 오류가 발생했습니다.';
+        codeError.style.display = 'block';
+        return false;
+    } finally {
+        verifyBtn.disabled = false;
+        verifyBtn.innerHTML = originalText;
+    }
 }
 
 // 비밀번호 재설정
 async function resetPassword() {
+    const email = resetEmail; // 이전 단계에서 저장한 이메일 사용
     const newPassword = document.getElementById('newPassword').value;
     const confirmPassword = document.getElementById('confirmNewPassword').value;
     const passwordError = document.getElementById('passwordError');
@@ -373,76 +475,96 @@ async function resetPassword() {
     // 비밀번호 유효성 검사
     if (!newPassword || !confirmPassword) {
         showError('비밀번호를 입력해주세요.', 'passwordError');
-        if (completeBtn) {
-            completeBtn.disabled = false;
-            completeBtn.innerHTML = '완료';
-        }
+        if (completeBtn) resetButtonState(completeBtn);
+        return;
+    }
+    
+    if (newPassword.length < 8) {
+        showError('비밀번호는 8자 이상이어야 합니다.', 'passwordError');
+        if (completeBtn) resetButtonState(completeBtn);
         return;
     }
     
     if (newPassword !== confirmPassword) {
         showError('비밀번호가 일치하지 않습니다.', 'passwordError');
-        if (completeBtn) {
-            completeBtn.disabled = false;
-            completeBtn.innerHTML = '완료';
-        }
+        if (completeBtn) resetButtonState(completeBtn);
         return;
     }
     
-    if (!validatePassword(newPassword)) {
-        showError('영문, 숫자, 특수문자를 포함하여 8자 이상 입력해주세요.', 'passwordError');
-        if (completeBtn) {
-            completeBtn.disabled = false;
-            completeBtn.innerHTML = '완료';
+    try {
+        // 서버로 비밀번호 재설정 요청
+        const response = await fetch('/api/auth/reset-password', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.content || ''
+            },
+            body: JSON.stringify({ 
+                email: email, 
+                newPassword: newPassword 
+            })
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || '비밀번호 재설정에 실패했습니다.');
         }
-        return;
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+            throw new Error(data.message || '비밀번호 재설정에 실패했습니다.');
+        }
+
+        // 성공 메시지 표시
+        showSuccess('비밀번호가 성공적으로 재설정되었습니다. 로그인 페이지로 이동합니다.');
+        
+        // 2초 후 로그인 페이지로 리다이렉트
+        setTimeout(() => {
+            window.location.href = '/auth/login';
+        }, 2000);
+        
+    } catch (error) {
+        console.error('Error:', error);
+        showError(error.message || '비밀번호 재설정 중 오류가 발생했습니다.', 'passwordError');
+        if (completeBtn) resetButtonState(completeBtn);
     }
     
-    // 서버로 비밀번호 재설정 요청
+    // CSRF 토큰 추가
+    const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
+    
     try {
         const response = await fetch('/api/auth/reset-password', {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || ''
+                'X-CSRF-TOKEN': csrfToken
             },
             body: JSON.stringify({
-                email: resetEmail || document.getElementById('resetEmail').value.trim(),
+                email: resetEmail || document.getElementById('resetEmail')?.value.trim() || '',
                 newPassword: newPassword,
                 verificationCode: verificationCode
             })
         });
         
-        const data = await response.json();
-        
         if (!response.ok) {
-            throw new Error(data.message || '비밀번호 재설정에 실패했습니다.');
+            const errorData = await response.json();
+            throw new Error(errorData.message || '비밀번호 재설정에 실패했습니다.');
         }
         
-        if (data.success) {
-            // 성공 메시지 표시
-            alert('비밀번호가 성공적으로 변경되었습니다. 새로운 비밀번호로 로그인해주세요.');
-            
-            // 모달 닫기
-            const modal = bootstrap.Modal.getInstance(document.getElementById('passwordModal'));
-            if (modal) {
-                modal.hide();
-            }
-            
-            // 폼 초기화
-            resetPasswordModal();
-        } else {
-            throw new Error(data.message || '비밀번호 재설정에 실패했습니다.');
-        }
+        // 성공 메시지 표시
+        showSuccess('비밀번호가 성공적으로 변경되었습니다. 2초 후 로그인 페이지로 이동합니다.');
+        
+        // 2초 후 로그인 페이지로 리다이렉트
+        setTimeout(() => {
+            window.location.href = '/auth/login';
+        }, 2000);
         
     } catch (error) {
-        console.error('비밀번호 재설정 오류:', error);
+        console.error('Error:', error);
         showError(error.message || '비밀번호 재설정 중 오류가 발생했습니다.', 'passwordError');
-    } finally {
-        if (completeBtn) {
-            completeBtn.disabled = false;
-            completeBtn.innerHTML = '완료';
-        }
+        if (completeBtn) resetButtonState(completeBtn);
     }
 }
 
@@ -467,6 +589,38 @@ function startCountdown() {
     }, 1000);
 }
 
+// 버튼 상태 초기화
+function resetButtonState(button) {
+    if (!button) return;
+    button.disabled = false;
+    if (button.id === 'completeBtn') {
+        button.textContent = '비밀번호 재설정';
+    } else if (button.id === 'sendVerificationBtn') {
+        button.textContent = '인증번호 전송';
+    }
+}
+
+// 성공 메시지 표시
+function showSuccess(message) {
+    const successAlert = document.createElement('div');
+    successAlert.className = 'alert alert-success mt-3';
+    successAlert.role = 'alert';
+    successAlert.innerHTML = `
+        <i class="fas fa-check-circle me-2"></i>
+        ${message}
+    `;
+    
+    const modalBody = document.querySelector('#passwordModal .modal-body');
+    if (modalBody) {
+        modalBody.prepend(successAlert);
+        
+        // 3초 후 메시지 숨기기
+        setTimeout(() => {
+            successAlert.remove();
+        }, 3000);
+    }
+}
+
 // 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', function() {
     // 비밀번호 토글 설정
@@ -475,30 +629,39 @@ document.addEventListener('DOMContentLoaded', function() {
     // 비밀번호 재설정 모달 이벤트 리스너
     const passwordModal = document.getElementById('passwordModal');
     if (passwordModal) {
-        // 모달이 열릴 때 초기화
-        passwordModal.addEventListener('show.bs.modal', resetPasswordModal);
+        // 모달이 닫힐 때 초기화
+        passwordModal.addEventListener('hidden.bs.modal', function() {
+            resetPasswordModal();
+        });
         
         // 다음 버튼 클릭 이벤트
-        const nextStepBtn = document.getElementById('nextStepBtn');
-        if (nextStepBtn) {
-            nextStepBtn.addEventListener('click', function() {
-                if (currentStep === 2) {
-                    if (!verifyCode()) return;
-                }
-                goToNextStep();
-            });
+        const nextBtn = document.getElementById('nextStepBtn');
+        if (nextBtn) {
+            nextBtn.addEventListener('click', goToNextStep);
         }
         
         // 이전 버튼 클릭 이벤트
-        const prevStepBtn = document.getElementById('prevStepBtn');
-        if (prevStepBtn) {
-            prevStepBtn.addEventListener('click', goToPrevStep);
+        const prevBtn = document.getElementById('prevStepBtn');
+        if (prevBtn) {
+            prevBtn.addEventListener('click', goToPrevStep);
         }
         
-        // 인증번호 발송 버튼 클릭 이벤트
+        // 완료(재설정) 버튼 클릭 이벤트
+        const completeBtn = document.getElementById('completeBtn');
+        if (completeBtn) {
+            completeBtn.addEventListener('click', resetPassword);
+        }
+        
+        // 인증번호 전송 버튼 클릭 이벤트
         const sendVerificationBtn = document.getElementById('sendVerificationBtn');
         if (sendVerificationBtn) {
             sendVerificationBtn.addEventListener('click', sendVerificationCode);
+        }
+        
+        // 인증번호 확인 버튼 클릭 이벤트
+        const verifyCodeBtn = document.getElementById('verifyCodeBtn');
+        if (verifyCodeBtn) {
+            verifyCodeBtn.addEventListener('click', verifyCode);
         }
         
         // 인증번호 재전송 버튼 클릭 이벤트
@@ -508,24 +671,24 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // 비밀번호 재설정 버튼 클릭 이벤트
-        const resetPasswordBtn = document.getElementById('resetPasswordBtn');
+        const resetPasswordBtn = document.getElementById('completeBtn');
         if (resetPasswordBtn) {
             resetPasswordBtn.addEventListener('click', resetPassword);
         }
-        
-        // 엔터 키로 폼 제출 방지
-        const verificationCodeInput = document.getElementById('verificationCode');
-        if (verificationCodeInput) {
-            verificationCodeInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    if (currentStep === 2) {
-                        if (verifyCode()) {
-                            goToNextStep();
-                        }
+    }
+    
+    // 엔터 키로 폼 제출 방지
+    const verificationCodeInput = document.getElementById('verificationCode');
+    if (verificationCodeInput) {
+        verificationCodeInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (currentStep === 2) {
+                    if (verifyCode()) {
+                        goToNextStep();
                     }
                 }
-            });
-        }
+            }
+        });
     }
 });

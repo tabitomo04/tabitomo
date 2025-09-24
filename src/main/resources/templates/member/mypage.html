@@ -97,10 +97,10 @@
 
                 <div th:if="${storylist != null and !storylist.isEmpty()}">
                     <div th:if="${(!all) and (storylist.size() > 3)}">
-                        <button class="more" th:onclick="|location.href='@{/mypage(all=true)}'|" data-translatable>더 보기 +</button>
+                        <button class="more" th:onclick="|location.href='@{/member/mypage(all=true)}'|" data-translatable>더 보기 +</button>
                     </div>
                     <div th:if="${all}">
-                        <button class="morebtn" th:onclick="|location.href='@{/mypage(all=false)}'|" data-translatable>닫기</button>
+                        <button class="morebtn" th:onclick="|location.href='@{/member/mypage(all=false)}'|" data-translatable>닫기</button>
                     </div>
                 </div>
             </section>
@@ -158,19 +158,19 @@
                 <nav th:if="${tripsPage.totalPages > 1}" class="mt-4 d-flex justify-content-center">
                     <ul class="pagination">
                         <li class="page-item" th:classappend="${tripsPage.first} ? 'disabled'">
-                            <a class="page-link" th:href="@{/mypage(tripPage=0, favPage=${favoritePlacesPage.number})}" data-translatable>처음</a>
+                            <a class="page-link" th:href="@{/member/mypage(tripPage=0, favPage=${favoritePlacesPage.number})}" data-translatable>처음</a>
                         </li>
                         <li class="page-item" th:classappend="${tripsPage.first} ? 'disabled'">
-                            <a class="page-link" th:href="@{/mypage(tripPage=${tripsPage.number - 1}, favPage=${favoritePlacesPage.number})}" data-translatable>이전</a>
+                            <a class="page-link" th:href="@{/member/mypage(tripPage=${tripsPage.number - 1}, favPage=${favoritePlacesPage.number})}" data-translatable>이전</a>
                         </li>
                         <li class="page-item" th:each="pageNumber : ${#numbers.sequence(startTripPage, endTripPage)}" th:classappend="${pageNumber == tripsPage.number} ? 'active'">
-                            <a class="page-link" th:href="@{/mypage(tripPage=${pageNumber}, favPage=${favoritePlacesPage.number})}" th:text="${pageNumber + 1}"></a>
+                            <a class="page-link" th:href="@{/member/mypage(tripPage=${pageNumber}, favPage=${favoritePlacesPage.number})}" th:text="${pageNumber + 1}"></a>
                         </li>
                         <li class="page-item" th:classappend="${tripsPage.last} ? 'disabled'">
-                            <a class="page-link" th:href="@{/mypage(tripPage=${tripsPage.number + 1}, favPage=${favoritePlacesPage.number})}" data-translatable>다음</a>
+                            <a class="page-link" th:href="@{/member/mypage(tripPage=${tripsPage.number + 1}, favPage=${favoritePlacesPage.number})}" data-translatable>다음</a>
                         </li>
                         <li class="page-item" th:classappend="${tripsPage.last} ? 'disabled'">
-                            <a class="page-link" th:href="@{/mypage(tripPage=${tripsPage.totalPages - 1}, favPage=${favoritePlacesPage.number})}" data-translatable>마지막</a>
+                            <a class="page-link" th:href="@{/member/mypage(tripPage=${tripsPage.totalPages - 1}, favPage=${favoritePlacesPage.number})}" data-translatable>마지막</a>
                         </li>
                     </ul>
                 </nav>
@@ -198,19 +198,19 @@
                 <nav th:if="${favoritePlacesPage.totalPages > 1}" class="mt-4 d-flex justify-content-center">
                     <ul class="pagination">
                         <li class="page-item" th:classappend="${favoritePlacesPage.first} ? 'disabled'">
-                            <a class="page-link" th:href="@{/mypage(favPage=0, tripPage=${tripsPage.number})}" data-translatable>처음</a>
+                            <a class="page-link" th:href="@{/member/mypage(favPage=0, tripPage=${tripsPage.number})}" data-translatable>처음</a>
                         </li>
                         <li class="page-item" th:classappend="${favoritePlacesPage.first} ? 'disabled'">
-                            <a class="page-link" th:href="@{/mypage(favPage=${favoritePlacesPage.number - 1}, tripPage=${tripsPage.number})}" data-translatable>이전</a>
+                            <a class="page-link" th:href="@{/member/mypage(favPage=${favoritePlacesPage.number - 1}, tripPage=${tripsPage.number})}" data-translatable>이전</a>
                         </li>
                         <li class="page-item" th:each="pageNumber : ${#numbers.sequence(startFavPage, endFavPage)}" th:classappend="${pageNumber == favoritePlacesPage.number} ? 'active'">
-                            <a class="page-link" th:href="@{/mypage(favPage=${pageNumber}, tripPage=${tripsPage.number})}" th:text="${pageNumber + 1}"></a>
+                            <a class="page-link" th:href="@{/member/mypage(favPage=${pageNumber}, tripPage=${tripsPage.number})}" th:text="${pageNumber + 1}"></a>
                         </li>
                         <li class="page-item" th:classappend="${favoritePlacesPage.last} ? 'disabled'">
-                            <a class="page-link" th:href="@{/mypage(favPage=${favoritePlacesPage.number + 1}, tripPage=${tripsPage.number})}" data-translatable>다음</a>
+                            <a class="page-link" th:href="@{/member/mypage(favPage=${favoritePlacesPage.number + 1}, tripPage=${tripsPage.number})}" data-translatable>다음</a>
                         </li>
                         <li class="page-item" th:classappend="${favoritePlacesPage.last} ? 'disabled'">
-                            <a class="page-link" th:href="@{/mypage(favPage=${favoritePlacesPage.totalPages - 1}, tripPage=${tripsPage.number})}" data-translatable>마지막</a>
+                            <a class="page-link" th:href="@{/member/mypage(favPage=${favoritePlacesPage.totalPages - 1}, tripPage=${tripsPage.number})}" data-translatable>마지막</a>
                         </li>
                     </ul>
                 </nav>

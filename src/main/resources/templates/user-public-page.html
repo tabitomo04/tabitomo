@@ -22,13 +22,13 @@
     <p class="text-muted mb-4" data-translatable>이 사용자가 공유한 여행 계획을 둘러보세요.</p>
 
     <section>
-        <div th:if="${trips == null or trips.isEmpty()}" class="alert alert-info" role="alert" data-translatable>
+        <div th:if="${tripsPage.empty}" class="alert alert-info" role="alert" data-translatable>
             이 사용자는 아직 공개한 여행 계획이 없습니다.
         </div>
 
-        <div class="list-group" th:unless="${trips == null or trips.isEmpty()}">
+        <div class="list-group" th:unless="${tripsPage.empty}">
             <!-- Iterate over public trips -->
-            <a th:each="trip : ${trips}" th:href="@{/public-trips/{id}(id=${trip.id})}" class="list-group-item list-group-item-action flex-column align-items-start">
+            <a th:each="trip : ${tripsPage.content}" th:href="@{/public-trips/{id}(id=${trip.id})}" class="list-group-item list-group-item-action flex-column align-items-start">
                 <div class="d-flex w-100 justify-content-between">
                     <h5 class="mb-1" th:text="${trip.title}" data-translatable>여행 계획 이름</h5>
                     <small th:if="${trip.startDate != null}"
@@ -40,6 +40,28 @@
                 </div>
             </a>
         </div>
+
+        <!-- Pagination -->
+        <nav th:if="${tripsPage.totalPages > 1}" class="mt-4 d-flex justify-content-center">
+            <ul class="pagination">
+                <li class="page-item" th:classappend="${tripsPage.first} ? 'disabled'">
+                    <a class="page-link" th:href="@{/user/{nickname}(nickname=${nickname}, page=0)}" data-translatable>처음</a>
+                </li>
+                <li class="page-item" th:classappend="${tripsPage.first} ? 'disabled'">
+                    <a class="page-link" th:href="@{/user/{nickname}(nickname=${nickname}, page=${tripsPage.number - 1})}" data-translatable>이전</a>
+                </li>
+                <li class="page-item" th:each="pageNumber : ${#numbers.sequence(startPage, endPage)}" th:classappend="${pageNumber == tripsPage.number} ? 'active'">
+                    <a class="page-link" th:href="@{/user/{nickname}(nickname=${nickname}, page=${pageNumber})}" th:text="${pageNumber + 1}"></a>
+                </li>
+                <li class="page-item" th:classappend="${tripsPage.last} ? 'disabled'">
+                    <a class="page-link" th:href="@{/user/{nickname}(nickname=${nickname}, page=${tripsPage.number + 1})}" data-translatable>다음</a>
+                </li>
+                <li class="page-item" th:classappend="${tripsPage.last} ? 'disabled'">
+                    <a class="page-link" th:href="@{/user/{nickname}(nickname=${nickname}, page=${tripsPage.totalPages - 1})}" data-translatable>마지막</a>
+                </li>
+            </ul>
+        </nav>
+
          <div class="mt-4">
             <a th:href="@{/trips/public}" class="btn btn-secondary" data-translatable>모든 공개 여행 목록으로 돌아가기</a>
         </div>

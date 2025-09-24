@@ -1,7 +1,6 @@
 package com.koreatravel.tabitomo.controller.member;
 
 import com.koreatravel.tabitomo.PathConstants;
-import com.koreatravel.tabitomo.domain.dto.member.MemberProfileDTO;
 import com.koreatravel.tabitomo.domain.dto.member.QuestionAnswersDTO;
 import com.koreatravel.tabitomo.domain.dto.member.AddInfoDTO;
 import com.koreatravel.tabitomo.service.member.AddInfoService;
@@ -32,8 +31,9 @@ public class QuestionController {
 
     @GetMapping(PathConstants.QUESTION_START)
     public String showStartPage(HttpSession session) {
-        MemberProfileDTO userProfile = (MemberProfileDTO) session.getAttribute("user");
-        if (userProfile == null || userProfile.isQuestionnaireCompleted()) {
+        // 세션에서 필요한 정보만 확인
+        Boolean isCompleted = (Boolean) session.getAttribute("questionnaireCompleted");
+        if (session.getAttribute("userId") == null || Boolean.TRUE.equals(isCompleted)) {
             return "redirect:/";
         }
         return "question/start";
@@ -41,8 +41,9 @@ public class QuestionController {
 
     @GetMapping(PathConstants.QUESTION_FORM)
     public String showQuestionForm(Model model, HttpSession session) {
-        MemberProfileDTO userProfile = (MemberProfileDTO) session.getAttribute("user");
-        if (userProfile == null || userProfile.isQuestionnaireCompleted()) {
+        // 세션에서 필요한 정보만 확인
+        Boolean isCompleted = (Boolean) session.getAttribute("questionnaireCompleted");
+        if (session.getAttribute("userId") == null || Boolean.TRUE.equals(isCompleted)) {
             return "redirect:/";
         }
 
@@ -65,15 +66,16 @@ public class QuestionController {
         HttpSession session,
         RedirectAttributes redirectAttributes) {
         
-        // 1. 세션에서 사용자 정보 확인
-        MemberProfileDTO userProfile = (MemberProfileDTO) session.getAttribute("user");
-        if (userProfile == null) {
+        // 1. 세션에서 사용자 ID 확인
+        UUID userId = (UUID) session.getAttribute("userId");
+        if (userId == null) {
             redirectAttributes.addFlashAttribute("error", "로그인이 필요합니다.");
             return "redirect:/login";
         }
 
         // 2. 이미 설문 완료한 경우
-        if (userProfile.isQuestionnaireCompleted()) {
+        Boolean isCompleted = (Boolean) session.getAttribute("questionnaireCompleted");
+        if (Boolean.TRUE.equals(isCompleted)) {
             return "redirect:/";
         }
 
@@ -92,27 +94,12 @@ public class QuestionController {
         }
 
         try {
-            // 4. 답변 저장
-            saveAnswers(userProfile.getId(), answers);
+            saveAnswers(userId, answers);
             
-            // 5. 회원 설문 상태 업데이트
-            memberService.updateQuestionnaireStatus(userProfile.getId(), true);
+            // 4. 사용자 설문조사 완료 상태 업데이트
+            memberService.updateQuestionnaireStatus(userId, true);
             
-            // 6. 세션 업데이트를 위해 새로운 객체 생성 (기존 userProfile의 필드값을 유지하면서 questionnaireCompleted만 업데이트)
-            MemberProfileDTO updatedProfile = MemberProfileDTO.builder()
-                .id(userProfile.getId())
-                .email(userProfile.getEmail())
-                .nickname(userProfile.getNickname())
-                .profileImageUrl(userProfile.getProfileImageUrl())
-                .introduction(userProfile.getIntroduction())
-                .dateOfBirth(userProfile.getDateOfBirth())
-                .gender(userProfile.getGender())
-                .questionnaireCompleted(true) // 설문 완료 상태로 업데이트
-                .role(userProfile.getRole())
-                .build();
-            
-            // 7. 세션 업데이트
-            session.setAttribute("user", updatedProfile);
+            // 5. 세션 업데이트
             session.setAttribute("questionnaireCompleted", true);
             
             return "redirect:" + PathConstants.QUESTION_COMPLETE;
@@ -161,8 +148,9 @@ public class QuestionController {
 
     @GetMapping(PathConstants.QUESTION_COMPLETE)
     public String showCompletionPage(HttpSession session) {
-        MemberProfileDTO userProfile = (MemberProfileDTO) session.getAttribute("user");
-        if (userProfile == null || !userProfile.isQuestionnaireCompleted()) {
+        // 세션에서 필요한 정보만 확인
+        Boolean isCompleted = (Boolean) session.getAttribute("questionnaireCompleted");
+        if (session.getAttribute("userId") == null || !Boolean.TRUE.equals(isCompleted)) {
             return "redirect:/";
         }
         return "question/complete";

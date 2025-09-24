@@ -31,7 +31,7 @@
     position: absolute;
     bottom: 80px;
     right: 0;
-    width: 400px; /* 크기 확대 */
+    width: 450px; /* 크기 확대 */
     height: 650px; /* 크기 확대 */
     border-radius: 12px;
     overflow: hidden;

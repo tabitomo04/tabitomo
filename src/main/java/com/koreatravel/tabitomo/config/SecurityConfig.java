@@ -34,7 +34,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/favorites/**", "/api/**", "/trip/**", "/api/translate/**", "/upload", "/storybook/save", "/storybook/tempsave")
+                        .ignoringRequestMatchers("/api/favorites/**", "/api/**", "/trip/**", "/api/translate/**", "/upload", "/storybook/save", "/storybook/tempsave", "/chat/**")
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
@@ -79,7 +79,7 @@ public class SecurityConfig {
                         ).authenticated()
                         .requestMatchers(
                                 "/chatbot/intro",
-                                "/api/chat/**",
+                                "/chat/**",
                                 "/api/send"
                         ).permitAll()
                         .anyRequest().authenticated()

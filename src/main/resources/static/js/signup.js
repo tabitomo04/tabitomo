@@ -77,8 +77,8 @@ function checkEmail() {
         return;
     }
     
-    // 이메일 인증 요청으로 변경
-    fetch('/api/email/send-verification', {
+    // 1. 먼저 이메일 중복 확인
+    fetch('/member/api/check-email', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -86,17 +86,46 @@ function checkEmail() {
         },
         body: JSON.stringify({ email: email })
     })
-    .then(async response => {
-        const responseData = await response.json().catch(() => ({}));
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('이메일 확인 중 오류가 발생했습니다.');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (!data.available) {
+            // 이메일이 이미 사용 중인 경우
+            showMessage('emailCheckResult', data.message, 'error');
+            isEmailChecked = false;
+            isEmailVerified = false;
+            throw new Error(data.message);
+        }
+        
+        // 2. 중복이 아닌 경우에만 인증 메일 발송
+        return fetch('/api/email/send-verification', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ email: email })
+        });
+    })
+    .then(response => {
+        if (!response) return; // 중복 확인 실패 시 중단
         
         if (!response.ok) {
-            const errorMessage = responseData.message || '이메일 확인 중 오류가 발생했습니다.';
-            throw new Error(errorMessage);
+            throw new Error('인증 메일 발송에 실패했습니다.');
         }
+        return response.json();
+    })
+    .then(data => {
+        if (!data) return; // 중복 확인 실패 시 중단
         
         // 성공 시 처리
         showMessage('emailCheckResult', '인증 코드가 이메일로 전송되었습니다. 인증을 진행해주세요.', 'success');
         isEmailChecked = true;
+        isEmailVerified = false; // 인증은 아직 안됨
         const verifyBtn = document.getElementById('emailVerifyBtn');
         if (verifyBtn) {
             verifyBtn.style.display = 'inline-block';
@@ -106,14 +135,17 @@ function checkEmail() {
         // 인증 모달 열기
         openVerificationModal();
     })
-        .catch(error => {
-            console.error('Error:', error);
+    .catch(error => {
+        console.error('Error:', error);
+        // 이미 중복 확인에서 에러 메시지를 보여주었으므로 여기서는 중복이 아닌 경우에만 메시지 표시
+        if (!error.message.includes('이미 사용 중인 이메일')) {
             showMessage('emailCheckResult', error.message || '이메일 확인 중 오류가 발생했습니다.', 'error');
-        })
-        .finally(() => {
-            checkBtn.disabled = false;
-            checkBtn.innerHTML = originalText;
-        });
+        }
+    })
+    .finally(() => {
+        checkBtn.disabled = false;
+        checkBtn.innerHTML = originalText;
+    });
 }
 
 // 닉네임 중복 확인
@@ -131,7 +163,14 @@ function checkNickname() {
     checkBtn.disabled = true;
     checkBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 확인 중...';
     
-    fetch(`/member/api/check-nickname?nickname=${encodeURIComponent(nickname)}`)
+    fetch('/member/api/check-nickname', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ nickname: nickname })
+    })
         .then(response => {
             if (!response.ok) {
                 throw new Error('닉네임 확인 중 오류가 발생했습니다.');
@@ -142,7 +181,7 @@ function checkNickname() {
             if (!data.success) {
                 throw new Error(data.message || '닉네임 확인 중 오류가 발생했습니다.');
             }
-            if (data.exists) {
+            if (!data.available) {
                 showMessage('nicknameCheckResult', data.message, 'error');
                 isNicknameChecked = false;
             } else {

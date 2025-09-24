@@ -20,13 +20,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import com.koreatravel.tabitomo.service.member.AuthService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -39,20 +39,14 @@ public class MemberController {
     private final TripPlanService tripPlanService;
     private final FavoritePlaceService favoritePlaceService;
     private final EditorService editorService;
-
-    @GetMapping("/register")
-    public String registerPage(Model model) {
-        model.addAttribute("countries", memberService.getAllCountries());
-        model.addAttribute("languages", memberService.getAllLanguages());
-        return "signupform";
-    }
+    private final AuthService authService;
 
     @GetMapping("/member/mypage")
     public String myPage(@AuthenticationPrincipal UserDetailsImpl userDetails,
-                         @RequestParam(value = "tripPage", defaultValue = "0") int tripPage,
-                         @RequestParam(value = "favPage", defaultValue = "0") int favPage,
-                         @RequestParam(defaultValue = "false") boolean all,
-                         Model model) {
+            @RequestParam(value = "tripPage", defaultValue = "0") int tripPage,
+            @RequestParam(value = "favPage", defaultValue = "0") int favPage,
+            @RequestParam(defaultValue = "false") boolean all,
+            Model model) {
         if (userDetails == null) {
             return "redirect:/login";
         }
@@ -99,13 +93,12 @@ public class MemberController {
         List<TempsaveDTO> tempsaveList = editorService.getTempsaveList(email);
         model.addAttribute("templist", tempsaveList);
 
-
-
         return "member/mypage";
     }
 
     @GetMapping("/member/trips/{id}")
-    public String tripDetail(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImpl userDetails, Model model, RedirectAttributes redirectAttributes) {
+    public String tripDetail(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImpl userDetails, Model model,
+            RedirectAttributes redirectAttributes) {
         if (userDetails == null) {
             return "redirect:/login";
         }
@@ -126,7 +119,8 @@ public class MemberController {
     }
 
     @PostMapping("/member/trips/{id}/delete")
-    public String deleteTrip(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImpl userDetails, RedirectAttributes redirectAttributes) {
+    public String deleteTrip(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImpl userDetails,
+            RedirectAttributes redirectAttributes) {
         if (userDetails == null) {
             return "redirect:/login";
         }
@@ -144,7 +138,8 @@ public class MemberController {
     }
 
     @PostMapping("/member/trips/{id}/toggle-visibility")
-    public String toggleVisibility(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImpl userDetails, RedirectAttributes redirectAttributes) {
+    public String toggleVisibility(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImpl userDetails,
+            RedirectAttributes redirectAttributes) {
         if (userDetails == null) {
             return "redirect:/login";
         }
@@ -164,9 +159,9 @@ public class MemberController {
 
     @GetMapping("/trips/public")
     public String publicTrips(Model model,
-                              @RequestParam(defaultValue = "0") int page,
-                              @RequestParam(defaultValue = "title") String searchType,
-                              @RequestParam(defaultValue = "") String keyword) {
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "title") String searchType,
+            @RequestParam(defaultValue = "") String keyword) {
         Pageable pageable = PageRequest.of(page, 10, Sort.by("createdAt").descending());
         Page<Trip> trips = tripPlanService.findAllPublicTrips(pageable, searchType, keyword);
         model.addAttribute("trips", trips);
@@ -199,4 +194,47 @@ public class MemberController {
         model.addAttribute("nickname", nickname);
         return "user-public-page";
     }
+
+    /**
+     * 닉네임 중복 체크 API
+     * 
+     * @param nickname 확인할 닉네임
+     * @return 중복 여부 (true: 사용 가능, false: 중복됨)
+     */
+    @PostMapping("/member/api/check-nickname")
+    @ResponseBody
+    public Map<String, Object> checkNickname(@RequestBody Map<String, String> request) {
+        String nickname = request.get("nickname");
+        Map<String, Object> response = new HashMap<>();
+        try {
+            boolean isAvailable = !authService.existsByNickname(nickname);
+            response.put("available", isAvailable);
+            response.put("message", isAvailable ? "사용 가능한 닉네임입니다." : "이미 사용 중인 닉네임입니다.");
+            return response;
+        } catch (Exception e) {
+            log.error("닉네임 확인 중 오류 발생", e);
+            response.put("available", false);
+            response.put("message", "닉네임 확인 중 오류가 발생했습니다.");
+            return response;
+        }
+    }
+
+    @PostMapping("/member/api/check-email")
+    @ResponseBody
+    public Map<String, Object> checkEmail(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        Map<String, Object> response = new HashMap<>();
+        try {
+            boolean isAvailable = !authService.existsByEmail(email);
+            response.put("available", isAvailable);
+            response.put("message", isAvailable ? "사용 가능한 이메일입니다." : "이미 사용 중인 이메일입니다.");
+            return response;
+        } catch (Exception e) {
+            log.error("이메일 확인 중 오류 발생", e);
+            response.put("available", false);
+            response.put("message", "이메일 확인 중 오류가 발생했습니다.");
+            return response;
+        }
+    }
+
 }

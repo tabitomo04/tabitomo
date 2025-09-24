@@ -93,39 +93,56 @@
                         <a th:href="@{'/storybook/detail?booknum=' + ${story.booknum}}" class="stretched-link"></a>
                     </div>
                 </div>
-            </div>
-        </div>
-    </section>
-
 </main>
 
-<!-- 설문조사 안내 모달 -->
-<div id="surveyModal" class="modal fade" tabindex="-1" aria-labelledby="surveyModalLabel" aria-hidden="true" 
-     th:if="${session != null and session.authenticatedEmail != null and session.showQuestionnairePrompt == true}">
-    <div class="modal-dialog modal-dialog-centered">
-        <input type="hidden" id="debugSessionId" th:value="${session.authenticatedEmail ?: 'no-email'}" />
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="surveyModalLabel" data-translatable>환영합니다! 🎉</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p data-translatable>여행 취향을 파악하기 위한 간단한 설문조사에 참여해주세요.</p>
-                <p data-translatable>설문조사를 완료하시면 맞춤형 여행 추천을 받아보실 수 있습니다.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-translatable>나중에 하기</button>
-                <button type="button" class="btn btn-primary" onclick="goToSurvey()" data-translatable>설문조사 하러 가기</button>
+    <!-- Debug info (temporary) -->
+    <div style="display: none;">
+        <div>
+            <div>Session ID: <span th:text="${sessionId}"></span></div>
+            <div>Authenticated: <span th:text="${isAuthenticated}"></span></div>
+            <div>Show Prompt: <span th:text="${showQuestionnairePrompt}"></span></div>
+            <div>Questionnaire Completed: <span th:text="${questionnaireCompleted}"></span></div>
+            <div th:if="${isAuthenticated}">
+                <div>User: <span th:text="${username}"></span></div>
             </div>
         </div>
     </div>
-</div>
+
+    <!-- 설문조사 안내 모달 -->
+    <div id="surveyModal" class="modal fade" tabindex="-1" aria-labelledby="surveyModalLabel" aria-hidden="true" 
+         th:if="${isAuthenticated and showQuestionnairePrompt == true}">
+        <div class="modal-dialog modal-dialog-centered">
+            <input type="hidden" id="debugSessionId" th:value="${email ?: 'no-email'}" />
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="surveyModalLabel" data-translatable>환영합니다, <span th:text="${username}"></span>님! 🎉</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-clipboard-check fa-3x text-primary mb-3"></i>
+                        <h5 data-translatable>여행 취향을 파악하기 위한 간단한 설문조사에 참여해주세요</h5>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <span data-translatable>설문조사는 단 2분 이내로 완료하실 수 있으며,</span><br>
+                        <span data-translatable>완료 시 맞춤형 여행 추천을 받아보실 수 있습니다.</span>
+                    </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" data-translatable>
+                        <i class="far fa-clock me-1"></i> 나중에 하기
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="goToSurvey()" data-translatable>
+                        <i class="fas fa-pen-alt me-1"></i> 지금 설문조사 하기
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 <!-- Footer -->
 <footer th:replace="~{fragments/footer :: footer}"></footer>
-
-<!-- Styles for modal and chatbot -->
-<style>
     /* 설문조사 모달 스타일 */
     .modal-content {
         border: none;
@@ -151,20 +168,33 @@
     // 설문조사 페이지로 이동
     function goToSurvey() {
         console.log('Going to survey page...');
+        // Get CSRF token from meta tag
+        const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+        
+        if (!csrfToken) {
+            console.warn('CSRF token not found, proceeding without it');
+        }
+        
         // Clear the flag when user chooses to take the survey
         fetch('/auth/clear-questionnaire-prompt', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').getAttribute('content')
+                'X-CSRF-TOKEN': csrfToken || ''
             },
             credentials: 'same-origin'
-        }).then((response) => {
-            console.log('Prompt cleared, redirecting...');
+        })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            console.log('Prompt cleared, redirecting to survey...');
             window.location.href = '/question/start';
-        }).catch(error => {
+        })
+        .catch(error => {
             console.error('Error clearing prompt:', error);
-            window.location.href = '/question/start'; // Still redirect even if clear fails
+            // Still redirect even if clear fails
+            window.location.href = '/question/start';
         });
     }
 
@@ -172,24 +202,55 @@
     document.addEventListener('DOMContentLoaded', function() {
         console.log('Page loaded, checking for survey modal...');
         
-        // Check if we should show the modal
-        const shouldShowModal = /*[[${session != null && session.authenticatedEmail != null && session.showQuestionnairePrompt == true}]]*/ false;
-        console.log('Should show modal:', shouldShowModal);
-        
-        if (shouldShowModal) {
-            console.log('Initializing survey modal...');
-            const modalElement = document.getElementById('surveyModal');
-            if (modalElement) {
-                console.log('Modal element found, showing...');
-                const modal = new bootstrap.Modal(modalElement);
-                // Small delay to ensure all elements are ready
+        const modalElement = document.getElementById('surveyModal');
+        if (modalElement) {
+            // Get the showQuestionnairePrompt value from Thymeleaf
+            const shouldShowModal = /*[[${showQuestionnairePrompt}]]*/ false;
+            console.log('Should show survey modal:', shouldShowModal);
+            
+            // Debug: Log all session attributes
+            console.log('Session ID:', /*[[${sessionId}]]*/ 'N/A');
+            console.log('Is authenticated:', /*[[${isAuthenticated}]]*/ 'N/A');
+            console.log('Username:', /*[[${username}]]*/ 'N/A');
+            
+            if (shouldShowModal) {
+                console.log('Preparing to show survey modal...');
+                // Use setTimeout to ensure the DOM is fully loaded and modal is initialized
                 setTimeout(() => {
-                    modal.show();
-                    console.log('Modal should be visible now');
-                }, 500);
+                    try {
+                        const modal = new bootstrap.Modal(modalElement, {
+                            backdrop: 'static', // Prevent closing when clicking outside
+                            keyboard: false     // Prevent closing with ESC key
+                        });
+                        modal.show();
+                        console.log('Survey modal is now visible');
+                        
+                        // Add event listener for the close button
+                        const closeButton = modalElement.querySelector('.btn-close');
+                        if (closeButton) {
+                            closeButton.addEventListener('click', function() {
+                                // Set a flag to not show the modal again for this session
+                                fetch('/auth/clear-questionnaire-prompt', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').content
+                                    },
+                                    credentials: 'same-origin'
+                                }).catch(error => {
+                                    console.error('Error clearing prompt:', error);
+                                });
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error showing survey modal:', error);
+                    }
+                }, 1000); // Increased delay to ensure everything is loaded
             } else {
-                console.error('Survey modal element not found!');
+                console.log('Survey modal conditions not met');
             }
+        } else {
+            console.log('Survey modal element not found on this page');
         }
     });
 

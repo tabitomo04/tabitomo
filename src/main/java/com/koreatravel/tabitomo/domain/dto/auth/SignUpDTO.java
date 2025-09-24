@@ -1,10 +1,8 @@
 package com.koreatravel.tabitomo.domain.dto.auth;
 
 import lombok.Data;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
-import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
 @Data

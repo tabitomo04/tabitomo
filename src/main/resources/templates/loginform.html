@@ -95,9 +95,21 @@
     </div>
     <div class="login-body">
       <!-- 오류 메시지 표시 -->
-      <div th:if="${param.error}" class="alert alert-danger" role="alert">
-          <span th:if="${param.error == 'true'}" data-translatable>이메일 또는 비밀번호가 일치하지 않습니다.</span>
-          <span th:if="${param.error == 'unauthorized'}" data-translatable>로그인이 필요한 서비스입니다. 로그인 후 이용해주세요.</span>
+<<<<<<< Updated upstream
+      <div th:if="${error != null}" class="alert alert-danger" role="alert">
+          <span th:if="${error == 'true'}" data-translatable>이메일 또는 비밀번호가 일치하지 않습니다.</span>
+          <span th:if="${error == 'unauthorized'}" data-translatable>로그인이 필요한 서비스입니다. 로그인 후 이용해주세요.</span>
+=======
+      <div th:if="${message != null}" class="alert alert-danger" role="alert">
+          <i class="fas fa-exclamation-circle me-2" aria-hidden="true"></i>
+          <span th:utext="${message}" data-translatable></span>
+      </div>
+      
+      <!-- 로그아웃 메시지 표시 -->
+      <div th:if="${param.logout != null}" class="alert alert-success" role="alert">
+          <i class="fas fa-check-circle me-2" aria-hidden="true"></i>
+          <span data-translatable>로그아웃 되었습니다.</span>
+>>>>>>> Stashed changes
       </div>
       
       <!-- 이메일 로그인 폼 -->
@@ -111,7 +123,7 @@
         <div class="mb-3">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <label for="password" class="form-label mb-0" data-translatable>비밀번호</label>
-            <a href="#" id="forgotPassword" class="text-decoration-none small" data-translatable>비밀번호 찾기</a>
+            <a href="#" id="forgotPassword" class="text-decoration-none small" data-bs-toggle="modal" data-bs-target="#passwordModal" data-translatable>비밀번호 찾기</a>
           </div>
           <div class="input-group">
             <input type="password" class="form-control" id="password" name="password" placeholder="비밀번호를 입력하세요" required
@@ -152,8 +164,171 @@
 </main>
 
 <!-- 비밀번호 재설정 모달 -->
+<<<<<<< Updated upstream
+<div class="modal fade" id="passwordModal" tabindex="-1" aria-labelledby="passwordModalLabel" aria-hidden="true" data-bs-backdrop="static">
+=======
 <div class="modal fade" id="passwordModal" tabindex="-1" aria-labelledby="passwordModalLabel" aria-hidden="true">
-  <!-- ... modal content ... -->
+>>>>>>> Stashed changes
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="passwordModalLabel" data-translatable>비밀번호 재설정</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+<<<<<<< Updated upstream
+        <!-- 오류 메시지 영역 -->
+=======
+        <!-- 단계 표시기 -->
+        <div class="d-flex justify-content-between mb-4">
+          <div class="text-center">
+            <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">1</div>
+            <div class="small mt-1" data-translatable>이메일 인증</div>
+          </div>
+          <div class="text-center">
+            <div class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">2</div>
+            <div class="small mt-1" data-translatable>인증번호 확인</div>
+          </div>
+          <div class="text-center">
+            <div class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">3</div>
+            <div class="small mt-1" data-translatable>비밀번호 재설정</div>
+          </div>
+        </div>
+
+        <!-- 오류 메시지 표시 -->
+>>>>>>> Stashed changes
+        <div id="errorAlert" class="alert alert-danger d-none" role="alert">
+          <i class="fas fa-exclamation-circle me-2"></i>
+          <span id="errorMessage"></span>
+        </div>
+
+        <!-- 단계 1: 이메일 입력 -->
+<<<<<<< Updated upstream
+        <div id="step1" class="step">
+          <p class="mb-4" data-translatable>가입하신 이메일 주소를 입력해주세요. 인증번호가 발송됩니다.</p>
+          <div class="mb-3">
+            <label for="resetEmail" class="form-label" data-translatable>이메일 주소</label>
+            <div class="input-group">
+              <input type="email" class="form-control" id="resetEmail" placeholder="example@example.com" data-translatable="placeholder">
+              <button class="btn btn-outline-secondary" type="button" id="sendVerificationBtn" data-translatable>인증번호 전송</button>
+            </div>
+=======
+        <div id="step1">
+          <div class="mb-3">
+            <label for="resetEmail" class="form-label" data-translatable>이메일 주소</label>
+            <div class="input-group">
+              <input type="email" class="form-control" id="resetEmail" placeholder="가입하신 이메일을 입력하세요" required>
+              <button class="btn btn-outline-secondary" type="button" id="sendVerificationBtn" data-translatable>인증번호 전송</button>
+            </div>
+            <div class="form-text" data-translatable>가입 시 사용한 이메일 주소를 입력해주세요.</div>
+>>>>>>> Stashed changes
+          </div>
+        </div>
+
+        <!-- 단계 2: 인증번호 확인 -->
+<<<<<<< Updated upstream
+        <div id="step2" class="step d-none">
+          <p class="mb-4" data-translatable>이메일로 발송된 인증번호를 입력해주세요.</p>
+          <div class="mb-3">
+            <label for="verificationCode" class="form-label" data-translatable>인증번호</label>
+            <div class="input-group mb-2">
+              <input type="text" class="form-control" id="verificationCode" placeholder="인증번호 6자리" maxlength="6" data-translatable="placeholder">
+              <button class="btn btn-outline-primary" type="button" id="verifyCodeBtn" data-translatable>인증 확인</button>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+              <div id="verificationStatus" class="small"></div>
+              <button class="btn btn-link p-0 text-decoration-none" type="button" id="resendCodeBtn" disabled>
+                <small data-translatable>재전송</small> (<small id="countdown">03:00</small>)
+              </button>
+            </div>
+            <div class="form-text text-end">
+              <a href="#" id="resendLink" class="text-decoration-none small d-none" data-translatable>인증번호를 받지 못하셨나요?</a>
+=======
+        <div id="step2" style="display: none;">
+          <div class="mb-3">
+            <label for="verificationCode" class="form-label" data-translatable>인증번호</label>
+            <div class="input-group">
+              <input type="text" class="form-control" id="verificationCode" placeholder="인증번호 6자리 입력" required>
+              <button class="btn btn-outline-secondary" type="button" id="verifyCodeBtn" data-translatable>인증하기</button>
+            </div>
+            <div class="d-flex justify-content-between mt-1">
+              <small class="text-muted" id="countdown">03:00</small>
+              <a href="#" id="resendCodeBtn" class="text-decoration-none small" data-translatable>인증번호 재전송</a>
+>>>>>>> Stashed changes
+            </div>
+          </div>
+        </div>
+
+        <!-- 단계 3: 새 비밀번호 설정 -->
+<<<<<<< Updated upstream
+        <div id="step3" class="step d-none">
+          <p class="mb-4" data-translatable>새로운 비밀번호를 설정해주세요.</p>
+          <div class="mb-3">
+            <label for="newPassword" class="form-label" data-translatable>새 비밀번호</label>
+            <div class="input-group mb-2">
+              <input type="password" class="form-control" id="newPassword" placeholder="8자 이상의 영문, 숫자, 특수문자 조합" data-translatable="placeholder">
+=======
+        <div id="step3" style="display: none;">
+          <div class="mb-3">
+            <label for="newPassword" class="form-label" data-translatable>새 비밀번호</label>
+            <div class="input-group">
+              <input type="password" class="form-control" id="newPassword" placeholder="새 비밀번호를 입력하세요" required>
+>>>>>>> Stashed changes
+              <button class="btn btn-outline-secondary toggle-password" type="button" data-target="newPassword">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+            <div class="password-strength mt-2">
+              <div class="progress" style="height: 5px;">
+<<<<<<< Updated upstream
+                <div id="passwordStrength" class="progress-bar" role="progressbar" style="width: 0%"></div>
+              </div>
+              <div id="passwordStrengthText" class="form-text small text-end"></div>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="confirmPassword" class="form-label" data-translatable>비밀번호 확인</label>
+            <div class="input-group">
+              <input type="password" class="form-control" id="confirmPassword" placeholder="비밀번호를 다시 입력해주세요" data-translatable="placeholder">
+              <button class="btn btn-outline-secondary toggle-password" type="button" data-target="confirmPassword">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+            <div id="passwordMatch" class="form-text"></div>
+=======
+                <div id="passwordStrengthBar" class="progress-bar bg-danger" role="progressbar" style="width: 0%"></div>
+              </div>
+              <small id="passwordStrengthText" class="text-muted" data-translatable>비밀번호 강도: 약함</small>
+            </div>
+            <div class="form-text" data-translatable>영문, 숫자, 특수문자를 조합하여 8자 이상 입력해주세요.</div>
+          </div>
+          <div class="mb-3">
+            <label for="confirmNewPassword" class="form-label" data-translatable>비밀번호 확인</label>
+            <div class="input-group">
+              <input type="password" class="form-control" id="confirmNewPassword" placeholder="비밀번호를 다시 입력하세요" required>
+              <button class="btn btn-outline-secondary toggle-password" type="button" data-target="confirmNewPassword">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+>>>>>>> Stashed changes
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+<<<<<<< Updated upstream
+        <button type="button" class="btn btn-outline-secondary" id="prevStepBtn" data-translatable>이전</button>
+        <button type="button" class="btn btn-primary" id="nextStepBtn" data-translatable>다음</button>
+        <button type="button" class="btn btn-primary d-none" id="confirmBtn" data-translatable>확인</button>
+        <button type="button" class="btn btn-primary d-none" id="resetPasswordBtn" data-translatable>비밀번호 재설정</button>
+=======
+        <button type="button" class="btn btn-secondary" id="prevStepBtn" style="display: none;" data-translatable>이전</button>
+        <button type="button" class="btn btn-primary" id="nextStepBtn" style="display: none;" data-translatable>다음</button>
+        <button type="button" class="btn btn-primary" id="resetPasswordBtn" style="display: none;" data-translatable>비밀번호 재설정</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-translatable>닫기</button>
+>>>>>>> Stashed changes
+      </div>
+    </div>
+  </div>
 </div>
 
 <div th:replace="~{fragments/footer :: footer}"></div>
@@ -162,12 +337,9 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script th:src="@{/js/translation.js}"></script>
 <script src="/js/login.js"></script>
-<script src="/js/password-reset.js"></script>
 <script>
 // DOM이 완전히 로드된 후 실행
 function handleLoginSubmit(event) {
-    event.preventDefault();
-    
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
     const loginButton = document.getElementById('loginButton');
@@ -176,23 +348,23 @@ function handleLoginSubmit(event) {
     
     // 간단한 유효성 검사
     if (!email) {
+        event.preventDefault();
         showError('이메일을 입력해주세요.', 'email');
         return false;
     }
     
     if (!password) {
+        event.preventDefault();
         showError('비밀번호를 입력해주세요.', 'password');
         return false;
     }
     
     // 로딩 상태 표시
     loginButton.disabled = true;
-    loginSpinner.classList.remove('d-none');
-    loginText.textContent = '로그인 중...';
+    if (loginSpinner) loginSpinner.classList.remove('d-none');
+    if (loginText) loginText.textContent = '로그인 중...';
     
-    // 폼 제출
-    event.target.submit();
-    
+    // 기본 폼 제출을 허용
     return true;
 }
 
@@ -205,23 +377,48 @@ function showError(message, fieldId) {
     
     // 새 에러 메시지 추가
     const input = document.getElementById(fieldId);
+    if (!input) {
+        console.error(`Element with ID '${fieldId}' not found`);
+        // 모달 내부의 에러 메시지 영역에 표시
+        const errorAlert = document.getElementById('errorAlert');
+        if (errorAlert) {
+            const errorMessage = document.getElementById('errorMessage');
+            if (errorMessage) {
+                errorMessage.textContent = message;
+                errorAlert.classList.remove('d-none');
+                // 5초 후 에러 메시지 숨기기
+                setTimeout(() => {
+                    errorAlert.classList.add('d-none');
+                }, 5000);
+            }
+        }
+        return;
+    }
+    
     const errorDiv = document.createElement('div');
     errorDiv.className = 'invalid-feedback d-block';
     errorDiv.textContent = message;
     
     input.classList.add('is-invalid');
-    input.parentNode.insertBefore(errorDiv, input.nextSibling);
     
-    // 포커스 이동
-    input.focus();
-    
-    // 5초 후 에러 메시지 제거
-    setTimeout(() => {
-        input.classList.remove('is-invalid');
-        if (errorDiv.parentNode) {
-            errorDiv.remove();
-        }
-    }, 5000);
+    // 부모 노드가 있는지 확인 후 에러 메시지 추가
+    if (input.parentNode) {
+        input.parentNode.insertBefore(errorDiv, input.nextSibling);
+        
+        // 포커스 이동
+        input.focus();
+        
+        // 5초 후 에러 메시지 제거
+        setTimeout(() => {
+            input.classList.remove('is-invalid');
+            if (errorDiv.parentNode) {
+                errorDiv.remove();
+            }
+        }, 5000);
+    } else {
+        // 부모 노드가 없는 경우 콘솔에 에러 로그 출력
+        console.error('Input element has no parent node:', input);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -272,13 +469,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // 비밀번호 찾기 모달 열기
-    if (forgotPassword) {
-        forgotPassword.addEventListener('click', function(e) {
-            e.preventDefault();
-            passwordModal.show();
-        });
-    }
+    // 비밀번호 찾기 모달은 password-reset.js에서 처리
+    // Bootstrap 5의 data-bs-toggle="modal" data-bs-target="#passwordModal" 속성으로 자동 처리됨
     
     // 폼 유효성 검사 초기화
     if (loginForm) {

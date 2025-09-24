@@ -1,7 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
     // 모달 요소 가져오기
     const passwordModal = document.getElementById('passwordModal');
-    if (!passwordModal) return;
+    if (!passwordModal) {
+        console.warn('비밀번호 재설정 모달을 찾을 수 없습니다.');
+        return;
+    }
 
     const modal = new bootstrap.Modal(passwordModal);
     const step1 = document.getElementById('step1');
@@ -36,65 +39,85 @@ document.addEventListener('DOMContentLoaded', function() {
         clearInterval(countdownInterval);
     });
 
-    // 이전 버튼 클릭
-    prevBtn.addEventListener('click', function() {
-        if (currentStep > 1) {
-            showStep(currentStep - 1);
-        }
-    });
+    // 이전 버튼 클릭 이벤트 등록
+    if (prevBtn) {
+        prevBtn.addEventListener('click', function() {
+            if (currentStep > 1) {
+                showStep(currentStep - 1);
+            }
+        });
+    } else {
+        console.warn('이전 버튼을 찾을 수 없습니다.');
+    }
 
-    // 다음 버튼 클릭
-    nextBtn.addEventListener('click', function() {
-        if (validateStep(currentStep)) {
-            showStep(currentStep + 1);
-        }
-    });
+    // 다음 버튼 클릭 이벤트 등록
+    if (nextBtn) {
+        nextBtn.addEventListener('click', function() {
+            if (validateStep(currentStep)) {
+                showStep(currentStep + 1);
+            }
+        });
+    } else {
+        console.warn('다음 버튼을 찾을 수 없습니다.');
+    }
 
     // 인증번호 전송 버튼 클릭
-    sendVerificationBtn.addEventListener('click', function() {
-        if (!resetEmail.value.trim()) {
-            showError('이메일을 입력해주세요.', 'resetEmail');
-            return;
-        }
+    if (sendVerificationBtn) {
+        sendVerificationBtn.addEventListener('click', function() {
+            if (!resetEmail.value.trim()) {
+                showError('이메일을 입력해주세요.', 'resetEmail');
+                return;
+            }
+            if (!isValidEmail(resetEmail.value.trim())) {
+                showError('유효한 이메일 주소를 입력해주세요.', 'resetEmail');
+                return;
+            }
 
-        if (!isValidEmail(resetEmail.value.trim())) {
-            showError('유효한 이메일 주소를 입력해주세요.', 'resetEmail');
-            return;
-        }
-
-        // TODO: 서버로 이메일 전송 요청
-        sendVerificationCode(resetEmail.value.trim());
-    });
+            // TODO: 서버로 이메일 전송 요청
+            sendVerificationCode(resetEmail.value.trim());
+        });
+    } else {
+        console.warn('인증번호 전송 버튼을 찾을 수 없습니다.');
+    }
 
     // 인증번호 재전송 버튼 클릭
-    resendCodeBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        if (!verificationSent) return;
-        
-        // TODO: 서버로 재전송 요청
-        sendVerificationCode(resetEmail.value.trim());
-    });
+    if (resendCodeBtn) {
+        resendCodeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (!verificationSent) return;
+            
+            // TODO: 서버로 재전송 요청
+            sendVerificationCode(resetEmail.value.trim());
+        });
+    }
 
     // 비밀번호 재설정 버튼 클릭
-    resetBtn.addEventListener('click', function() {
-        if (!validateStep(3)) return;
-        
-        // TODO: 서버로 비밀번호 재설정 요청
-        resetPassword();
-    });
+    if (resetBtn) {
+        resetBtn.addEventListener('click', function() {
+            if (validateStep(3)) {
+                resetPassword();
+            }
+        });
+    } else {
+        console.warn('비밀번호 재설정 버튼을 찾을 수 없습니다.');
+    }
 
     // 비밀번호 보기/숨기기 토글
     document.querySelectorAll('.toggle-password').forEach(button => {
         button.addEventListener('click', function() {
             const targetId = this.getAttribute('data-target');
             const input = document.getElementById(targetId);
-            const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-            input.setAttribute('type', type);
-            
-            // 아이콘 업데이트
-            const icon = this.querySelector('i');
-            icon.classList.toggle('fa-eye');
-            icon.classList.toggle('fa-eye-slash');
+            if (input) {
+                const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                input.setAttribute('type', type);
+                
+                // 아이콘 업데이트
+                const icon = this.querySelector('i');
+                if (icon) {
+                    icon.classList.toggle('fa-eye');
+                    icon.classList.toggle('fa-eye-slash');
+                }
+            }
         });
     });
 
@@ -108,11 +131,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // 단계 표시 함수
     function showStep(step) {
         // 현재 단계 숨기기
-        document.querySelector(`#step${currentStep}`).style.display = 'none';
+        const currentStepElement = document.querySelector(`#step${currentStep}`);
+        if (currentStepElement) {
+            currentStepElement.style.display = 'none';
+        }
         
         // 새 단계 표시
         currentStep = step;
-        document.querySelector(`#step${currentStep}`).style.display = 'block';
+        const nextStepElement = document.querySelector(`#step${currentStep}`);
+        if (nextStepElement) {
+            nextStepElement.style.display = 'block';
+        }
         
         // 단계 표시기 업데이트
         updateStepIndicator();
@@ -121,16 +150,16 @@ document.addEventListener('DOMContentLoaded', function() {
         updateButtons();
         
         // 첫 단계에서 이메일 입력 필드에 포커스
-        if (currentStep === 1) {
+        if (currentStep === 1 && resetEmail) {
             resetEmail.focus();
         }
         // 두 번째 단계에서 인증번호 입력 필드에 포커스
-        else if (currentStep === 2) {
+        else if (currentStep === 2 && verificationCode) {
             startCountdown();
             verificationCode.focus();
         }
         // 세 번째 단계에서 새 비밀번호 필드에 포커스
-        else if (currentStep === 3) {
+        else if (currentStep === 3 && newPassword) {
             clearInterval(countdownInterval);
             newPassword.focus();
         }
@@ -139,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 단계 유효성 검사
     function validateStep(step) {
         if (step === 1) {
-            if (!resetEmail.value.trim()) {
+            if (!resetEmail || !resetEmail.value.trim()) {
                 showError('이메일을 입력해주세요.', 'resetEmail');
                 return false;
             }
@@ -149,14 +178,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             return true;
         } else if (step === 2) {
-            if (!verificationCode.value.trim()) {
+            if (!verificationCode || !verificationCode.value.trim()) {
                 showError('인증번호를 입력해주세요.', 'verificationCode');
                 return false;
             }
             // TODO: 인증번호 유효성 검사 로직 추가
             return true;
         } else if (step === 3) {
-            if (!newPassword.value) {
+            if (!newPassword || !newPassword.value) {
                 showError('새 비밀번호를 입력해주세요.', 'newPassword');
                 return false;
             }
@@ -177,37 +206,36 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateStepIndicator() {
         // 모든 단계에서 active 클래스 제거
         document.querySelectorAll('.step').forEach((step, index) => {
-            step.classList.remove('active');
-            if (index + 1 < currentStep) {
-                step.classList.add('completed');
-            } else if (index + 1 === currentStep) {
-                step.classList.add('active');
+            if (step) {
+                step.classList.remove('active');
+                if (index + 1 < currentStep) {
+                    step.classList.add('completed');
+                } else if (index + 1 === currentStep) {
+                    step.classList.add('active');
+                }
             }
         });
         
         // 진행 바 업데이트
         const progress = ((currentStep - 1) / 2) * 100;
         document.querySelectorAll('.step-line-progress').forEach(progressBar => {
-            progressBar.style.width = `${progress}%`;
+            if (progressBar) {
+                progressBar.style.width = `${progress}%`;
+            }
         });
     }
 
     // 버튼 상태 업데이트
     function updateButtons() {
         // 이전 버튼
-        if (currentStep === 1) {
-            prevBtn.style.display = 'none';
-        } else {
-            prevBtn.style.display = 'inline-block';
+        if (prevBtn) {
+            prevBtn.style.display = currentStep === 1 ? 'none' : 'inline-block';
         }
         
         // 다음/완료 버튼
-        if (currentStep < 3) {
-            nextBtn.style.display = 'inline-block';
-            resetBtn.style.display = 'none';
-        } else {
-            nextBtn.style.display = 'none';
-            resetBtn.style.display = 'inline-block';
+        if (nextBtn && resetBtn) {
+            nextBtn.style.display = currentStep < 3 ? 'inline-block' : 'none';
+            resetBtn.style.display = currentStep === 3 ? 'inline-block' : 'none';
         }
     }
 
@@ -253,9 +281,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 비밀번호 강도 업데이트
     function updatePasswordStrength(password) {
+        const progressBar = document.querySelector('.password-strength .progress-bar');
+        const strengthText = document.getElementById('passwordStrength');
+        
+        if (!progressBar || !strengthText) return;
+        
         if (!password) {
-            document.querySelector('.password-strength .progress-bar').style.width = '0%';
-            document.getElementById('passwordStrength').textContent = '약함';
+            progressBar.style.width = '0%';
+            strengthText.textContent = '약함';
             return;
         }
         
@@ -272,11 +305,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (/[^A-Za-z0-9]/.test(password)) strength += 20;
         
         // 진행바 업데이트
-        const progressBar = document.querySelector('.password-strength .progress-bar');
         progressBar.style.width = `${strength}%`;
         
         // 강도 텍스트 업데이트
-        const strengthText = document.getElementById('passwordStrength');
         if (strength < 40) {
             strengthText.textContent = '약함';
             progressBar.className = 'progress-bar bg-danger';
@@ -355,9 +386,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (errorAlert) errorAlert.style.display = 'none';
         
         // 비밀번호 강도 표시 초기화
-        if (document.querySelector('.password-strength .progress-bar')) {
-            document.querySelector('.password-strength .progress-bar').style.width = '0%';
-            document.getElementById('passwordStrength').textContent = '약함';
+        const progressBar = document.querySelector('.password-strength .progress-bar');
+        const strengthText = document.getElementById('passwordStrength');
+        if (progressBar && strengthText) {
+            progressBar.style.width = '0%';
+            progressBar.className = 'progress-bar bg-danger';
+            strengthText.textContent = '약함';
         }
     }
     
@@ -378,9 +412,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function resetPassword() {
         // TODO: 서버로 비밀번호 재설정 요청
         console.log('비밀번호 재설정 요청:', {
-            email: resetEmail.value.trim(),
-            code: verificationCode.value.trim(),
-            newPassword: newPassword.value
+            email: resetEmail ? resetEmail.value.trim() : '',
+            code: verificationCode ? verificationCode.value.trim() : '',
+            newPassword: newPassword ? newPassword.value : ''
         });
         
         // 임시: 성공 가정

@@ -15,21 +15,22 @@ import java.util.HashMap;
 import java.util.UUID;
 
 import jakarta.servlet.http.Cookie;
+<<<<<<< Updated upstream
+=======
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+>>>>>>> Stashed changes
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.CookieValue;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.client.RestTemplate;
@@ -47,11 +48,58 @@ public class AuthController {
 
     // 로그인 페이지 이동
     @GetMapping("/login")
-    public String loginPage(@CookieValue(value = "savedEmail", required = false) String savedEmail, Model model) {
+<<<<<<< Updated upstream
+    public String loginPage(@CookieValue(value = "savedEmail", required = false) String savedEmail,
+                          @RequestParam(value = "error", required = false) String error,
+                          Model model) {
+=======
+    public String loginPage(
+            @CookieValue(value = "savedEmail", required = false) String savedEmail,
+            @RequestParam(value = "error", required = false) String error,
+            @RequestParam(value = "message", required = false) String message,
+            @RequestParam(value = "expired", required = false) String expired,
+            @RequestParam(value = "logout", required = false) String logout,
+            HttpServletRequest request,
+            Model model) {
+        
+        // 저장된 이메일이 있으면 모델에 추가
+>>>>>>> Stashed changes
         if (savedEmail != null && !savedEmail.isEmpty()) {
             model.addAttribute("savedEmail", savedEmail);
             model.addAttribute("rememberEmail", true);
         }
+        
+<<<<<<< Updated upstream
+        // 에러 파라미터가 있는 경우 모델에 추가
+        if (error != null && !error.isEmpty()) {
+            model.addAttribute("error", error);
+=======
+        // 에러 메시지 처리
+        if (error != null) {
+            String errorMessage = message;
+            
+            if (errorMessage == null || errorMessage.isEmpty()) {
+                if ("true".equals(error)) {
+                    errorMessage = "이메일 또는 비밀번호가 일치하지 않습니다.";
+                } else if ("unauthorized".equals(error)) {
+                    errorMessage = "로그인이 필요한 서비스입니다.";
+                } else if (expired != null) {
+                    errorMessage = "세션이 만료되었습니다. 다시 로그인해주세요.";
+                    model.addAttribute("error", "expired");
+                } else {
+                    errorMessage = "로그인 중 오류가 발생했습니다.";
+                }
+            }
+            
+            model.addAttribute("error", error);
+            model.addAttribute("message", errorMessage);
+        } 
+        // 로그아웃 메시지 처리
+        else if (logout != null) {
+            model.addAttribute("message", "로그아웃 되었습니다.");
+>>>>>>> Stashed changes
+        }
+        
         return "loginform";
     }
 
@@ -95,6 +143,7 @@ public class AuthController {
             @RequestParam("password") String password,
             @RequestParam(value = "remember-email", required = false) Boolean rememberEmail,
             @RequestParam(value = "remember-me", required = false) Boolean autoLogin,
+            HttpServletRequest request,
             HttpSession session,
             HttpServletResponse response,
             RedirectAttributes redirectAttributes) {
@@ -103,14 +152,36 @@ public class AuthController {
             // 서비스를 통해 로그인 처리 및 사용자 프로필 가져오기
             MemberProfileDTO memberProfile = authService.login(email, password);
             
-            // 세션에 최소한의 사용자 정보만 저장
-            session.setAttribute("userId", memberProfile.getId());
-            session.setAttribute("authenticatedEmail", email);
-            // 설문조사 완료 여부는 세션에만 저장 (MemberProfileDTO 대신)
-            session.setAttribute("questionnaireCompleted", memberProfile.isQuestionnaireCompleted());
+            // 세션 무효화 후 새 세션 생성 (기존 세션 정리)
+            session.invalidate();
+            session = request.getSession(true);
+            
+            // 세션에 MemberProfileDTO 저장
+            session.setAttribute("memberProfile", memberProfile);
+            
+            // 기존에 개별로 저장하던 속성 제거
+            session.removeAttribute("userId");
+            session.removeAttribute("authenticatedEmail");
+            session.removeAttribute("questionnaireCompleted");
             
             // 세션에 저장된 값 확인 로그
-            log.info("Login - User: {}, Questionnaire completed: {}", email, memberProfile.isQuestionnaireCompleted());
+            log.info("Login - User: {}, Questionnaire completed: {}", 
+                memberProfile.getEmail(), 
+                memberProfile.isQuestionnaireCompleted()
+            );
+            
+            // 설문조사 프롬프트 표시 여부 설정
+            if (!memberProfile.isQuestionnaireCompleted()) {
+                session.setAttribute("showQuestionnairePrompt", true);
+                log.info("Setting showQuestionnairePrompt flag for user {}", memberProfile.getEmail());
+            } else {
+                session.removeAttribute("showQuestionnairePrompt");
+                log.info("Questionnaire already completed for user {}", memberProfile.getEmail());
+            }
+            
+            // 세션 속성 강제 저장
+            session.setAttribute("sessionUpdated", System.currentTimeMillis());
+            log.info("Session created - ID: {}", session.getId());
             
             // 이메일 저장 쿠키 설정 (1년 유지)
             if (Boolean.TRUE.equals(rememberEmail)) {
@@ -280,15 +351,15 @@ public class AuthController {
             );
         }
     }
-
+    
     // 비밀번호 재설정
     @PostMapping("/reset-password")
+    @ResponseBody
     public ResponseEntity<?> resetPassword(
-            @RequestParam String email,
-            @RequestParam String token,
-            @RequestParam String newPassword) {
+            @RequestParam("email") String email,
+            @RequestParam("newPassword") String newPassword) {
         try {
-            boolean success = authService.verifyAndResetPassword(email, token, newPassword);
+            boolean success = authService.resetPassword(email, newPassword);
             
             if (success) {
                 return ResponseEntity.ok().body(Map.of(
@@ -298,10 +369,9 @@ public class AuthController {
             } else {
                 return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
-                    "message", "비밀번호 재설정에 실패했습니다. 토큰이 유효하지 않거나 만료되었습니다."
+                    "message", "비밀번호 재설정에 실패했습니다."
                 ));
             }
-            
         } catch (Exception e) {
             log.error("비밀번호 재설정 중 오류 발생: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(

@@ -95,19 +95,9 @@
     </div>
     <div class="login-body">
       <!-- 오류 메시지 표시 -->
-      <div th:if="${param.error}" class="error-message" role="alert">
-          <i class="fas fa-exclamation-circle me-2" aria-hidden="true"></i>
-          <span th:if="${param.message}">
-              <span th:utext="${#strings.unescapeJava(param.message)}"></span>
-          </span>
-          <span th:unless="${param.message}">
-              <span th:if="${param.error == 'unauthorized' or param.error == 'unaired'}" data-translatable>
-                  로그인이 필요한 서비스입니다. 로그인 후 이용해주세요.
-              </span>
-              <span th:if="${param.error == 'true'}" data-translatable>
-                  이메일 또는 비밀번호가 일치하지 않습니다.
-              </span>
-          </span>
+      <div th:if="${param.error}" class="alert alert-danger" role="alert">
+          <span th:if="${param.error == 'true'}" data-translatable>이메일 또는 비밀번호가 일치하지 않습니다.</span>
+          <span th:if="${param.error == 'unauthorized'}" data-translatable>로그인이 필요한 서비스입니다. 로그인 후 이용해주세요.</span>
       </div>
       
       <!-- 이메일 로그인 폼 -->

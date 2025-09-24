@@ -231,6 +231,11 @@ public class TripPlanService {
     }
 
     @Transactional(readOnly = true)
+    public Page<Trip> findPublicTripsByNickname(String nickname, Pageable pageable) {
+        return tripRepository.findByMemberNicknameAndVisibility(nickname, "PUBLIC", pageable);
+    }
+
+    @Transactional(readOnly = true)
     public List<Trip> findPublicTripsByNickname(String nickname) {
         return tripRepository.findByMemberNicknameAndVisibility(nickname, "PUBLIC");
     }

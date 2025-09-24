@@ -57,11 +57,11 @@ public class MemberController {
         MemberProfileDTO profile = memberService.getMemberProfile(userDetails.getId());
         model.addAttribute("profile", profile);
 
-        Pageable tripPageable = PageRequest.of(tripPage, 5);
+        Pageable tripPageable = PageRequest.of(tripPage, 3);
         Page<Trip> tripsPage = tripPlanService.findTripsByEmail(email, tripPageable);
         model.addAttribute("tripsPage", tripsPage);
 
-        Pageable favPageable = PageRequest.of(favPage, 5);
+        Pageable favPageable = PageRequest.of(favPage, 3);
         Page<FavoritePlace> favoritePlacesPage = favoritePlaceService.getFavorites(userDetails.getId(), favPageable);
         model.addAttribute("favoritePlacesPage", favoritePlacesPage);
 
@@ -188,10 +188,20 @@ public class MemberController {
     }
 
     @GetMapping("/user/{nickname}")
-    public String userPublicPage(@PathVariable String nickname, Model model) {
-        List<Trip> trips = tripPlanService.findPublicTripsByNickname(nickname);
-        model.addAttribute("trips", trips);
+    public String userPublicPage(@PathVariable String nickname, @RequestParam(defaultValue = "0") int page, Model model) {
+        Pageable pageable = PageRequest.of(page, 10, Sort.by("createdAt").descending());
+        Page<Trip> tripsPage = tripPlanService.findPublicTripsByNickname(nickname, pageable);
+        model.addAttribute("tripsPage", tripsPage);
         model.addAttribute("nickname", nickname);
+
+        int totalPages = tripsPage.getTotalPages();
+        if (totalPages > 0) {
+            int startPage = Math.max(0, tripsPage.getNumber() - 2);
+            int endPage = Math.min(totalPages - 1, tripsPage.getNumber() + 2);
+            model.addAttribute("startPage", startPage);
+            model.addAttribute("endPage", endPage);
+        }
+
         return "user-public-page";
     }
 
@@ -209,7 +219,7 @@ public class MemberController {
         try {
             boolean isAvailable = !authService.existsByNickname(nickname);
             response.put("available", isAvailable);
-            response.put("message", isAvailable ? "사용 가능한 닉네임입니다." : "이미 사용 중인 닉네임입니다.");
+            response.put("message", isAvailable ? "사용 가능한 닉네임입니다." : "이미 사용 중인 이메일입니다.");
             return response;
         } catch (Exception e) {
             log.error("닉네임 확인 중 오류 발생", e);

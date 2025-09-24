@@ -100,7 +100,13 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
                 }
                 
                 // 세션에 사용자 정보 저장
-                HttpSession session = request.getSession();
+                HttpSession session = request.getSession(true); // 세션이 없으면 새로 생성
+                
+                // 기존 세션 무효화 (보안을 위해)
+                session.invalidate();
+                session = request.getSession(true); // 새로운 세션 생성
+                
+                // 세션에 사용자 정보 저장
                 session.setAttribute("user", memberProfile);
                 session.setAttribute("authenticatedEmail", email);
                 session.setAttribute("questionnaireCompleted", memberProfile.isQuestionnaireCompleted());
@@ -111,7 +117,8 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
                 // Set a flag in session to show questionnaire prompt
                 if (!member.isQuestionnaireCompleted()) {
                     log.info("Setting showQuestionnairePrompt flag for user {}", email);
-                    session.setAttribute("showQuestionnairePrompt", true);
+                    session.setAttribute("showQuestionnairePrompt", Boolean.TRUE); // 명시적으로 Boolean.TRUE 사용
+                    log.info("Session ID after login: {}", session.getId());
                 }
                 
                 // Always redirect to home page

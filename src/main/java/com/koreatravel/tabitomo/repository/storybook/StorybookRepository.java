@@ -34,7 +34,7 @@ public interface StorybookRepository extends JpaRepository<StorybookEntity, Inte
             "WHERE m.id = :memberId " +
             "ORDER BY s.created_at DESC",
             nativeQuery = true)
-    List<StorybookListDTO> StorybookList(@Param("memberId") UUID memberId);
+    Page<StorybookListDTO> StorybookList(@Param("memberId") UUID memberId, Pageable pageable);
 
     // 스토리북 리스트 페이지의 랜덤 리스트 쿼리
     @Query(value = "SELECT " +

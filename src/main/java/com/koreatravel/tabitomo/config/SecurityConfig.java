@@ -71,7 +71,17 @@ public class SecurityConfig {
                 "/auth/reset-password",
                 "/api/email/**",
                 "/tripselect/**",
-                "/trip/**"
+                "/trip/**",
+                "/trip/step3",
+                "/trip/step4",
+                "/trip/save",
+                "/js/**",
+                "/images/**", 
+                "/image/**",
+                "/fonts/**", 
+                "/favicon.ico",
+                "/css/**","/trips/public", "/tripinformation",
+                    "/tripinformation/places"
             )
         );
         
@@ -84,10 +94,10 @@ public class SecurityConfig {
                 .contentSecurityPolicy(csp -> csp
                     .policyDirectives(
                         "default-src 'self'; " +
-                        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com; " +
-                        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
-                        "style-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
-                        "img-src 'self' data: https:; " +
+                        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://npmcdn.com; " +
+                        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css; " +
+                        "style-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css; " +
+                        "img-src 'self' data: https: *.tile.openstreetmap.org; " +
                         "font-src 'self' https: data:; " +
                         "connect-src 'self' http://localhost:8080 https://cdn.jsdelivr.net;"
                     )

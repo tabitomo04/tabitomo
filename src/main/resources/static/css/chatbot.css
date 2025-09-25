@@ -11,7 +11,7 @@
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background: #4e73df;
+    background: #293341;
     color: white;
     border: none;
     font-size: 24px;
@@ -23,7 +23,7 @@
     transition: all 0.3s ease;
 }
 .chatbot-toggle:hover {
-    background: #2e59d9;
+    background: #1e2530;
     transform: scale(1.1);
 }
 .chatbot-iframe-container {
@@ -48,7 +48,7 @@
     right: -15px;
     width: 30px;
     height: 30px;
-    background: #ff4d4f;
+    background: #E88326; /* 수정: #ff4d4f -> #E88326 (테라코타 오렌지) */
     color: white;
     border: 2px solid white;
     border-radius: 50%;
@@ -62,11 +62,11 @@
     transition: all 0.2s ease;
 }
 .chatbot-close-btn:hover {
-    background: #ff7875;
+    background: #E88326; /* 수정: #ff7875 -> #E88326 (포인트 색상 유지) */
     transform: scale(1.1);
 }
 .chatbot-header {
-    background: #4e73df;
+    background: #293341; /* 수정: #4e73df -> #293341 (다크 네이비) */
     color: white;
     padding: 12px 15px;
     display: flex;

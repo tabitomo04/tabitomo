@@ -559,7 +559,7 @@ async function resetPassword() {
     
     try {
         // 서버로 비밀번호 재설정 요청
-        const response = await fetch('/api/auth/reset-password', {
+        const response = await fetch('/auth/reset-password', {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',

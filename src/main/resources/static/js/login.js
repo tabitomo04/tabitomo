@@ -558,44 +558,63 @@ async function resetPassword() {
     }
     
     try {
+        // FormData 객체 생성
+        const formData = new FormData();
+        formData.append('email', email);
+        formData.append('newPassword', newPassword);
+        
+        // CSRF 토큰 가져오기
+        const csrfToken = document.querySelector('meta[name="_csrf"]')?.content || '';
+        
         // 서버로 비밀번호 재설정 요청
         const response = await fetch('/auth/reset-password', {
             method: 'POST',
             headers: { 
-                'Content-Type': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.content || ''
+                'X-CSRF-TOKEN': csrfToken
             },
-            body: JSON.stringify({ 
-                email: email, 
-                newPassword: newPassword 
-            })
+            body: formData
         });
         
-        const responseData = await response.json().catch(() => ({
-            success: false,
-            message: '서버 응답을 처리할 수 없습니다.'
-        }));
+        // 응답 파싱 (한 번만 수행)
+        const responseData = await response.json().catch(error => {
+            console.error('Error parsing response:', error);
+            return { success: false, message: '서버 응답을 처리할 수 없습니다.' };
+        });
         
-        console.log('Reset password response data:', responseData); // 디버깅용
+        console.log('Reset password response data:', responseData);
         
-        if (!response.ok || !responseData.success) {
-            throw new Error(responseData.message || '비밀번호 재설정에 실패했습니다. 다시 시도해주세요.');
+        if (!response.ok) {
+            throw new Error(responseData.message || '비밀번호 재설정에 실패했습니다. 상태 코드: ' + response.status);
         }
         
-        const data = await response.json();
-        
-        if (!data.success) {
-            throw new Error(data.message || '비밀번호 재설정에 실패했습니다.');
+        if (!responseData.success) {
+            throw new Error(responseData.message || '비밀번호 재설정에 실패했습니다.');
         }
 
-        // 성공 메시지 표시
-        showSuccess('비밀번호가 성공적으로 재설정되었습니다. 로그인 페이지로 이동합니다.');
+        // 성공 메시지와 함께 로그인 링크 표시
+        const successMessage = document.createElement('div');
+        successMessage.className = 'alert alert-success mt-3';
+        successMessage.innerHTML = `
+            비밀번호가 성공적으로 재설정되었습니다. 
+            <a href="/auth/login" class="alert-link">로그인 페이지로 이동하기</a>
+        `;
         
-        // 2초 후 로그인 페이지로 리다이렉트
-        setTimeout(() => {
-            window.location.href = '/auth/login';
-        }, 2000);
+        // 기존 에러 메시지 제거
+        const errorDiv = document.getElementById('passwordError');
+        if (errorDiv) {
+            errorDiv.style.display = 'none';
+        }
+        
+        // 폼 대신 성공 메시지 표시
+        const form = document.querySelector('form');
+        if (form) {
+            form.style.display = 'none';
+            form.parentNode.insertBefore(successMessage, form);
+        } else {
+            // 폼이 없으면 그냥 메시지만 표시
+            document.body.appendChild(successMessage);
+        }
         
     } catch (error) {
         console.error('Error:', error);

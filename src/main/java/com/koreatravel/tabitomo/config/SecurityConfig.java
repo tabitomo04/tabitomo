@@ -91,8 +91,7 @@ public class SecurityConfig {
                 "/css/**",
                 "/trips/public", 
                 "/tripinformation",
-                "/tripinformation/places",
-                "/api/reset-password"
+                "/tripinformation/places"
             )
         );
         

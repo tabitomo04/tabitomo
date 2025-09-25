@@ -13,26 +13,118 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script th:src="@{/js/translation.js}"></script>
-
-
 </head>
 <body>
-<header class="bg-primary text-white p-3" th:fragment="header">
+<nav class="navbar navbar-expand-lg" th:fragment="header">
     <div class="container">
-        <div class="d-flex justify-content-between align-items-center">
-            <h1>Tabitomo</h1>
-            <div class="dropdown" id="translation-dropdown">
-                <button class="btn btn-secondary dropdown-toggle" type="button" id="languageDropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fas fa-language"></i> Language
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="languageDropdownMenuButton">
-                    <li><a class="dropdown-item" href="#" data-lang="ko">한국어</a></li>
-                    <li><a class="dropdown-item" href="#" data-lang="ja">日本語</a></li>
-                    <li><a class="dropdown-item" href="#" data-lang="en">English</a></li>
-                    <li><a class="dropdown-item" href="#" data-lang="zh-CN">中文(简体)</a></li>
-                    <li><a class="dropdown-item" href="#" data-lang="zh-TW">中文(繁體)</a></li>
-                </ul>
+        <!-- Brand/Logo (Left Aligned) - Serves as Home button -->
+        <a class="navbar-brand me-lg-5 d-flex align-items-center" th:href="@{/}">
+            <img th:src="@{/image/logo.png}" alt="타비토모 로고" id="logo">
+            <h1 class="m-0" data-translatable>Tabitomo</h1>
+        </a>
+
+        <!-- Mobile Toggler Button -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <!-- Main Navigation Links (Center Aligned) -->
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item dropdown" th:classappend="${#strings.startsWith(requestURI, '/about') or #strings.startsWith(requestURI, '/contact') or #strings.startsWith(requestURI, '/privacy') or #strings.startsWith(requestURI, '/terms') ? 'active' : ''}">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span data-translatable>소개</span>
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" th:href="@{/about}" data-translatable>About Us</a></li>
+                        <li><a class="dropdown-item" th:href="@{/contact}" data-translatable>Contact</a></li>
+                        <li><a class="dropdown-item" th:href="@{/privacy}" data-translatable>Privacy Policy</a></li>
+                        <li><a class="dropdown-item" th:href="@{/terms}" data-translatable>Terms of Service</a></li>
+                        <li><a class="dropdown-item" th:href="@{/chatbot/intro}" th:classappend="${#strings.startsWith(requestURI, '/chatbot/intro')} ? 'active' : ''">
+                            <span data-translatable>챗봇 사용</span></a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/tripselect/step1}" th:classappend="${#strings.startsWith(requestURI, '/tripselect')} ? 'active' : ''">
+                        <span data-translatable>여행지 추천</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/trips/public}" th:classappend="${#strings.startsWith(requestURI, '/trips/public')} ? 'active' : ''">
+                        <span data-translatable>모두의 여행</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/tripinformation}" th:classappend="${#strings.startsWith(requestURI, '/tripinformation')} ? 'active' : ''">
+                        <span data-translatable>국내여행정보</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/storybook/list}" th:classappend="${#strings.startsWith(requestURI, '/storybook')} ? 'active' : ''">
+                        <span data-translatable>스토리북</span>
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Right Aligned Buttons/Dropdowns -->
+            <div class="d-flex align-items-center">
+                <!-- Language Dropdown -->
+                <div class="dropdown me-3" id="translation-dropdown">
+                    <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" id="languageDropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-language"></i> Language
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdownMenuButton">
+                        <li><a class="dropdown-item" href="#" data-lang="ko">한국어</a></li>
+                        <li><a class="dropdown-item" href="#" data-lang="ja">日本語</a></li>
+                        <li><a class="dropdown-item" href="#" data-lang="en">English</a></li>
+                        <li><a class="dropdown-item" href="#" data-lang="zh-CN">中文(简体)</a></li>
+                        <li><a class="dropdown-item" href="#" data-lang="zh-TW">中文(繁體)</a></li>
+                    </ul>
+                </div>
+
+                <!-- When Not Authenticated -->
+                <div sec:authorize="!isAuthenticated()">
+                    <a th:href="@{/auth/login}" class="btn btn-outline-light btn-sm me-2">
+                        <i class="fas fa-sign-in-alt"></i> <span data-translatable>로그인</span>
+                    </a>
+                    <a th:href="@{/auth/signup}" class="btn btn-warning btn-sm">
+                        <i class="fas fa-user-plus"></i> <span data-translatable>회원가입</span>
+                    </a>
+                </div>
+
+                <!-- When Authenticated -->
+                <div class="dropdown" sec:authorize="isAuthenticated()">
+                    <button class="btn btn-outline-light btn-sm dropdown-toggle d-flex align-items-center" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-user-circle me-2"></i>
+                        <span sec:authentication="principal.nickname">Nickname</span><span data-translatable>님</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li sec:authorize="hasAuthority('admin')">
+                            <a class="dropdown-item" th:href="@{/admin}">
+                                <i class="fas fa-user-shield me-2"></i><span data-translatable>관리자 페이지</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" th:href="@{/member/mypage}">
+                                <i class="fas fa-user-cog me-2"></i><span data-translatable>마이페이지</span>
+                            </a>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li>
+                            <form th:action="@{/auth/logout}" method="post">
+                                <button type="submit" class="dropdown-item">
+                                    <i class="fas fa-sign-out-alt me-2"></i><span data-translatable>로그아웃</span>
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
-</header>
+</nav>
+</body>
+</html>

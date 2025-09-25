@@ -44,11 +44,19 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:8080"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Collections.singletonList("*"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
+        
+        // CORS 설정에 CSRF 관련 헤더 추가
+        configuration.setExposedHeaders(Arrays.asList(
+            "Authorization", 
+            "X-CSRF-TOKEN",
+            "X-Requested-With",
+            "Content-Type"
+        ));
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
@@ -80,8 +88,11 @@ public class SecurityConfig {
                 "/image/**",
                 "/fonts/**", 
                 "/favicon.ico",
-                "/css/**","/trips/public", "/tripinformation",
-                    "/tripinformation/places"
+                "/css/**",
+                "/trips/public", 
+                "/tripinformation",
+                "/tripinformation/places",
+                "/api/auth/reset-password"
             )
         );
         

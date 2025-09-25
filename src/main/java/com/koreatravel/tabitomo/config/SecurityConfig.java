@@ -105,13 +105,13 @@ public class SecurityConfig {
                 .contentSecurityPolicy(csp -> csp
                     .policyDirectives(
                         "default-src 'self'; " +
-                        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://npmcdn.com https://cdn.tailwindcss.com; " +
-                        "script-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://npmcdn.com https://cdn.tailwindcss.com; " +
-                        "style-src 'self' 'unsafe-inline' https:; " +
-                        "style-src-elem 'self' 'unsafe-inline' https:; " +
+                        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://npmcdn.com https://cdn.tailwindcss.com https://cdn.ckeditor.com https://cdn.ckbox.io; " +
+                        "script-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://npmcdn.com https://cdn.tailwindcss.com https://cdn.ckeditor.com https://cdn.ckbox.io; " +
+                        "style-src 'self' 'unsafe-inline' https: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css https://cdn.ckeditor.com https://fonts.googleapis.com; " +
+                        "style-src-elem 'self' 'unsafe-inline' https: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css https://cdn.ckeditor.com https://fonts.googleapis.com; " +
                         "img-src 'self' data: https: *.tile.openstreetmap.org; " +
-                        "font-src 'self' https: data:; " +
-                        "connect-src 'self' http://localhost:8080 https://cdn.jsdelivr.net https://cdn.tailwindcss.com;"
+                        "font-src 'self' https: https://fonts.googleapis.com https://fonts.gstatic.com data:; " +
+                        "connect-src 'self' http://localhost:8080 https://cdn.jsdelivr.net https://cdn.tailwindcss.com https://cdn.ckeditor.com https://cdn.ckbox.io https://proxy-event.ckeditor.com;"
                     )
                 );
         });
@@ -181,7 +181,8 @@ public class SecurityConfig {
                 "/storybook/write",
                 "/storybook/editor/**",
                 "/storybook/save",
-                "/storybook/tempsave"
+                "/storybook/tempsave",
+                "/storybook/update/**"
             ).authenticated()
             
             // 나머지 모든 요청은 인증이 필요

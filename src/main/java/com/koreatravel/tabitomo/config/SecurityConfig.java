@@ -159,8 +159,8 @@ public class SecurityConfig {
                 "/storybook/tempsave"
             ).authenticated()
             
-            // 나머지 요청은 인증 없이 접근 가능 (테스트용)
-            .anyRequest().permitAll(); // TODO: 보안 강화를 위해 나중에 적절한 인증 설정 필요
+            // 나머지 모든 요청은 인증이 필요
+            .anyRequest().authenticated();
         });
         
         // 폼 로그인 설정

@@ -74,6 +74,7 @@ public class SecurityConfig {
                 "/api/favorites/**",
                 "/api/translate/**",
                 "/upload",
+                "/api/**",
                 "/chat/**",
                 "/h2-console/**",
                 "/auth/reset-password",
@@ -167,7 +168,7 @@ public class SecurityConfig {
             .requestMatchers(
                 "/chatbot/intro",
                 "/chat/**",
-                "/api/send"
+                "/api/**"
             ).permitAll()
             
             // 파일 업로드
@@ -244,6 +245,8 @@ public class SecurityConfig {
                     response.sendRedirect("/auth/login?error=unauthorized&message=" +
                             URLEncoder.encode(message, StandardCharsets.UTF_8));
                 }
+
+
             });
             
             // 인가 실패 시 처리
@@ -253,7 +256,7 @@ public class SecurityConfig {
                     response.setContentType("application/json;charset=UTF-8");
                     response.getWriter().write("{\"success\":false,\"message\":\"접근 권한이 없습니다.\"}");
                 } else {
-                    response.sendRedirect("/auth/access-denied.html");
+                    response.sendRedirect("/auth/access-denied");
                 }
             });
         });

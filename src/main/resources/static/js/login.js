@@ -181,8 +181,9 @@ function goToNextStep() {
             return false;
         }
         resetEmail = email; // 이메일 저장
-        sendVerificationCode(); // 인증번호 발송
-        return; // sendVerificationCode에서 성공 시 다음 단계로 이동
+        // sendVerificationCode가 성공하면 자동으로 다음 단계로 이동하므로 여기서는 호출만 함
+        sendVerificationCode();
+        return false; // sendVerificationCode에서 비동기 처리를 하므로 여기서는 다음 단계로 이동하지 않음
     } 
     else if (currentStep === 2) {
         // 인증번호 확인 단계
@@ -195,12 +196,13 @@ function goToNextStep() {
         return; // verifyCode에서 성공 시 다음 단계로 이동
     }
     
-    // 다음 단계로 이동
+    // 다음 단계로 이동 (현재 단계가 1이거나 2인 경우는 이미 처리되었으므로 여기서는 3단계로만 이동)
     if (currentStep < totalSteps) {
         currentStep++;
         updateSteps();
+        return true;
     }
-    return true;
+    return false;
 }
 
 // 이전 단계로 이동
@@ -302,7 +304,8 @@ async function sendVerificationCode() {
     
     // 이미 성공적으로 이메일을 보낸 경우 다음 단계로 이동
     if (isEmailSent && email === resetEmail) {
-        goToNextStep();
+        currentStep = 2; // 2단계로 직접 설정
+        updateSteps();   // UI 업데이트
         return;
     }
     

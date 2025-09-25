@@ -118,7 +118,7 @@ public class SecurityConfig {
             .requestMatchers(
                 "/trips/public", "/tripinformation/**", 
                 "/about", "/contact", "/privacy", "/terms",
-                "/api/translate/**", "/trip/**", "/api/favorites/status",
+                "/api/translate/**", "/trip/**", "/tripselect/**", "/api/favorites/status",
                 "/main", "/main/**", "/api/public/**", "/api/places/**"
             ).permitAll()
             
@@ -231,7 +231,10 @@ public class SecurityConfig {
                     response.setContentType("application/json;charset=UTF-8");
                     response.getWriter().write("{\"success\":false,\"message\":\"접근 권한이 없습니다.\"}");
                 } else {
-                    response.sendRedirect("/auth/access-denied");
+                    // 웹 요청의 경우 403 상태 코드 반환
+                    response.setStatus(HttpStatus.FORBIDDEN.value());
+                    response.setContentType("text/html;charset=UTF-8");
+                    response.getWriter().write("<html><body><h1>접근 권한이 없습니다.</h1></body></html>");
                 }
             });
         });

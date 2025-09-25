@@ -6,11 +6,8 @@
 
 <head th:replace="~{fragments/header :: head}"></head>
 <body>
-<!-- Header -->
+<!-- Header and Navigation Menu (Combined) -->
 <div th:replace="~{fragments/header :: header}"></div>
-
-<!-- Navigation Menu -->
-<div th:replace="~{fragments/menu :: menu}"></div>
 
 <!-- chatbot -->
 <div th:replace="~{fragments/chatbot-button :: chatbot-container}"></div>
@@ -42,9 +39,9 @@
                 <!-- Dynamic Cities from Database -->
                 <div class="col-md-4" th:each="city : ${cities}">
                     <div class="card h-100">
-                        <img th:src="${city.image_url != null ? '/image/local-image/' + city.image_url : '/images/default-placeholder.png'}" 
-                             th:alt="${city.city}" 
-                             class="card-img-top" 
+                        <img th:src="${city.image_url != null ? '/image/local-image/' + city.image_url : '/images/default-placeholder.png'}"
+                             th:alt="${city.city}"
+                             class="card-img-top"
                              onerror="this.onerror=null; this.src='/images/default-placeholder.png';">
                         <div class="card-body">
                             <h5 class="card-title" th:text="${city.city}" data-translatable>도시명</h5>
@@ -96,11 +93,10 @@
             </div>
         </div>
     </section>
-
 </main>
 
 <!-- 설문조사 안내 모달 -->
-<div id="surveyModal" class="modal fade" tabindex="-1" aria-labelledby="surveyModalLabel" aria-hidden="true" 
+<div id="surveyModal" class="modal fade" tabindex="-1" aria-labelledby="surveyModalLabel" aria-hidden="true"
      th:if="${session != null and session.authenticatedEmail != null and session.showQuestionnairePrompt == true}">
     <div class="modal-dialog modal-dialog-centered">
         <input type="hidden" id="debugSessionId" th:value="${session.authenticatedEmail ?: 'no-email'}" />

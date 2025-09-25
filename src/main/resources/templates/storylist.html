@@ -79,27 +79,7 @@
   </section>
 
  <div id="story-container">
-<!--  <div class="grid" th:if="${storylist != null}">-->
-<!--    <div th:each="story, status: ${storylist}">-->
-<!--      <a class="link" th:href="@{'/storybook/detail?booknum=' + ${story.booknum}}">-->
-<!--        <div class="card">-->
-<!--          <div class="likes">-->
-<!--              <span th:text="'❤'" th:style="${story.isLiked} ? 'color:red' : 'color:black'"></span>-->
-<!--              <span th:text="${story.likes}"></span>-->
-<!--          </div>-->
-<!--          <div class="thumbnail">-->
-<!--              <img th:src="${story.thumbnail != null ? story.thumbnail : '/image/tomo.png'}" alt="썸네일">-->
-<!--          </div>-->
-<!--          <h3 th:text="${story.title}" data-translatable></h3>-->
-<!--          <p th:text="${story.subtitle}" data-translatable></p>-->
-<!--          <div class="meta">-->
-<!--            <span th:text="${story.nickname}"></span>-->
-<!--            <span th:text="${#temporals.format(story.createDate, 'yy.MM.dd')}"></span>-->
-<!--          </div>-->
-<!--        </div>-->
-<!--      </a>-->
-<!--    </div>-->
-<!--  </div>-->
+
 
  <div class="row g-4">
      <div class="col-12 col-md-6 col-lg-4" th:each="story : ${storylist}">

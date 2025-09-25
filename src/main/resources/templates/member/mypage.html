@@ -83,43 +83,64 @@
             <!-- 내 스토리북 -->
             <section class="story-section py-3">
                 <div class="section-header">
-                    <h2 class="h3 mb-3" data-translatable>나의 스토리북</h2>
+                    <h2 class="h3 mb-3" data-translatable>내 스토리북</h2>
                     <div class="story-buttons">
                         <a class="storybtn" id="templistBtn" data-translatable>임시저장본</a>
                         <a class="storybtn primary" onclick="checkTemp()" th:href="@{'/storybook/write'}" data-translatable>새 스토리 작성</a>
                     </div>
                 </div>
-                <div th:if="${storylist == null or storylist.isEmpty()}" class="alert alert-info" role="alert" data-translatable>당신의 여행 스토리북을 만들어보세요!</div>
+                <div th:if="${storyPage == null}" class="alert alert-info" role="alert" data-translatable>당신의 여행 스토리북을 만들어보세요!</div>
 
-                <div class="grid">
-                    <div th:if="${storylist}" th:each="storylist, status: ${storylist}">
-                        <a class="link" th:href="@{'/storybook/detail?booknum=' + ${storylist.booknum}}">
-                            <div class="card">
-                                <div class="likes"><span id="heart">❤</span> <span th:text="${storylist.likes}"></span></div>
-                                <div class="thumbnail">
-                                    <img th:src="${storylist.thumbnail != null ? storylist.thumbnail : '/image/tomo.png'}" alt="썸네일">
-                                </div>
-                                <h3 th:text="${storylist.title}" data-translatable></h3>
-                                <p th:text="${storylist.subtitle}" data-translatable></p>
-                                <div class="meta">
-                                    <span th:text="${storylist.booknum}"></span>
-                                    <span th:text="${#temporals.format(storylist.createDate, 'yy.MM.dd')}"></span>
-                                </div>
+
+                <!-- 리스트 -->
+                <div class="list-group" th:unless="${storyPage.empty}">
+                    <div th:each="story : ${storyPage}"
+                         class="list-group-item d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1 me-3">
+                            <h6 class="mb-1 fw-bold fs-5" th:text="${story.title}" data-translatable>제목</h6>
+                            <small class="mb-1 fs-7 text-muted" th:text="${story.subtitle}" data-translatable>부제목</small>
+                        </div>
+
+                        <div class="text-end d-flex flex-column justify-content-between">
+                            <div>
+                                 <span th:text="'❤'"
+                                     th:style="${story.isLiked} ? 'color:red' : 'color:black'"></span>
+                                <span th:text="${story.likes}"></span>
                             </div>
-                        </a>
+                            <small class="text-muted"
+                                   th:text="${#temporals.format(story.createDate, 'yy.MM.dd')}">
+                                25.09.25
+                            </small>
+                        </div>
+                        <a th:href="@{'/storybook/detail?booknum=' + ${story.booknum}}" class="stretched-link"></a>
                     </div>
                 </div>
 
-                <div th:if="${storylist != null and !storylist.isEmpty()}">
-                    <div th:if="${(!all) and (storylist.size() > 3)}">
-                        <button class="more" th:onclick="|location.href='@{/member/mypage(all=true)}'|" data-translatable>더 보기 +</button>
-                    </div>
-                    <div th:if="${all}">
-                        <button class="morebtn" th:onclick="|location.href='@{/member/mypage(all=false)}'|" data-translatable>닫기</button>
-                    </div>
-                </div>
-            </section>
-        </div>
+                <!-- Pagination -->
+                <nav th:if="${storyPage.totalPages > 1}" class="mt-4 d-flex justify-content-center">
+                    <ul class="pagination">
+                        <li class="page-item" th:classappend="${storyPage.first} ? 'disabled'">
+                            <a class="page-link" th:href="@{/member/mypage(storyPage=0)}" data-translatable>처음</a>
+                        </li>
+                        <li class="page-item" th:classappend="${storyPage.first} ? 'disabled'">
+                            <a class="page-link" th:href="@{/member/mypage(storyPage=${storyPage.number - 1})}" data-translatable>이전</a>
+                        </li>
+                        <li class="page-item"
+                            th:each="pageNumber : ${#numbers.sequence(startStoryPage, endStoryPage)}"
+                            th:classappend="${pageNumber == storyPage.number} ? 'active'">
+                            <a class="page-link" th:href="@{/member/mypage(storyPage=${pageNumber})}"
+                               th:text="${pageNumber + 1}"></a>
+                        </li>
+                        <li class="page-item" th:classappend="${storyPage.last} ? 'disabled'">
+                            <a class="page-link" th:href="@{/member/mypage(storyPage=${storyPage.number + 1})}" data-translatable>다음</a>
+                        </li>
+                        <li class="page-item" th:classappend="${storyPage.last} ? 'disabled'">
+                            <a class="page-link" th:href="@{/member/mypage(storyPage=${storyPage.totalPages - 1})}" data-translatable>마지막</a>
+                        </li>
+                    </ul>
+                </nav>
+        </section>
+    </div>
 
         <!-- Right Column -->
         <div class="col-md-6">

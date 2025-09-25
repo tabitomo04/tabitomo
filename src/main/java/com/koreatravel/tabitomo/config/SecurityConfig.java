@@ -85,14 +85,14 @@ public class SecurityConfig {
                 "/trip/step4",
                 "/trip/save",
                 "/js/**",
-                "/images/**", 
                 "/image/**",
                 "/fonts/**", 
                 "/favicon.ico",
                 "/css/**",
                 "/trips/public", 
                 "/tripinformation",
-                "/tripinformation/places"
+                "/tripinformation/places",
+                "/auth/signup"
             )
         );
         
@@ -119,13 +119,12 @@ public class SecurityConfig {
         // 세션 관리 설정
         http.sessionManagement(session -> {
             session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                  .sessionFixation().migrateSession()
-                  .maximumSessions(1)
-                  .maxSessionsPreventsLogin(false)
-                  .expiredUrl("/auth/login?expired");
+                  .sessionFixation(change -> change.changeSessionId())  // 세션 고정 공격 방지
+                  .maximumSessions(1)  // 동시 로그인 세션 수 제한 (1개만 허용)
+                  .maxSessionsPreventsLogin(false)  // 기존 세션 만료 정책 사용
+                  .expiredUrl("/auth/login?expired");  // 세션 만료 시 이동할 URL
             
-            // Set invalid session URL separately
-            session.invalidSessionUrl("/auth/login?expired");
+            session.invalidSessionUrl("/auth/login?expired");  // 유효하지 않은 세션일 때 이동할 URL
         });
 
         // 인가 설정 - 모든 사용자에게 허용할 경로

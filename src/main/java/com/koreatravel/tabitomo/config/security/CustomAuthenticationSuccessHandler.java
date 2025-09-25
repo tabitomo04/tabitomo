@@ -93,7 +93,7 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
                     memberProfile.setCountryName(member.getCountry().getNameEn());
                 }
 
-                // 언어 정보 설정
+                // 언어 설정
                 if (member.getPreferredLanguage() != null) {
                     memberProfile.setPreferredLanguageId(member.getPreferredLanguage().getLanguageId());
                     memberProfile.setPreferredLanguageName(member.getPreferredLanguage().getNameEn());
@@ -101,30 +101,26 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
 
                 // 세션에 사용자 정보 저장
                 HttpSession session = request.getSession();
+                boolean isCompleted = member.isQuestionnaireCompleted();
 
-                // 세션에 최소한의 사용자 정보만 저장
+                // 세션에 사용자 정보 저장
                 session.setAttribute("userId", memberProfile.getId());
                 session.setAttribute("authenticatedEmail", email);
-                session.setAttribute("questionnaireCompleted", memberProfile.isQuestionnaireCompleted());
+                session.setAttribute("questionnaireCompleted", isCompleted);
+                session.setAttribute("showQuestionnairePrompt", !isCompleted);
 
-                log.info("Login successful - User: {}, Questionnaire completed: {}",
-                        email, memberProfile.isQuestionnaireCompleted());
+                log.info("Login successful - User: {}, Questionnaire completed: {}", email, isCompleted);
+                log.info("Setting showQuestionnairePrompt={} for user {}", !isCompleted, email);
+                log.info("Session ID after login: {}", session.getId());
 
-                // Set a flag in session to show questionnaire prompt
-                if (!member.isQuestionnaireCompleted()) {
-                    log.info("Setting showQuestionnairePrompt flag for user {}", email);
-                    session.setAttribute("showQuestionnairePrompt", Boolean.TRUE); // 명시적으로 Boolean.TRUE 사용
-                    log.info("Session ID after login: {}", session.getId());
-                }
-
-                // Always redirect to home page
+                // 홈페이지로 리다이렉트
                 response.sendRedirect("/");
 
             } catch (Exception e) {
                 log.error("Error processing member profile for {}: {}", email, e.getMessage(), e);
                 response.sendRedirect("/auth/login?error=profile_processing_error");
+                return;
             }
-
         } catch (ClassCastException e) {
             log.error("Invalid user details type in authentication: {}", e.getMessage(), e);
             response.sendRedirect("/auth/login?error=invalid_user_type");

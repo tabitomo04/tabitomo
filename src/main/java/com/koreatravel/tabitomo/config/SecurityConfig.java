@@ -105,12 +105,13 @@ public class SecurityConfig {
                 .contentSecurityPolicy(csp -> csp
                     .policyDirectives(
                         "default-src 'self'; " +
-                        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://npmcdn.com; " +
-                        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css; " +
-                        "style-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css; " +
+                        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://npmcdn.com https://cdn.tailwindcss.com; " +
+                        "script-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://npmcdn.com https://cdn.tailwindcss.com; " +
+                        "style-src 'self' 'unsafe-inline' https:; " +
+                        "style-src-elem 'self' 'unsafe-inline' https:; " +
                         "img-src 'self' data: https: *.tile.openstreetmap.org; " +
                         "font-src 'self' https: data:; " +
-                        "connect-src 'self' http://localhost:8080 https://cdn.jsdelivr.net;"
+                        "connect-src 'self' http://localhost:8080 https://cdn.jsdelivr.net https://cdn.tailwindcss.com;"
                     )
                 );
         });

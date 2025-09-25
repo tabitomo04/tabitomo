@@ -76,7 +76,27 @@
 
     <div class="center-div">
       <h1 style="font-size: 40px;" data-translatable>스토리북 작성하기</h1>
-      <a href="#">다른 페이지로 이동 (모달창 테스트용)</a>
+
+      <!-- 상단: 여행 계획 선택 -->
+      <div class="d-flex align-items-center mb-3">
+        <label class="me-2 fw-bold" data-translatable>여행 계획:</label>
+
+        <!-- 기본 선택: 최근 여행 계획 -->
+        <div class="dropdown">
+          <button class="btn btn-outline-primary dropdown-toggle" type="button" id="planDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <span id="selectedPlanTitle" th:text="${tripsList[0].title}" data-translatable>최근 여행 계획</span>
+          </button>
+          <ul class="dropdown-menu" aria-labelledby="planDropdown">
+            <li th:each="plan : ${tripsList}">
+              <a class="dropdown-item" href="#"
+                 th:text="${plan.title}"
+                 th:data-region="${plan.region}"
+                 onclick="selectPlan(this)"></a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
       <div>
         <input type="hidden" id="savetype" value="temp">
         <table style="border: 2px solid #333; border-collapse: separate; width: 100%; margin-bottom:30px; background: white">
@@ -93,7 +113,7 @@
           </tr>
           <tr>
             <td colspan="5">
-              <input name="tags" id="tags" placeholder="Add hashtag">
+              <input name="tags" id="tags" placeholder="Add hashtag" th:value="${recentRegion != null} ? ${recentRegion} : ''">
             </td>
           </tr>
           </thead>
@@ -143,20 +163,15 @@
 <script th:src="@{/js/modal.js}"></script>
 
     <script>
+      let tagify;
+
       $(document).ready(function() {
         let input = document.querySelector('input[name="tags"]');
 
 
       //init Tagify script on the above inputs
       tagify = new Tagify(input, {
-      callbacks: {
-        beforeAddTag: function(e) {
-            var tagData = e.detail;
-            if (!tagData.value.startsWith('#')) {
-                tagData.value = '#' + tagData.value;
-            }
-        }
-    },
+
       whitelist: [], // 화이트리스트 배열
       maxTags: 10, // 최대 허용 태그 갯수
       enforceWhitelist: false,
@@ -169,7 +184,31 @@
       });
 
       tagify.on('input', onInput);
-    });
+
+
+        // 초기 최근 지역 태그 추가
+<!--      const recentRegion = /*[[${recentRegion}]]*/ "기본지역";-->
+<!--      if (recentRegion) {-->
+<!--          tagify.addTags([recentRegion]);-->
+<!--      }-->
+  });
+
+  // 드롭다운에서 여행 계획 선택 시 태그 변경
+  function selectPlan(el) {
+      const region = el.getAttribute('data-region');
+      const title = el.textContent;
+
+      // 버튼 텍스트 변경
+      document.getElementById('selectedPlanTitle').textContent = title;
+
+      // 기존 지역 태그 제거 후 새 지역 추가
+      tagify.removeAllTags();
+      if (region) {
+          tagify.addTags([region]);
+      }
+  }
+
+
 
 //태그 입력란에 입력되고 있을 때
 function onInput(e){

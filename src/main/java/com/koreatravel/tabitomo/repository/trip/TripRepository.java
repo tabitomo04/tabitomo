@@ -1,6 +1,7 @@
 package com.koreatravel.tabitomo.repository.trip;
 
 
+import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -33,4 +34,7 @@ public interface TripRepository extends JpaRepository<Trip, Long> {
     List<Trip> findByMemberNicknameAndVisibility(String nickname, String visibility);
 
     Page<Trip> findByMemberNicknameAndVisibility(String nickname, String visibility, Pageable pageable);
+
+    @Query("SELECT t FROM Trip t JOIN FETCH t.accommodation a WHERE t.member = :member ORDER BY t.createdAt DESC LIMIT 1")
+    Optional<Trip> findTopByMemberWithAccommodation(@Param("member") MemberEntity member);
 }

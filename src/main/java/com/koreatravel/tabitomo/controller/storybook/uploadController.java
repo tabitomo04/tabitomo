@@ -52,11 +52,4 @@ public class uploadController {
         return response;
     }
 
-    @GetMapping("/check-dir")
-    @ResponseBody
-    public String checkWorkingDir() {
-        String dir = System.getProperty("user.dir");
-        System.out.println("현재 작업 디렉터리: " + dir);
-        return dir;
-    }
 }

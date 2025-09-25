@@ -7,12 +7,17 @@ import com.koreatravel.tabitomo.domain.dto.storybook.SaveRequestDTO;
 import com.koreatravel.tabitomo.domain.dto.storybook.StorybookDTO;
 import com.koreatravel.tabitomo.domain.dto.storybook.StorybookListDTO;
 import com.koreatravel.tabitomo.domain.dto.storybook.TempsaveDTO;
+import com.koreatravel.tabitomo.domain.dto.trip.TripRegion;
+import com.koreatravel.tabitomo.domain.entity.trip.Trip;
+import com.koreatravel.tabitomo.repository.trip.TripRepository;
 import com.koreatravel.tabitomo.service.storybook.EditorService;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -34,7 +39,16 @@ public class EditorController {
 
     // 에디터 페이지 열기
     @GetMapping(PathConstants.STORYBOOK_WRITE)
-    public String editor() {
+    public String editor(@AuthenticationPrincipal UserDetailsImpl userDetails,
+                         Model model) {
+
+        String email = userDetails.getEmail();
+        List<TripRegion> tripsList = editorService.findTripsByEmail(email);
+        String recentRegion = editorService.getRecentPlan(email);
+
+        model.addAttribute("tripsList", tripsList);
+        model.addAttribute("recentRegion",recentRegion);
+
         return "editor";
     }
 
@@ -337,6 +351,12 @@ public class EditorController {
         List<String> taglist = editorService.gettaglist();
         return taglist;
     }
+
+
+
+
+
+
 
 //    @GetMapping("/{lang}")
 //    public Map<String, String> getMessages(@PathVariable String lang, Locale locale) {

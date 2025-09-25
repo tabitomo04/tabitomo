@@ -43,6 +43,26 @@ public class GeminiAIService {
 
     private List<Map<String, Object>> accommodationData;
 
+    private static final Map<String, String> DESTINATION_MAP = Map.ofEntries(
+        Map.entry("경상남도", "경남"),
+        Map.entry("경상북도", "경북"),
+        Map.entry("충청남도", "충남"),
+        Map.entry("충청북도", "충북"),
+        Map.entry("전라남도", "전남"),
+        Map.entry("전북특별자치도", "전북"),
+        Map.entry("강원특별자치도", "강원"),
+        Map.entry("제주특별자치도", "제주"),
+        Map.entry("서울특별시", "서울"),
+        Map.entry("부산광역시", "부산"),
+        Map.entry("대구광역시", "대구"),
+        Map.entry("인천광역시", "인천"),
+        Map.entry("광주광역시", "광주"),
+        Map.entry("대전광역시", "대전"),
+        Map.entry("울산광역시", "울산"),
+        Map.entry("세종특별자치시", "세종"),
+        Map.entry("경기도", "경기")
+    );
+
     public GeminiAIService(RestTemplate restTemplate, ObjectMapper objectMapper, KakaoLocalApiClient kakaoLocalApiClient, GoogleMapsApiClient googleMapsApiClient, ResourceLoader resourceLoader) {
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
@@ -208,6 +228,14 @@ public class GeminiAIService {
         }
     }
 
+    private boolean isAddressInDestination(String address, String destination) {
+        if (address == null || destination == null) {
+            return false;
+        }
+        String shortName = DESTINATION_MAP.getOrDefault(destination, destination);
+        return address.startsWith(destination) || address.startsWith(shortName);
+    }
+
     private Place createAndEnrichPlace(JsonNode itemNode, String destination, boolean isAccommodation) {
         String placeName = itemNode.path("place_name").asText(null);
         if (placeName == null || placeName.trim().isEmpty()) {
@@ -238,8 +266,7 @@ public class GeminiAIService {
                     address = firstResult.path("road_address").path("address_name").asText();
                 }
 
-                String simpleDestination = destination.length() >= 2 ? destination.substring(0, 2) : destination;
-                if (!address.startsWith(simpleDestination)) {
+                if (!isAddressInDestination(address, destination)) {
                     logger.warn("Place '{}' with address '{}' is outside the destination '{}'. Skipping for itinerary, but including for accommodation.", cleanedPlaceName, address, destination);
                     if (!isAccommodation) return null;
                 }

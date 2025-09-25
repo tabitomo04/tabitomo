@@ -128,7 +128,11 @@
         window.updateSchedulePlace = function(placeData, dayIndex, scheduleIndex) {
             const schedule = tripPlan.dailySchedules[dayIndex].schedules[scheduleIndex];
             schedule.place = placeData.name;
-            schedule.address = placeData.address;
+            if (placeData.address) {
+                schedule.address = placeData.address.replace(/^대한민국 /, '');
+            } else {
+                schedule.address = '';
+            }
             schedule.latitude = placeData.latitude;
             schedule.longitude = placeData.longitude;
             renderEditor();

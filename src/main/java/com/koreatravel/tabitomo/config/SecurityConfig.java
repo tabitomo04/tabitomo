@@ -44,11 +44,19 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:8080"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Collections.singletonList("*"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
+        
+        // CORS 설정에 CSRF 관련 헤더 추가
+        configuration.setExposedHeaders(Arrays.asList(
+            "Authorization", 
+            "X-CSRF-TOKEN",
+            "X-Requested-With",
+            "Content-Type"
+        ));
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
@@ -69,7 +77,21 @@ public class SecurityConfig {
                 "/chat/**",
                 "/h2-console/**",
                 "/auth/reset-password",
-                "/api/email/**"
+                "/api/email/**",
+                "/tripselect/**",
+                "/trip/**",
+                "/trip/step3",
+                "/trip/step4",
+                "/trip/save",
+                "/js/**",
+                "/images/**", 
+                "/image/**",
+                "/fonts/**", 
+                "/favicon.ico",
+                "/css/**",
+                "/trips/public", 
+                "/tripinformation",
+                "/tripinformation/places"
             )
         );
         
@@ -82,12 +104,12 @@ public class SecurityConfig {
                 .contentSecurityPolicy(csp -> csp
                     .policyDirectives(
                         "default-src 'self'; " +
-                        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com https://cdn.ckeditor.com https://cdn.ckbox.io; " +
-                        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.ckeditor.com https://fonts.googleapis.com; " +
-                        "style-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.ckeditor.com https://fonts.googleapis.com; " +
-                        "img-src 'self' data: https:; " +
+                        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://npmcdn.com; " +
+                        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css; " +
+                        "style-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css; " +
+                        "img-src 'self' data: https: *.tile.openstreetmap.org; " +
                         "font-src 'self' https: data:; " +
-                        "connect-src 'self' http://localhost:8080 https://cdn.jsdelivr.net https://cdn.ckeditor.com https://cdn.ckbox.io https://proxy-event.ckeditor.com;"
+                        "connect-src 'self' http://localhost:8080 https://cdn.jsdelivr.net;"
                     )
                 );
         });
@@ -116,7 +138,7 @@ public class SecurityConfig {
             
             // 공개 API 및 페이지
             .requestMatchers(
-                "/trips/public", "/tripinformation/**", 
+                "/trips/public", "/tripinformation/**", "/tripselect/**",
                 "/about", "/contact", "/privacy", "/terms",
                 "/api/translate/**", "/trip/**", "/api/favorites/status",
                 "/main", "/main/**", "/api/public/**", "/api/places/**"
@@ -231,7 +253,7 @@ public class SecurityConfig {
                     response.setContentType("application/json;charset=UTF-8");
                     response.getWriter().write("{\"success\":false,\"message\":\"접근 권한이 없습니다.\"}");
                 } else {
-                    response.sendRedirect("/auth/access-denied");
+                    response.sendRedirect("/auth/access-denied.html");
                 }
             });
         });

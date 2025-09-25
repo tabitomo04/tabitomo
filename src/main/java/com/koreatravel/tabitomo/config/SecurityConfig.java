@@ -69,7 +69,9 @@ public class SecurityConfig {
                 "/chat/**",
                 "/h2-console/**",
                 "/auth/reset-password",
-                "/api/email/**"
+                "/api/email/**",
+                "/tripselect/**",
+                "/trip/**"
             )
         );
         
@@ -82,12 +84,12 @@ public class SecurityConfig {
                 .contentSecurityPolicy(csp -> csp
                     .policyDirectives(
                         "default-src 'self'; " +
-                        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com https://cdn.ckeditor.com https://cdn.ckbox.io; " +
-                        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.ckeditor.com https://fonts.googleapis.com; " +
-                        "style-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.ckeditor.com https://fonts.googleapis.com; " +
+                        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com; " +
+                        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
+                        "style-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
                         "img-src 'self' data: https:; " +
                         "font-src 'self' https: data:; " +
-                        "connect-src 'self' http://localhost:8080 https://cdn.jsdelivr.net https://cdn.ckeditor.com https://cdn.ckbox.io https://proxy-event.ckeditor.com;"
+                        "connect-src 'self' http://localhost:8080 https://cdn.jsdelivr.net;"
                     )
                 );
         });
@@ -116,9 +118,9 @@ public class SecurityConfig {
             
             // 공개 API 및 페이지
             .requestMatchers(
-                "/trips/public", "/tripinformation/**", 
+                "/trips/public", "/tripinformation/**", "/tripselect/**",
                 "/about", "/contact", "/privacy", "/terms",
-                "/api/translate/**", "/trip/**", "/tripselect/**", "/api/favorites/status",
+                "/api/translate/**", "/trip/**", "/api/favorites/status",
                 "/main", "/main/**", "/api/public/**", "/api/places/**"
             ).permitAll()
             
@@ -231,10 +233,7 @@ public class SecurityConfig {
                     response.setContentType("application/json;charset=UTF-8");
                     response.getWriter().write("{\"success\":false,\"message\":\"접근 권한이 없습니다.\"}");
                 } else {
-                    // 웹 요청의 경우 403 상태 코드 반환
-                    response.setStatus(HttpStatus.FORBIDDEN.value());
-                    response.setContentType("text/html;charset=UTF-8");
-                    response.getWriter().write("<html><body><h1>접근 권한이 없습니다.</h1></body></html>");
+                    response.sendRedirect("/auth/access-denied.html");
                 }
             });
         });

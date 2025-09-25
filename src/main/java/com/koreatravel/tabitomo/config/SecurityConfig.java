@@ -68,7 +68,8 @@ public class SecurityConfig {
                 "/upload",
                 "/chat/**",
                 "/h2-console/**",
-                "/auth/reset-password"
+                "/auth/reset-password",
+                "/api/email/**"
             )
         );
         

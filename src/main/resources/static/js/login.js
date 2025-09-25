@@ -85,7 +85,13 @@ function setupPasswordToggles() {
 let verificationCode = '';
 let countdownInterval;
 let currentStep = 1;
-const totalSteps = 3;
+const totalSteps = 3; // 총 단계 수 (1: 이메일 입력, 2: 인증번호 확인, 3: 비밀번호 재설정)
+let resetEmail = '';
+let emailSendCount = 0;
+const MAX_EMAIL_SEND_ATTEMPTS = 5;
+let lastEmailSentTime = 0;
+const EMAIL_RESEND_DELAY = 60000; // 1분 (밀리초)
+let isEmailSent = false;
 
 // 모달 초기화
 function resetPasswordModal() {
@@ -116,45 +122,38 @@ function resetPasswordModal() {
 
 // 단계 업데이트
 function updateSteps() {
+    console.log('Updating steps to:', currentStep); // 디버깅용 로그
+    
     // 단계 표시기 업데이트
-    for (let i = 1; i <= totalSteps; i++) {
-        const stepElement = document.getElementById(`step${i}`);
-        if (stepElement) {
-            stepElement.classList.remove('active', 'completed');
-            if (i < currentStep) {
-                stepElement.classList.add('completed');
-            } else if (i === currentStep) {
-                stepElement.classList.add('active');
-            }
-        }
-    }
+    const stepIndicators = document.querySelectorAll('.rounded-circle');
+    const stepTexts = document.querySelectorAll('.modal-body .text-center .small');
     
-    // 진행 바 업데이트
-    const progressBar = document.getElementById('stepProgress');
-    if (progressBar) {
-        const progress = ((currentStep - 1) / (totalSteps - 1)) * 100;
-        progressBar.style.width = `${progress}%`;
-    }
-    
-    // 컨텐츠 표시/숨김
-    const stepContents = ['step1Content', 'step2Content', 'step3Content'];
-    stepContents.forEach((id, index) => {
-        const element = document.getElementById(id);
-        if (element) {
-            element.style.display = (index + 1 === currentStep) ? 'block' : 'none';
+    stepIndicators.forEach((indicator, index) => {
+        indicator.classList.remove('bg-primary', 'bg-secondary');
+        if (index < currentStep - 1) {
+            indicator.classList.add('bg-primary');
+        } else if (index === currentStep - 1) {
+            indicator.classList.add('bg-primary');
+        } else {
+            indicator.classList.add('bg-secondary');
         }
     });
     
-    // 버튼 표시/숨김
-    const prevBtn = document.getElementById('prevStepBtn');
-    const nextBtn = document.getElementById('nextStepBtn');
-    const completeBtn = document.getElementById('completeBtn');
-    const cancelBtn = document.querySelector('#passwordModal .btn-secondary[data-bs-dismiss="modal"]');
+    // 단계 컨텐츠 표시/숨김
+    const step1 = document.getElementById('step1');
+    const step2 = document.getElementById('step2');
+    const step3 = document.getElementById('step3');
     
-    if (prevBtn) prevBtn.style.display = currentStep > 1 ? 'block' : 'none';
-    if (nextBtn) nextBtn.style.display = currentStep < 3 ? 'block' : 'none';
-    if (completeBtn) completeBtn.style.display = currentStep === 3 ? 'block' : 'none';
-    if (cancelBtn) cancelBtn.style.display = currentStep === 1 ? 'block' : 'none';
+    if (step1) step1.style.display = currentStep === 1 ? 'block' : 'none';
+    if (step2) step2.style.display = currentStep === 2 ? 'block' : 'none';
+    if (step3) step3.style.display = currentStep === 3 ? 'block' : 'none';
+    
+    // 완료 버튼 업데이트
+    const completeBtn = document.getElementById('completeBtn');
+    if (completeBtn) {
+        completeBtn.style.display = currentStep === 3 ? 'block' : 'none';
+        completeBtn.textContent = '비밀번호 재설정';
+    }
     
     // 첫 단계로 돌아가면 카운트다운 초기화
     if (currentStep === 1) {
@@ -164,15 +163,16 @@ function updateSteps() {
             countdownElement.textContent = '03:00';
         }
     }
+    
+    // 디버깅을 위한 추가 로그
+    console.log('Step 1 display:', step1 ? step1.style.display : 'Not found');
+    console.log('Step 2 display:', step2 ? step2.style.display : 'Not found');
+    console.log('Step 3 display:', step3 ? step3.style.display : 'Not found');
 }
 
 // 다음 단계로 이동
 function goToNextStep() {
-    if (!validateCurrentStep()) {
-        return false;
-    }
-    
-    // 현재 단계에 따른 추가 유효성 검사
+    // 현재 단계에 따라 처리
     if (currentStep === 1) {
         // 이메일 인증 단계
         const email = document.getElementById('resetEmail').value.trim();
@@ -181,48 +181,43 @@ function goToNextStep() {
             return false;
         }
         resetEmail = email; // 이메일 저장
-        // sendVerificationCode가 성공하면 자동으로 다음 단계로 이동하므로 여기서는 호출만 함
+        // 이메일 전송 함수 호출
         sendVerificationCode();
         return false; // sendVerificationCode에서 비동기 처리를 하므로 여기서는 다음 단계로 이동하지 않음
     } 
-    else if (currentStep === 2) {
-        // 인증번호 확인 단계
-        const code = document.getElementById('verificationCode').value.trim();
-        if (!code) {
-            showError('인증번호를 입력해주세요.', 'codeError');
-            return false;
-        }
-        verifyCode(); // 인증번호 확인
-        return; // verifyCode에서 성공 시 다음 단계로 이동
-    }
     
-    // 다음 단계로 이동 (현재 단계가 1이거나 2인 경우는 이미 처리되었으므로 여기서는 3단계로만 이동)
+    // 현재 단계가 2(인증번호 확인) 또는 3(비밀번호 재설정)인 경우
     if (currentStep < totalSteps) {
         currentStep++;
         updateSteps();
+        
+        // 다음 단계로 이동한 후 포커스 설정
+        if (currentStep === 2) {
+            // 인증번호 입력 필드로 포커스 이동
+            setTimeout(() => {
+                const codeInput = document.getElementById('verificationCode');
+                if (codeInput) {
+                    codeInput.focus();
+                }
+            }, 100);
+        } else if (currentStep === 3) {
+            // 새 비밀번호 입력 필드로 포커스 이동
+            setTimeout(() => {
+                const passwordInput = document.getElementById('newPassword');
+                if (passwordInput) {
+                    passwordInput.focus();
+                }
+            }, 100);
+        }
+        
         return true;
     }
     return false;
 }
 
-// 이전 단계로 이동
-function goToPrevStep() {
-    if (currentStep > 1) {
-        currentStep--;
-        updateSteps();
-        
-        // 1단계로 돌아가면 카운트다운 중지
-        if (currentStep === 1) {
-            clearInterval(countdownInterval);
-            const countdownElement = document.getElementById('countdown');
-            if (countdownElement) {
-                countdownElement.textContent = '03:00';
-            }
-        }
-    }
-}
+// 이전 단계로 이동 함수는 제거 (자동 전환 방식으로 변경됨)
 
-// 현재 단계의 유효성 검사
+// 현재 단계의 유효성 검사 (더 간소화됨)
 function validateCurrentStep() {
     if (currentStep === 1) {
         const email = document.getElementById('resetEmail').value.trim();
@@ -276,12 +271,7 @@ function validatePassword(password) {
     return passwordRegex.test(password);
 }
 
-// 전역 변수로 이메일 전송 상태 관리
-let emailSendCount = 0;
-const MAX_EMAIL_SEND_ATTEMPTS = 5;
-let lastEmailSentTime = 0;
-const EMAIL_RESEND_DELAY = 60000; // 1분 (밀리초)
-let isEmailSent = false;
+// 이전에 전역 변수로 이동됨
 
 // 인증번호 발송
 async function sendVerificationCode() {
@@ -365,8 +355,12 @@ async function sendVerificationCode() {
         resetEmail = email;
         isEmailSent = true;
         
-        // 다음 단계로 이동
-        goToNextStep();
+        // 다음 단계로 이동 (자동 전환)
+        currentStep = 2;
+        updateSteps();
+        
+        // 카운트다운 시작
+        startCountdown();
         
         // 인증번호 입력 필드로 포커스 이동
         setTimeout(() => {
@@ -403,19 +397,34 @@ async function verifyCode() {
     const codeError = document.getElementById('codeError');
     const verifyBtn = document.getElementById('verifyCodeBtn');
     
+    // 오류 메시지 초기화
+    if (codeError) {
+        codeError.textContent = '';
+        codeError.style.display = 'none';
+    }
+    
+    // 유효성 검사
     if (!code) {
-        codeError.textContent = '인증번호를 입력해주세요.';
-        codeError.style.display = 'block';
+        if (codeError) {
+            codeError.textContent = '인증번호를 입력해주세요.';
+            codeError.style.display = 'block';
+        }
         return false;
     }
     
     // 버튼 로딩 상태 설정
-    const originalText = verifyBtn.innerHTML;
-    verifyBtn.disabled = true;
-    verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 확인 중...';
+    const originalText = verifyBtn ? verifyBtn.innerHTML : '';
+    if (verifyBtn) {
+        verifyBtn.disabled = true;
+        verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 확인 중...';
+    }
     
     try {
-        const email = document.getElementById('resetEmail').value.trim();
+        const email = document.getElementById('resetEmail')?.value.trim();
+        if (!email) {
+            throw new Error('이메일을 찾을 수 없습니다. 다시 시도해주세요.');
+        }
+        
         const response = await fetch('/api/email/verify', {
             method: 'POST',
             headers: { 
@@ -429,21 +438,50 @@ async function verifyCode() {
             })
         });
 
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || '인증에 실패했습니다.');
-        }
-
-        const data = await response.json();
+        const data = await response.json().catch(() => ({
+            success: false,
+            message: '서버 응답을 처리할 수 없습니다.'
+        }));
         
-        if (!data.success) {
-            throw new Error(data.message || '인증에 실패했습니다.');
+        console.log('Verification response:', data); // 디버깅용 로그
+        
+        if (!response.ok || !data.success) {
+            const errorMessage = data.message || '인증에 실패했습니다. 인증번호를 확인해주세요.';
+            throw new Error(errorMessage);
         }
         
-        // 인증 성공
-        codeError.textContent = '';
-        codeError.style.display = 'none';
-        goToNextStep();
+        // 인증 성공 - 자동으로 다음 단계로 이동
+        if (codeError) {
+            codeError.textContent = '';
+            codeError.style.display = 'none';
+        }
+        
+        // 성공 메시지 표시
+        const successMessage = document.createElement('div');
+        successMessage.className = 'alert alert-success mt-3';
+        successMessage.role = 'alert';
+        successMessage.textContent = '인증이 완료되었습니다. 잠시 후 비밀번호 재설정 페이지로 이동합니다.';
+        
+        const formGroup = document.querySelector('.form-group.mb-4');
+        if (formGroup) {
+            formGroup.appendChild(successMessage);
+        }
+        
+        // 1초 후에 다음 단계로 자동 이동
+        setTimeout(() => {
+            // 다음 단계로 이동 (비밀번호 재설정 단계)
+            currentStep = 3;
+            updateSteps();
+            
+            // 비밀번호 입력 필드에 포커스
+            setTimeout(() => {
+                const newPasswordInput = document.getElementById('newPassword');
+                if (newPasswordInput) {
+                    newPasswordInput.focus();
+                }
+            }, 100);
+        }, 1000);
+        
         return true;
     } catch (error) {
         console.error('Error:', error);
@@ -451,18 +489,43 @@ async function verifyCode() {
         codeError.style.display = 'block';
         return false;
     } finally {
-        verifyBtn.disabled = false;
-        verifyBtn.innerHTML = originalText;
+        if (verifyBtn) {
+            verifyBtn.disabled = false;
+            verifyBtn.innerHTML = originalText;
+        }
     }
 }
 
 // 비밀번호 재설정
 async function resetPassword() {
     const email = resetEmail; // 이전 단계에서 저장한 이메일 사용
-    const newPassword = document.getElementById('newPassword').value;
-    const confirmPassword = document.getElementById('confirmNewPassword').value;
+    const newPassword = document.getElementById('newPassword')?.value;
+    const confirmPassword = document.getElementById('confirmNewPassword')?.value;
     const passwordError = document.getElementById('passwordError');
     const completeBtn = document.getElementById('completeBtn');
+    
+    // 오류 메시지 초기화
+    if (passwordError) {
+        passwordError.textContent = '';
+        passwordError.style.display = 'none';
+    }
+    
+    // 유효성 검사
+    if (!newPassword || !confirmPassword) {
+        if (passwordError) {
+            passwordError.textContent = '비밀번호를 입력해주세요.';
+            passwordError.style.display = 'block';
+        }
+        return false;
+    }
+    
+    if (newPassword !== confirmPassword) {
+        if (passwordError) {
+            passwordError.textContent = '비밀번호가 일치하지 않습니다.';
+            passwordError.style.display = 'block';
+        }
+        return false;
+    }
     
     // 버튼 로딩 상태 설정
     if (completeBtn) {
@@ -496,7 +559,7 @@ async function resetPassword() {
     
     try {
         // 서버로 비밀번호 재설정 요청
-        const response = await fetch('/api/auth/reset-password', {
+        const response = await fetch('/auth/reset-password', {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
@@ -509,9 +572,15 @@ async function resetPassword() {
             })
         });
         
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || '비밀번호 재설정에 실패했습니다.');
+        const responseData = await response.json().catch(() => ({
+            success: false,
+            message: '서버 응답을 처리할 수 없습니다.'
+        }));
+        
+        console.log('Reset password response data:', responseData); // 디버깅용
+        
+        if (!response.ok || !responseData.success) {
+            throw new Error(responseData.message || '비밀번호 재설정에 실패했습니다. 다시 시도해주세요.');
         }
         
         const data = await response.json();
@@ -637,46 +706,60 @@ document.addEventListener('DOMContentLoaded', function() {
             resetPasswordModal();
         });
         
-        // 다음 버튼 클릭 이벤트
-        const nextBtn = document.getElementById('nextStepBtn');
-        if (nextBtn) {
-            nextBtn.addEventListener('click', goToNextStep);
-        }
-        
-        // 이전 버튼 클릭 이벤트
-        const prevBtn = document.getElementById('prevStepBtn');
-        if (prevBtn) {
-            prevBtn.addEventListener('click', goToPrevStep);
-        }
-        
         // 완료(재설정) 버튼 클릭 이벤트
         const completeBtn = document.getElementById('completeBtn');
         if (completeBtn) {
-            completeBtn.addEventListener('click', resetPassword);
+            completeBtn.addEventListener('click', function() {
+                if (currentStep === 1) {
+                    sendVerificationCode();
+                } else if (currentStep === 2) {
+                    verifyCode();
+                } else if (currentStep === 3) {
+                    resetPassword();
+                }
+            });
         }
         
         // 인증번호 전송 버튼 클릭 이벤트
         const sendVerificationBtn = document.getElementById('sendVerificationBtn');
         if (sendVerificationBtn) {
-            sendVerificationBtn.addEventListener('click', sendVerificationCode);
+            sendVerificationBtn.addEventListener('click', function() {
+                sendVerificationCode().then(success => {
+                    if (success) {
+                        // 버튼 텍스트 업데이트
+                        const completeBtn = document.getElementById('completeBtn');
+                        if (completeBtn) {
+                            completeBtn.textContent = '인증번호 확인';
+                            completeBtn.disabled = false;
+                        }
+                    }
+                });
+            });
         }
         
         // 인증번호 확인 버튼 클릭 이벤트
         const verifyCodeBtn = document.getElementById('verifyCodeBtn');
         if (verifyCodeBtn) {
-            verifyCodeBtn.addEventListener('click', verifyCode);
+            verifyCodeBtn.addEventListener('click', function() {
+                verifyCode();
+            });
         }
         
         // 인증번호 재전송 버튼 클릭 이벤트
         const resendCodeBtn = document.getElementById('resendCodeBtn');
         if (resendCodeBtn) {
-            resendCodeBtn.addEventListener('click', sendVerificationCode);
-        }
-        
-        // 비밀번호 재설정 버튼 클릭 이벤트
-        const resetPasswordBtn = document.getElementById('completeBtn');
-        if (resetPasswordBtn) {
-            resetPasswordBtn.addEventListener('click', resetPassword);
+            resendCodeBtn.addEventListener('click', function() {
+                sendVerificationCode().then(success => {
+                    if (success) {
+                        // 인증번호 입력 필드 초기화
+                        const codeInput = document.getElementById('verificationCode');
+                        if (codeInput) {
+                            codeInput.value = '';
+                            codeInput.focus();
+                        }
+                    }
+                });
+            });
         }
     }
     

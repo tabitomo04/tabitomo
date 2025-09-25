@@ -461,13 +461,13 @@ body, html {
 /* 피드백 모달 창 */
 #feedback-modal {
     background: #ffffff;
-    padding: 30px;
+    padding: 30px; /* 이 30px이 좌우 여백을 만들어줍니다. */
     border-radius: 16px;
     text-align: center;
     position: relative;
     width: 90%;
     max-width: 450px;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); /* 부드러운 그림자 */
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     animation: fadeInScale 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
@@ -515,9 +515,10 @@ body, html {
 
 /* 텍스트 영역 */
 #feedback-modal textarea {
-    width: 100%;
+    box-sizing: border-box;
+    width: 100%; /* 모달 패딩을 제외한 영역의 100% */
     height: 100px;
-    padding: 12px;
+    padding: 12px; /* 텍스트 영역 내부의 패딩 */
     border: 1px solid #e0e0e0;
     border-radius: 8px;
     font-size: 14px;
@@ -525,7 +526,7 @@ body, html {
     resize: none;
     transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
     outline: none;
-    margin-bottom: 15px; /* 버튼과의 간격 */
+    margin-bottom: 15px;
 }
 
 #feedback-modal textarea:focus {

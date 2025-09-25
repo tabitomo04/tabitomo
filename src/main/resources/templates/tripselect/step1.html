@@ -119,6 +119,13 @@
             destinationSelect.appendChild(option);
         });
 
+        // Pre-select destination from URL query parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const destinationFromUrl = urlParams.get('destination');
+        if (destinationFromUrl) {
+            destinationSelect.value = destinationFromUrl;
+        }
+
         let calendarInstance = null;
 
         function initializeCalendar(lang) {

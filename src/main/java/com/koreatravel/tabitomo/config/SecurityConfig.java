@@ -92,7 +92,9 @@ public class SecurityConfig {
                 "/trips/public", 
                 "/tripinformation",
                 "/tripinformation/places",
-                "/auth/signup"
+                "/auth/signup",
+                "/storybook/save",
+                "/storybook/tempsave"
             )
         );
         

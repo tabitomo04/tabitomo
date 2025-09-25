@@ -82,12 +82,12 @@ public class SecurityConfig {
                 .contentSecurityPolicy(csp -> csp
                     .policyDirectives(
                         "default-src 'self'; " +
-                        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com; " +
-                        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
-                        "style-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
+                        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com https://cdn.ckeditor.com https://cdn.ckbox.io; " +
+                        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.ckeditor.com https://fonts.googleapis.com; " +
+                        "style-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.ckeditor.com https://fonts.googleapis.com; " +
                         "img-src 'self' data: https:; " +
                         "font-src 'self' https: data:; " +
-                        "connect-src 'self' http://localhost:8080 https://cdn.jsdelivr.net;"
+                        "connect-src 'self' http://localhost:8080 https://cdn.jsdelivr.net https://cdn.ckeditor.com https://cdn.ckbox.io https://proxy-event.ckeditor.com;"
                     )
                 );
         });

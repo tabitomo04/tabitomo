@@ -6,10 +6,13 @@ import com.koreatravel.tabitomo.domain.dto.storybook.StorybookDTO;
 
 import com.koreatravel.tabitomo.domain.dto.storybook.StorybookListDTO;
 import com.koreatravel.tabitomo.domain.dto.storybook.TempsaveDTO;
+import com.koreatravel.tabitomo.domain.dto.trip.TripRegion;
 import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
 import com.koreatravel.tabitomo.domain.entity.storybook.*;
 import com.koreatravel.tabitomo.domain.entity.tag.StoryTagEntity;
 import com.koreatravel.tabitomo.domain.entity.tag.TagMasterEntity;
+import com.koreatravel.tabitomo.domain.entity.trip.Place;
+import com.koreatravel.tabitomo.domain.entity.trip.Trip;
 import com.koreatravel.tabitomo.repository.member.MemberRepository;
 import com.koreatravel.tabitomo.repository.storybook.LikedbookRepository;
 import com.koreatravel.tabitomo.repository.storybook.MediaRepository;
@@ -18,6 +21,7 @@ import com.koreatravel.tabitomo.repository.storybook.TempsaveRepository;
 import com.koreatravel.tabitomo.repository.tag.StorytagRepository;
 import com.koreatravel.tabitomo.repository.tag.TagMasterRepository;
 
+import com.koreatravel.tabitomo.repository.trip.TripRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 
@@ -33,6 +37,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.lang.reflect.Member;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -58,6 +63,8 @@ public class EditorService {
     private TagMasterRepository tagMasterRepository;
     @Autowired
     private StorytagRepository storytagRepository;
+    @Autowired
+    private TripRepository tripRepository;
 
 
 
@@ -112,22 +119,6 @@ public class EditorService {
 
             // temp 미디어 조회
             List<MediaEntity> mediaList = mediaRepository.findByNumAndStatus(saveRequestDTO.getTempId(), "temp");
-
-//            // 서버 파일 삭제
-//            for (MediaEntity media : mediaList) {
-//                // mediaUrl: /tabitomo/uploadedImages/파일명
-//                String fileName = Paths.get(media.getMediaUrl()).getFileName().toString();
-//                String filePath = System.getProperty("user.dir") + "/tabitomo/uploadedImages/" + fileName;
-//
-//
-//                File file = new File(filePath);
-//                if (file.exists()) {
-//                    boolean deleted = file.delete();
-//                    if (!deleted) {
-//                        System.out.println("파일 삭제 실패: " + filePath);
-//                    }
-//                }
-//            }
 
             // 기존 임시저장 글의 미디어 삭제 (temp)
             mediaRepository.deleteByNumAndStatus(saveRequestDTO.getTempId(), "temp");
@@ -213,21 +204,6 @@ public class EditorService {
         // 미디어 조회
         List<MediaEntity> mediaList = mediaRepository.findByNumAndStatus(booknum, "upload");
 
-//        // 서버 파일 삭제
-//        for (MediaEntity media : mediaList) {
-//            // mediaUrl: /tabitomo/tabitomo/uploadedImages/파일명
-//            String fileName = Paths.get(media.getMediaUrl()).getFileName().toString();
-//            String filePath = System.getProperty("user.dir") + "/tabitomo/uploadedImages/" + fileName;
-//
-//
-//            File file = new File(filePath);
-//            if (file.exists()) {
-//                boolean deleted = file.delete();
-//                if (!deleted) {
-//                    System.out.println("파일 삭제 실패: " + filePath);
-//                }
-//            }
-//        }
         // 미디어 데이터 삭제
         mediaRepository.deleteByNum(booknum);
 
@@ -270,20 +246,6 @@ public class EditorService {
             // 미디어 조회
             List<MediaEntity> mediaList = mediaRepository.findByNumAndStatus(saveRequestDTO.getTempId(), "temp");
 
-//            // 서버 파일 삭제
-//            for (MediaEntity media : mediaList) {
-//                // mediaUrl: /tabitomo/uploadedImages/파일명
-//                String fileName = Paths.get(media.getMediaUrl()).getFileName().toString();
-//                String filePath = System.getProperty("user.dir") + "/tabitomo/uploadedImages/" + fileName;
-//
-//                File file = new File(filePath);
-//                if (file.exists()) {
-//                    boolean deleted = file.delete();
-//                    if (!deleted) {
-//                        System.out.println("파일 삭제 실패: " + filePath);
-//                    }
-//                }
-//            }
 
             mediaRepository.deleteByNumAndStatus(saveRequestDTO.getTempId(),"temp");
             tempsaveRepository.deleteById(saveRequestDTO.getTempId());
@@ -363,21 +325,6 @@ public class EditorService {
             // 미디어 조회
             List<MediaEntity> mediaList = mediaRepository.findByNumAndStatus(saveRequestDTO.getBooknum(), "upload");
 
-//            // 서버 파일 삭제
-//            for (MediaEntity media : mediaList) {
-//                // mediaUrl: /tabitomo/uploadedImages/파일명
-//                String fileName = Paths.get(media.getMediaUrl()).getFileName().toString();
-//                String filePath = System.getProperty("user.dir") + "/tabitomo/uploadedImages/" + fileName;
-//
-//
-//                File file = new File(filePath);
-//                if (file.exists()) {
-//                    boolean deleted = file.delete();
-//                    if (!deleted) {
-//                        System.out.println("파일 삭제 실패: " + filePath);
-//                    }
-//                }
-//            }
 
             // 기존 미디어 삭제 (upload)
             mediaRepository.deleteByNumAndStatus(saveRequestDTO.getBooknum(), "upload");
@@ -460,20 +407,6 @@ public void tempdel(Integer tempId) {
     // 미디어 조회
     List<MediaEntity> mediaList = mediaRepository.findByNumAndStatus(tempId, "temp");
 
-//    // 서버 파일 삭제
-//    for (MediaEntity media : mediaList) {
-//        // mediaUrl: /tabitomo/uploadedImages/파일명
-//        String fileName = Paths.get(media.getMediaUrl()).getFileName().toString();
-//        String filePath = System.getProperty("user.dir") + "/tabitomo/uploadedImages/" + fileName;
-//
-//        File file = new File(filePath);
-//        if (file.exists()) {
-//            boolean deleted = file.delete();
-//            if (!deleted) {
-//                System.out.println("파일 삭제 실패: " + filePath);
-//            }
-//        }
-//    }
         // 미디어 데이터 삭제
         mediaRepository.deleteByNum(tempId);
 
@@ -605,6 +538,44 @@ public void tempdel(Integer tempId) {
 
     public List<StorybookListDTO> getmainStory() {
         return storybookRepository.findmainStory();
+    }
+
+    @Transactional
+    public List<TripRegion> findTripsByEmail(String email) {
+        List<Trip> tripsList = tripRepository.findByMemberEmail(email);
+        List<TripRegion> result = new ArrayList<>();
+
+        for(Trip trip : tripsList) {
+            String region = null;
+            if (trip.getAccommodation() != null) {
+                region = trip.getAccommodation().getRegion();
+            }
+
+            result.add(new TripRegion(trip.getId(), trip.getTitle(), region));
+        }
+        return result;
+
+    }
+
+    @Transactional
+    public String getRecentPlan(String email) {
+        // 로그인 유저 찾기
+        MemberEntity member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("회원 없음"));
+
+        // 최근 Trip 가져오기, accommodation도 fetch
+        Trip recentTrip = tripRepository.findTopByMemberWithAccommodation(member)
+                .orElse(null);
+
+        if (recentTrip == null || recentTrip.getAccommodation() == null) {
+            return null; // 최근 Trip 없거나 숙소 없음
+        }
+
+        // 숙소의 place에서 region 가져오기
+        Place accommodation = recentTrip.getAccommodation();
+        String region = accommodation.getRegion();
+        System.out.println("지역"+ region);
+        return region;
     }
 }
 

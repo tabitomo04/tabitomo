@@ -32,7 +32,7 @@
     position: absolute;
     bottom: 80px;
     right: 0;
-    width: 600px;
+    width: 450px;
     height: 650px;
     border-radius: 12px;
     overflow: hidden;
@@ -126,6 +126,7 @@ body, html {
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     background-color: white;
+    position: relative; /* 카테고리 오버레이를 위한 기준점 */
 }
 
 .chat-header {
@@ -136,6 +137,13 @@ body, html {
     justify-content: space-between;
     align-items: center;
     font-weight: 600;
+    flex-shrink: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 8px; /* 버튼 간격 */
+    align-items: center;
 }
 
 .chat-messages {
@@ -146,6 +154,8 @@ body, html {
     flex-direction: column;
     gap: 15px;
     background-color: #f0f2f5;
+    position: relative;
+    z-index: 1;
 }
 
 .message {
@@ -169,43 +179,51 @@ body, html {
     background-color: #4e73df;
     color: white;
     border-bottom-right-radius: 4px;
-    margin-right: 15px; /* 카카오톡 스타일 여백 */
+    margin-right: 15px;
 }
 
+/* ✅ 핵심 수정: 봇 메시지 말풍선 스타일 */
+.message.bot {
+    background-color: white;
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    padding: 10px 15px;
+    border-radius: 18px;
+    word-wrap: break-word;
+}
+
+/* 봇 메시지 전체 래퍼: 가로 정렬 */
 .bot-message-wrapper {
     display: flex;
     align-items: flex-start;
-    gap: 10px;
-    margin-left: 15px; /* 카카오톡 스타일 여백 */
+    gap: 5px;
+    margin-left: 0;
 }
 
+/* 봇 메시지 콘텐츠 영역: 이름과 메시지 말풍선 세로 정렬 */
+.bot-content-area {
+    display: flex;
+    flex-direction: column;
+    gap: 5px; /* 이름과 메시지 말풍선 사이 간격 */
+    max-width: calc(100% - 70px);
+}
+
+/* 프로필 이미지 */
 .profile-img {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
-    margin-top: 5px; /* 이름과 말풍선과의 간격 */
 }
 
-.bot-message-content {
-    display: flex;
-    flex-direction: column;
-    background-color: white;
-    padding: 10px 15px;
-    border-radius: 18px;
-    border-bottom-left-radius: 4px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    max-width: calc(100% - 70px); /* 이미지와 이름 공간 고려 */
-}
-
+/* 프로필 이름 */
 .profile-name {
     font-weight: bold;
     color: #4e73df;
-    margin-bottom: 5px;
     font-size: 14px;
+    margin: 0; /* 불필요한 마진 제거 */
 }
-
 .loading-dots {
     display: flex;
     justify-content: center;
@@ -246,6 +264,8 @@ body, html {
     align-items: center;
     background-color: white;
     gap: 8px;
+    position: relative; /* 카테고리 애니메이션 시 입력창 숨김을 위한 기준점 */
+    z-index: 2;
 }
 
 .chat-input input {
@@ -283,26 +303,51 @@ body, html {
 
 .category-container {
     position: absolute;
-    bottom: 0;
+    bottom: 0; /* top: 100% 대신 bottom: 0; */
     left: 0;
     width: 100%;
-    max-height: 0;
-    background-color: rgba(255, 255, 255, 0.95);
+    /* height: auto로 설정하여 내용물에 맞게 높이를 잡습니다. */
+    height: auto;
+    max-height: 80vh; /* 최대 높이를 설정하여 너무 길어지는 것을 방지 */
+    background-color: white;
     backdrop-filter: blur(5px);
-    overflow: hidden;
-    transition: max-height 0.3s ease-in-out;
+    /* overflow-y: auto를 유지하여 max-height 초과 시 스크롤 허용 */
+    overflow-y: auto;
+    /* translateY(100%)로 완전히 숨김 */
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     border-top-left-radius: 12px;
     border-top-right-radius: 12px;
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
-    position: relative; /* 카테고리 닫기 버튼의 기준이 됨 */
+    z-index: 10;
+    padding: 0;
 }
 
 .category-container.visible {
-    max-height: 500px;
+    /* height: 100%; 삭제. height: auto로 내용물만큼만 보임 */
+    transform: translateY(0);
     padding: 20px 0;
 }
 
+.chat-container.category-active .chat-box {
+    padding-bottom: 0;
+}
+
+/* 열렸을 때 입력창을 가릴 필요가 있으므로, chat-container에 active 클래스 추가 시 chat-input을 숨김 */
+.chat-container.category-active .chat-input {
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s 0.4s, opacity 0.4s;
+}
+.chat-container:not(.category-active) .chat-input {
+    visibility: visible;
+    opacity: 1;
+    transition: visibility 0s, opacity 0.4s 0.1s;
+}
+
+/* category-navigation의 상단 고정 및 배경 처리 */
 .category-navigation {
     display: flex;
     justify-content: flex-start;
@@ -310,6 +355,11 @@ body, html {
     padding: 0 20px 10px;
     border-bottom: 1px solid #eee;
     margin-bottom: 10px;
+    /* 스크롤 시 상단에 고정 */
+    position: sticky;
+    top: 0;
+    background-color: white;
+    z-index: 11;
 }
 
 .category-navigation button {
@@ -346,18 +396,22 @@ body, html {
 
 /* 기타 UI 스타일 (모달, 피드백 등) */
 .feedback-area {
-    padding: 5px; /* 패딩을 줄여서 버튼 크기 조정 */
+    padding: 5px 15px; /* 좌우 패딩을 추가하여 버튼이 너무 끝에 붙지 않도록 조정 */
     background-color: #e6eefc;
-    border-radius: 8px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 5px; /* 버튼 간격 조정 */
-    margin: 10px;
+    justify-content: space-between;
+    gap: 5px;
+    margin: 0;
 }
 
 .feedback-area.hidden {
     display: none;
+}
+
+.feedback-buttons {
+    display: flex;
+    gap: 10px; /* '예', '아니오' 버튼 사이 간격 */
 }
 
 .feedback-buttons button {
@@ -377,8 +431,15 @@ body, html {
     color: white;
 }
 
+.feedback-area p {
+    margin: 0;
+    font-size: 14px;
+    color: #4e73df;
+    font-weight: 500;
+}
+/* 모달 오버레이 */
 .modal-overlay {
-    display: none;
+    display: none; /* JS로 'visible' 클래스 토글 */
     position: absolute;
     top: 0;
     left: 0;
@@ -397,47 +458,137 @@ body, html {
     opacity: 1;
 }
 
+/* 피드백 모달 창 */
 #feedback-modal {
-    background: white;
-    padding: 25px;
-    border-radius: 10px;
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 16px;
     text-align: center;
     position: relative;
     width: 90%;
-    max-width: 400px;
+    max-width: 450px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); /* 부드러운 그림자 */
+    animation: fadeInScale 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* 닫기 버튼 */
 .modal-overlay .close-btn {
     position: absolute;
-    top: 10px;
+    top: 15px;
     right: 15px;
     font-size: 24px;
     cursor: pointer;
+    color: #a0a0a0;
+    transition: color 0.2s ease-in-out;
 }
 
+.modal-overlay .close-btn:hover {
+    color: #555555;
+}
+
+/* 별점 아이콘 */
 .rating-stars {
-    font-size: 28px;
-    color: #ccc;
+    font-size: 36px; /* 별 크기 확대 */
+    color: #e0e0e0;
     cursor: pointer;
+    display: flex;
+    justify-content: center;
+    gap: 5px; /* 별 사이 간격 */
+    margin-bottom: 20px;
 }
 
 .rating-stars .star-filled {
     color: gold;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+}
+
+/* 텍스트 영역 */
+#feedback-modal textarea {
+    width: 100%;
+    height: 100px;
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    resize: none;
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    outline: none;
+    margin-bottom: 15px; /* 버튼과의 간격 */
+}
+
+#feedback-modal textarea:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 3px rgba(78, 115, 223, 0.1);
+}
+
+/* 피드백 제출 버튼 */
+#submit-feedback-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #4e73df;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 15px rgba(78, 115, 223, 0.2);
+}
+
+#submit-feedback-btn:hover {
+    background-color: #2e59d9;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(78, 115, 223, 0.3);
+}
+
+#submit-feedback-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(78, 115, 223, 0.2);
+}
+
+/* 모바일 반응형 */
+@media (max-width: 480px) {
+    #feedback-modal {
+        padding: 20px;
+    }
+    #feedback-modal h3 {
+        font-size: 18px;
+    }
 }
 
 #language-select, #new-chat-btn {
-    background-color: white;
-    border: 1px solid #4e73df;
-    color: #4e73df;
-    border-radius: 8px;
-    padding: 5px 10px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.2s, color 0.2s;
+     background-color: white;
+        border: none; /* border 대신 box-shadow 사용 */
+        color: #4e73df;
+        border-radius: 8px;
+        padding: 5px 10px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.2s ease;
+
+        /* ✅ 핵심 수정: 양각 효과 추가 */
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1),
+                    inset 0 1px 1px rgba(255, 255, 255, 0.7);
 }
 
 #language-select:hover, #new-chat-btn:hover {
-    background-color: #f0f2f5;
+     background-color: #f0f2f5;
+        /* hover 시 그림자 강조 */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2),
+                    inset 0 1px 1px rgba(255, 255, 255, 0.9);
 }
 
 /* 카테고리 닫기 버튼 스타일 */
@@ -447,20 +598,23 @@ body, html {
     right: 10px;
     width: 30px;
     height: 30px;
-    background-color: #fff;
-    color: #4e73df;
-    border: 1px solid #e0e0e0;
+    background-color: transparent;
+    color: #555;
+    border: none;
     border-radius: 50%;
     font-size: 20px;
+    font-weight: bold;
     cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 10;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    transition: all 0.2s;
+    z-index: 12;
+    box-shadow: none;
+    transition: all 0.2s ease;
 }
 
+/* ✅ 마우스 호버 시 회색 배경 효과 추가 */
 .category-close-btn:hover {
-    background-color: #f0f2f5;
+    background-color: #f0f0f0;
+    transform: scale(1.1);
 }

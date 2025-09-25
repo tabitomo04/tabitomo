@@ -132,14 +132,14 @@
         border-radius: 10px;
         box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     }
-    
+
     .modal-header {
         border-bottom: 1px solid #eee;
         background-color: #f8f9fa;
         border-top-left-radius: 10px;
         border-top-right-radius: 10px;
     }
-    
+
     .modal-title {
         color: #333;
         font-weight: 600;
@@ -171,11 +171,11 @@
     // Initialize modal on page load
     document.addEventListener('DOMContentLoaded', function() {
         console.log('Page loaded, checking for survey modal...');
-        
+
         // Check if we should show the modal
         const shouldShowModal = /*[[${session != null && session.authenticatedEmail != null && session.showQuestionnairePrompt == true}]]*/ false;
         console.log('Should show modal:', shouldShowModal);
-        
+
         if (shouldShowModal) {
             console.log('Initializing survey modal...');
             const modalElement = document.getElementById('surveyModal');

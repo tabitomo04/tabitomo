@@ -10,7 +10,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/chat")
 public class FeedbackController {
 
     private final FeedbackService feedbackService;
@@ -20,6 +20,7 @@ public class FeedbackController {
         this.feedbackService = feedbackService;
     }
 
+    // ✅ 수정: feedbackId를 @RequestParam에서 @PathVariable로 변경하여 URL에 포함되도록 합니다.
     @PostMapping("/feedback")
     public ResponseEntity<?> receiveFeedback(@RequestBody FeedbackRequest feedbackRequest, @RequestParam(required = false) Long feedbackId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         try {

@@ -1,5 +1,6 @@
 package com.koreatravel.tabitomo.service.trip;
 
+import com.koreatravel.tabitomo.domain.dto.trip.AddressComponent;
 import com.koreatravel.tabitomo.domain.dto.trip.TripPlanDTO;
 import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
 import com.koreatravel.tabitomo.domain.entity.trip.Place;
@@ -33,6 +34,7 @@ public class TripPlanService {
     private final PlaceRepository placeRepository;
     private final ScheduleRepository scheduleRepository;
     private final TripPlanRepository tripPlanRepository;
+    private final LocationService locationService; // LocationService 주입
 
     @Transactional
     public Long saveTripPlan(TripPlanDTO tripPlan, UUID memberId) {
@@ -147,12 +149,15 @@ public class TripPlanService {
     private Place findOrCreatePlaceFromDto(TripPlanDTO.Accommodation accDto) {
         return placeRepository.findFirstByName(accDto.getPlaceName())
                 .orElseGet(() -> {
+                    AddressComponent addressComponent = locationService.parseAddress(accDto.getAddress());
                     Place newPlace = Place.builder()
                             .name(accDto.getPlaceName())
                             .description(accDto.getDescription())
                             .priceRange(accDto.getPriceRange())
                             .imageUrl(accDto.getImageUrl())
                             .address(accDto.getAddress())
+                            .region(addressComponent.getRegion())
+                            .city(addressComponent.getCity())
                             .latitude(accDto.getLatitude())
                             .longitude(accDto.getLongitude())
                             .categoryCode("ACCOMMODATION")
@@ -164,10 +169,13 @@ public class TripPlanService {
     private Place findOrCreatePlaceFromDto(TripPlanDTO.ScheduleItem itemDto) {
         return placeRepository.findFirstByName(itemDto.getPlace())
                 .orElseGet(() -> {
+                    AddressComponent addressComponent = locationService.parseAddress(itemDto.getAddress());
                     Place newPlace = Place.builder()
                             .name(itemDto.getPlace())
                             .description(itemDto.getDescription())
                             .address(itemDto.getAddress())
+                            .region(addressComponent.getRegion())
+                            .city(addressComponent.getCity())
                             .latitude(itemDto.getLatitude())
                             .longitude(itemDto.getLongitude())
                             .build();

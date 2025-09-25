@@ -63,13 +63,13 @@ function checkEmail() {
     }
     
     // 로딩 상태 표시
-    const checkBtn = document.querySelector('button[onclick="checkEmail()"]');
-    const originalText = checkBtn.textContent;
+    const checkBtn = document.getElementById('emailCheckBtn');
+    const originalText = checkBtn.innerHTML;
     checkBtn.disabled = true;
     checkBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 확인 중...';
     
     // 이메일 형식 검증
-    const emailRegex = /^[A-Za-z0-9+_.-]+@(.+)\.(.+)$/;
+    const emailRegex = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
     if (!emailRegex.test(email)) {
         showMessage('emailCheckResult', '유효하지 않은 이메일 형식입니다.', 'error');
         checkBtn.disabled = false;
@@ -77,70 +77,52 @@ function checkEmail() {
         return;
     }
     
-    // 1. 먼저 이메일 중복 확인
+    // 이메일 중복 확인
     fetch('/member/api/check-email', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.content || ''
         },
         body: JSON.stringify({ email: email })
     })
     .then(response => {
         if (!response.ok) {
-            throw new Error('이메일 확인 중 오류가 발생했습니다.');
+            return response.json().then(err => {
+                throw new Error(err.message || '이메일 확인 중 오류가 발생했습니다.');
+            });
         }
         return response.json();
     })
     .then(data => {
-        if (!data.available) {
+        if (data.available) {
+            // 이메일 사용 가능한 경우
+            showMessage('emailCheckResult', '사용 가능한 이메일입니다. 인증하기 버튼을 클릭해주세요.', 'success');
+            isEmailChecked = true;
+            isEmailVerified = false;
+            
+            // 인증 버튼 활성화
+            const verifyBtn = document.getElementById('emailVerifyBtn');
+            if (verifyBtn) {
+                verifyBtn.style.display = 'inline-block';
+                verifyBtn.disabled = false;
+                // 클릭 이벤트 리스너 추가
+                verifyBtn.onclick = function() { requestEmailVerification(); };
+            }
+            
+            // 전역 변수에 이메일 저장
+            window.currentEmail = email;
+        } else {
             // 이메일이 이미 사용 중인 경우
-            showMessage('emailCheckResult', data.message, 'error');
+            showMessage('emailCheckResult', data.message || '이미 사용 중인 이메일입니다.', 'error');
             isEmailChecked = false;
             isEmailVerified = false;
-            throw new Error(data.message);
         }
-        
-        // 2. 중복이 아닌 경우에만 인증 메일 발송
-        return fetch('/api/email/send-verification', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: JSON.stringify({ email: email })
-        });
-    })
-    .then(response => {
-        if (!response) return; // 중복 확인 실패 시 중단
-        
-        if (!response.ok) {
-            throw new Error('인증 메일 발송에 실패했습니다.');
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (!data) return; // 중복 확인 실패 시 중단
-        
-        // 성공 시 처리
-        showMessage('emailCheckResult', '인증 코드가 이메일로 전송되었습니다. 인증을 진행해주세요.', 'success');
-        isEmailChecked = true;
-        isEmailVerified = false; // 인증은 아직 안됨
-        const verifyBtn = document.getElementById('emailVerifyBtn');
-        if (verifyBtn) {
-            verifyBtn.style.display = 'inline-block';
-            verifyBtn.disabled = false;
-        }
-        
-        // 인증 모달 열기
-        openVerificationModal();
     })
     .catch(error => {
-        console.error('Error:', error);
-        // 이미 중복 확인에서 에러 메시지를 보여주었으므로 여기서는 중복이 아닌 경우에만 메시지 표시
-        if (!error.message.includes('이미 사용 중인 이메일')) {
-            showMessage('emailCheckResult', error.message || '이메일 확인 중 오류가 발생했습니다.', 'error');
-        }
+        console.error('이메일 확인 중 오류:', error);
+        showMessage('emailCheckResult', error.message || '이메일 확인 중 오류가 발생했습니다.', 'error');
     })
     .finally(() => {
         checkBtn.disabled = false;
@@ -201,7 +183,7 @@ function checkNickname() {
 
 // 이메일 인증 요청
 function requestEmailVerification() {
-    const email = combineEmail();
+    const email = window.currentEmail || combineEmail();
     
     // 이메일 형식 검증
     if (!email) {
@@ -210,7 +192,7 @@ function requestEmailVerification() {
     }
     
     // 이메일 형식 검증 정규식
-    const emailRegex = /^[A-Za-z0-9+_.-]+@(.+)$/;
+    const emailRegex = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
     if (!emailRegex.test(email)) {
         showMessage('emailCheckResult', '유효하지 않은 이메일 형식입니다.', 'error');
         return;
@@ -218,7 +200,7 @@ function requestEmailVerification() {
     
     // 로딩 상태 표시
     const verifyBtn = document.getElementById('emailVerifyBtn');
-    const originalText = verifyBtn.textContent;
+    const originalText = verifyBtn.innerHTML;
     verifyBtn.disabled = true;
     verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 전송 중...';
     
@@ -229,7 +211,8 @@ function requestEmailVerification() {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.content || ''
         },
         body: JSON.stringify({ email: email })
     })
@@ -245,16 +228,17 @@ function requestEmailVerification() {
                                '인증 이메일 전송에 실패했습니다.');
             throw new Error(errorMessage);
         }
+        
+        if (!responseData.success) {
+            throw new Error(responseData.message || '인증 이메일 전송에 실패했습니다.');
+        }
+        
         return responseData;
     })
     .then(data => {
         console.log('Email sent successfully:', data);
-        if (data.success) {
-            showMessage('emailCheckResult', '인증 이메일이 전송되었습니다. 이메일을 확인해주세요.', 'success');
-            openVerificationModal();
-        } else {
-            throw new Error(data.message || '인증 이메일 전송에 실패했습니다.');
-        }
+        showMessage('emailCheckResult', '인증 이메일이 전송되었습니다. 이메일을 확인해주세요.', 'success');
+        openVerificationModal();
     })
     .catch(error => {
         console.error('Error details:', {
@@ -320,16 +304,16 @@ function resendVerificationCode() {
 
 // 이메일 인증 확인
 function verifyEmail() {
-    const email = combineEmail();
-    const code = document.getElementById('verificationCode').value;
+    const email = window.currentEmail || combineEmail();
+    const code = document.getElementById('verificationCode').value.trim();
     
     if (!code || code.length !== 6) {
-        showMessage('verificationMessage', '6자리 인증 코드를 입력해주세요.', 'error');
+        showMessage('verificationMessage', '6자리 인증 코드를 정확히 입력해주세요.', 'error');
         return;
     }
     
     const verifyBtn = document.getElementById('verifyBtn');
-    const originalText = verifyBtn.textContent;
+    const originalText = verifyBtn.innerHTML;
     verifyBtn.disabled = true;
     verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 확인 중...';
     
@@ -338,51 +322,66 @@ function verifyEmail() {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.content || ''
         },
         body: JSON.stringify({
             email: email,
             code: code
         })
     })
-    .then(response => {
+    .then(async response => {
+        const responseData = await response.json().catch(() => ({}));
+        
         if (!response.ok) {
-            return response.json().then(err => {
-                throw new Error(err.message || '인증에 실패했습니다.');
-            });
+            throw new Error(responseData.message || '인증에 실패했습니다. 코드를 확인해주세요.');
         }
-        return response.json();
+        
+        if (!responseData.success) {
+            throw new Error(responseData.message || '인증에 실패했습니다.');
+        }
+        
+        return responseData;
     })
     .then(data => {
-        if (data.success) {
-            // 인증 성공
-            isEmailVerified = true;
-            showMessage('emailCheckResult', '이메일 인증이 완료되었습니다.', 'success');
-            
-            // 모달 닫기
-            const modal = bootstrap.Modal.getInstance(document.getElementById('emailVerificationModal'));
+        // 인증 성공
+        isEmailVerified = true;
+        showMessage('emailCheckResult', '이메일 인증이 완료되었습니다.', 'success');
+        
+        // 모달 닫기
+        const modalEl = document.getElementById('emailVerificationModal');
+        if (modalEl) {
+            const modal = bootstrap.Modal.getInstance(modalEl);
             if (modal) modal.hide();
-            
-            // 인증 완료 상태 저장
-            sessionStorage.setItem('emailVerified', 'true');
-            
-            // 인증 버튼 비활성화
-            const verifyBtn = document.getElementById('emailVerifyBtn');
-            if (verifyBtn) {
-                verifyBtn.disabled = true;
-                verifyBtn.textContent = '인증 완료';
-            }
-        } else {
-            throw new Error(data.message || '인증에 실패했습니다.');
+        }
+        
+        // 인증 완료 상태 저장
+        sessionStorage.setItem('emailVerified', 'true');
+        
+        // 인증 버튼 비활성화 및 스타일 변경
+        const verifyBtn = document.getElementById('emailVerifyBtn');
+        if (verifyBtn) {
+            verifyBtn.disabled = true;
+            verifyBtn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> 인증 완료';
+            verifyBtn.classList.remove('btn-outline-success');
+            verifyBtn.classList.add('btn-success');
+        }
+        
+        // 폼에 이메일 값 설정 (보안을 위해 hidden 필드에 저장)
+        const emailField = document.getElementById('email');
+        if (emailField) {
+            emailField.value = email;
         }
     })
     .catch(error => {
-        console.error('Error:', error);
-        showMessage('verificationMessage', error.message || '인증 중 오류가 발생했습니다.', 'error');
+        console.error('이메일 인증 오류:', error);
+        showMessage('verificationMessage', `오류: ${error.message || '인증 중 오류가 발생했습니다.'}`, 'error');
     })
     .finally(() => {
-        verifyBtn.disabled = false;
-        verifyBtn.innerHTML = originalText;
+        if (verifyBtn) {
+            verifyBtn.disabled = false;
+            verifyBtn.innerHTML = originalText;
+        }
     });
 }
 
@@ -408,8 +407,15 @@ function handleSubmit(event) {
     event.preventDefault();
     
     // 이메일 검증
-    if (!combineEmail()) {
+    const email = combineEmail();
+    if (!email) {
         showMessage('emailCheckResult', '이메일을 입력해주세요.', 'error');
+        return false;
+    }
+    
+    // 이메일 인증 여부 확인
+    if (!isEmailVerified) {
+        showMessage('emailCheckResult', '이메일 인증이 완료되지 않았습니다. 인증을 완료해주세요.', 'error');
         return false;
     }
     

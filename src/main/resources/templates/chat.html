@@ -18,6 +18,7 @@
 <div class="chat-container">
     <div class="chat-header">
         <span class="header-title">TabiTomo</span>
+        <div class="header-actions">
         <div class="language-select-container">
             <select id="language-select">
                 <option value="ko">한국어</option>
@@ -27,6 +28,7 @@
         </div>
         <div class="header-buttons">
             <button id="new-chat" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-1 px-3 rounded-full text-sm transition-colors">새 채팅</button>
+        </div>
         </div>
     </div>
 
@@ -74,11 +76,10 @@
     </div>
 </div><script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/lib/marked.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.5/dist/purify.min.js"></script>
-
 <script>
     let currentRating = 0;
     let backHistory = [];
-    const API_URL = 'http://localhost:9999/api/chat'; // 백엔드 API URL
+    const API_URL = 'http://localhost:8080/api/chat'; // 백엔드 API URL
     const chatBox = document.getElementById("chat-box");
     const messageInput = document.getElementById("message");
     const sendBtn = document.getElementById("send-btn");
@@ -86,15 +87,14 @@
     const langSelect = document.getElementById("language-select");
     const feedbackArea = document.getElementById("feedback-area");
 
-    // ✅ Category section 이벤트 리스너가 없는 경우를 대비하여 조건부로 추가
-const categorySection = document.getElementById("category-section");
-const toggleBtn = document.getElementById("toggle-categories");
-const categoryCloseBtn = document.createElement("button");
-categoryCloseBtn.classList.add("category-close-btn");
-categoryCloseBtn.innerHTML = "&times;";
-categorySection.prepend(categoryCloseBtn);
+    const chatContainer = document.querySelector('.chat-container');
+    const categorySection = document.getElementById("category-section");
+    const toggleBtn = document.getElementById("toggle-categories");
+    const categoryCloseBtn = document.createElement("button");
+    categoryCloseBtn.classList.add("category-close-btn");
+    categoryCloseBtn.innerHTML = "&times;";
+    categorySection.prepend(categoryCloseBtn);
 
-    // ✅ UI 텍스트를 위한 다국어 데이터
     const translations = {
         'ko': {
             headerTitle: 'TabiTomo',
@@ -172,11 +172,9 @@ categorySection.prepend(categoryCloseBtn);
             languageChanged: '言語が日本語に変更されました。新しい会話を始めてください。'
         }
     };
+    let isHelpfulValue = null;
+    let isSending = false;
 
-    let isHelpfulValue = null; // ✅ '예'/'아니오' 값을 저장할 변수 추가
-    let isSending = false; // ✅ 메시지 전송 중인지 상태를 추적하는 플래그 추가
-
-    // ✅ UI 텍스트를 업데이트하는 함수
     function updateUITexts(lang) {
         const t = translations[lang];
         document.querySelector('.header-title').textContent = t.headerTitle;
@@ -188,14 +186,12 @@ categorySection.prepend(categoryCloseBtn);
         document.querySelector('#feedback-modal h3').textContent = t.feedbackModalTitle;
         document.getElementById('feedback-text').placeholder = t.feedbackTextPlaceholder;
         document.getElementById('submit-feedback-btn').textContent = t.feedbackSubmitButton;
-        // Go Home 및 Go Back 버튼이 있다면 업데이트
         const goHomeBtn = document.getElementById("go-home");
         if (goHomeBtn) goHomeBtn.textContent = t.goHome;
         const goBackBtn = document.getElementById("back-one-step");
         if (goBackBtn) goBackBtn.textContent = t.goBack;
     }
 
-    // ✅ 언어에 따라 올바른 속성 이름을 가져오는 헬퍼 함수 추가
     function getLocalizedName(item, type, lang) {
         if (type === 'question') {
             const langMap = {
@@ -214,18 +210,25 @@ categorySection.prepend(categoryCloseBtn);
         }
     }
 
-    // ✅ 카테고리/질문 버튼 업데이트 함수
     function updateCategoryButtons(container, data, type) {
         const lang = document.getElementById("language-select").value;
         const t = translations[lang];
-        container.innerHTML = `
-            <div class="category-navigation">
-                <button id="go-home">${t.goHome}</button>
-                <button id="back-one-step" class="hidden">${t.goBack}</button>
-            </div>
-            <div class="${type === 'question' ? 'question-list' : 'category-buttons'}"></div>
+        container.querySelector('.category-navigation')?.remove();
+        container.querySelector('.category-buttons')?.remove();
+        container.querySelector('.question-list')?.remove();
+
+        const navBar = document.createElement("div");
+        navBar.classList.add("category-navigation");
+        navBar.innerHTML = `
+            <button id="go-home">${t.goHome}</button>
+            <button id="back-one-step" class="hidden">${t.goBack}</button>
         `;
-        const buttonList = container.querySelector('.category-buttons') || container.querySelector('.question-list');
+        container.appendChild(navBar);
+
+        const buttonList = document.createElement("div");
+        buttonList.classList.add(type === 'question' ? 'question-list' : 'category-buttons');
+        container.appendChild(buttonList);
+
         const backBtn = container.querySelector('#back-one-step');
         const homeBtn = container.querySelector('#go-home');
 
@@ -244,6 +247,7 @@ categorySection.prepend(categoryCloseBtn);
                     const div = document.createElement("div");
                     div.textContent = getLocalizedName(item, 'question', lang);
                     div.dataset.id = item.qaId;
+                    div.dataset.type = 'question';
                     buttonList.appendChild(div);
                 });
             } else {
@@ -256,14 +260,23 @@ categorySection.prepend(categoryCloseBtn);
                 });
             }
         } else {
-            buttonList.innerHTML = `<div style="text-align: center; color: #fff;">${t.noData}</div>`;
+            buttonList.innerHTML = `<div style="text-align: center; color: #888; padding: 10px;">${t.noData}</div>`;
         }
     }
-    // ✅ 메인 카테고리 로딩 함수 (언어 파라미터 포함)
+
+    function showCategorySection() {
+        chatContainer.classList.add('category-active');
+        categorySection.classList.add('visible');
+    }
+
+    function hideCategorySection() {
+        categorySection.classList.remove('visible');
+        chatContainer.classList.remove('category-active');
+        backHistory = [];
+    }
+
     async function loadMainCategories() {
-        const section = document.getElementById("category-section");
-        section.classList.add('visible');
-        document.getElementById("toggle-categories").classList.remove('rotated');
+        showCategorySection();
         backHistory = [];
         const lang = document.getElementById("language-select").value;
 
@@ -271,57 +284,42 @@ categorySection.prepend(categoryCloseBtn);
             const response = await fetch(`/api/main-categories?lang=${lang}`);
             if (!response.ok) throw new Error('Network response was not ok.');
             const categories = await response.json();
-            updateCategoryButtons(section, categories, 'main');
+            updateCategoryButtons(categorySection, categories, 'main');
         } catch (error) {
             console.error("메인 카테고리 로드 실패:", error);
             const t = translations[lang];
-            section.innerHTML = `<div class="category-container visible"><div style="text-align: center; color: #fff; padding: 10px;">${t.loadError}</div></div>`;
+            updateCategoryButtons(categorySection, null, 'main');
         }
     }
 
-    // ✅ 서브 카테고리 로딩 함수 (언어 파라미터 포함)
     async function loadSubCategories(mainCategoryId) {
-        backHistory.push({
-            type: 'main',
-            id: mainCategoryId
-        });
-        const section = document.getElementById("category-section");
+        backHistory.push({ type: 'main', id: mainCategoryId });
         const lang = document.getElementById("language-select").value;
-
         try {
             const response = await fetch(`/api/sub-categories/${mainCategoryId}?lang=${lang}`);
             if (!response.ok) throw new Error('Network response was not ok.');
             const subCategories = await response.json();
-            updateCategoryButtons(section, subCategories, 'sub');
+            updateCategoryButtons(categorySection, subCategories, 'sub');
         } catch (error) {
             console.error("서브 카테고리 로드 실패:", error);
-            const t = translations[lang];
-            section.innerHTML = `<div class="category-container visible"><div style="text-align: center; color: #fff; padding: 10px;">${t.loadError}</div></div>`;
+            updateCategoryButtons(categorySection, null, 'sub');
         }
     }
 
-    // ✅ 질문 리스트 로딩 함수 (언어 파라미터 포함)
     async function loadQuestions(subCategoryId) {
-        backHistory.push({
-            type: 'sub',
-            id: subCategoryId
-        });
-        const section = document.getElementById("category-section");
+        backHistory.push({ type: 'sub', id: subCategoryId });
         const lang = document.getElementById("language-select").value;
-
         try {
             const response = await fetch(`/api/sub-categories/${subCategoryId}/qas?lang=${lang}`);
             if (!response.ok) throw new Error('Network response was not ok.');
             const questions = await response.json();
-            updateCategoryButtons(section, questions, 'question');
+            updateCategoryButtons(categorySection, questions, 'question');
         } catch (error) {
             console.error("질문 로드 실패:", error);
-            const t = translations[lang];
-            section.innerHTML = `<div style="text-align: center; color: #fff;">${t.noData}</div>`;
+            updateCategoryButtons(categorySection, null, 'question');
         }
     }
 
-    // ✅ 답변 로딩 함수 (언어 파라미터 포함)
     async function getAnswer(qaId) {
         const lang = document.getElementById("language-select").value;
         const t = translations[lang];
@@ -336,20 +334,26 @@ categorySection.prepend(categoryCloseBtn);
         }
     }
 
-    // ✅ 뒤로가기 버튼 함수
     async function goBackOneStep() {
         if (backHistory.length > 0) {
-            const previousStep = backHistory.pop();
-            if (previousStep.type === 'main') {
+            backHistory.pop();
+
+            if (backHistory.length === 0) {
                 await loadMainCategories();
+                return;
+            }
+
+            const previousStep = backHistory[backHistory.length - 1];
+            if (previousStep.type === 'main') {
+                backHistory.pop();
+                await loadSubCategories(previousStep.id);
             } else if (previousStep.type === 'sub') {
-                const mainCategory = backHistory[backHistory.length - 1].id;
-                await loadSubCategories(mainCategory);
+                backHistory.pop();
+                await loadQuestions(previousStep.id);
             }
         }
     }
 
-    // ✅ 공통 메시지 추가 함수 (user/bot 둘 다 사용)
     function addMessageToChat(message, sender) {
         message = message.trim();
         let html = marked.parse(message, { breaks: true });
@@ -363,13 +367,23 @@ categorySection.prepend(categoryCloseBtn);
         if (sender === "bot") {
             const wrapper = document.createElement("div");
             wrapper.classList.add("bot-message-wrapper");
-            wrapper.innerHTML = `
-                <img src="/image/tomo.png" alt="토모 프로필" class="profile-img">
-                <div class="bot-message-content">
-                    <span class="profile-name">토모</span>
-                </div>
-            `;
-            wrapper.querySelector(".bot-message-content").appendChild(messageElement);
+
+            const img = document.createElement("img");
+            img.src = "/image/tomo.png";
+            img.alt = "토모 프로필";
+            img.classList.add("profile-img");
+            wrapper.appendChild(img);
+
+            const contentArea = document.createElement("div");
+            contentArea.classList.add("bot-content-area");
+
+            const profileName = document.createElement("span");
+            profileName.classList.add("profile-name");
+            profileName.innerText = "토모";
+            contentArea.appendChild(profileName);
+            contentArea.appendChild(messageElement);
+
+            wrapper.appendChild(contentArea);
             chatBox.appendChild(wrapper);
         } else {
             chatBox.appendChild(messageElement);
@@ -377,30 +391,31 @@ categorySection.prepend(categoryCloseBtn);
 
         setTimeout(() => {
             messageElement.classList.add("show");
+            scrollToBottom();
         }, 50);
+    }
 
+    function scrollToBottom() {
+        const chatBox = document.querySelector('.chat-messages');
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // ✅ 채팅 기록을 localStorage에 저장하는 함수
     function saveToLocalStorage(chatHistory) {
         localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
     }
 
-    // ✅ 채팅 기록을 로드하고 화면에 렌더링하는 함수
     function loadChatHistory() {
         const chatHistory = JSON.parse(localStorage.getItem("chatHistory"));
         const lang = document.getElementById("language-select").value;
         const t = translations[lang];
 
-        chatBox.innerHTML = ''; // 기존 채팅 기록을 삭제하여 중복 방지
+        chatBox.innerHTML = '';
 
         if (!chatHistory || chatHistory.length === 0) {
             const initialMessage = {
                 sender: "bot",
                 message: t.initialMessage
             };
-            // 초기 메시지는 화면에만 추가하고, 로컬 스토리지에 저장하지 않음
             addMessageToChat(initialMessage.message, initialMessage.sender);
         } else {
             chatHistory.forEach(chat => {
@@ -410,33 +425,30 @@ categorySection.prepend(categoryCloseBtn);
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // ✅ 금지어 검사 함수
     async function containsForbiddenWord(text) {
-    try {
-        const response = await fetch('/chat/check-word', {
-            method: 'POST',
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ word: text })
-        });
+        try {
+            const response = await fetch('/chat/check-word', {
+                method: 'POST',
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ word: text })
+            });
 
-        // 🚨 중요: 서버 응답이 성공(200 OK)인지 확인합니다.
-        // 4xx, 5xx 에러인 경우 false를 반환하여 금지어로 처리합니다.
-        if (!response.ok) {
-            console.error(`서버 에러: ${response.status} ${response.statusText}`);
-            return true;
+            if (!response.ok) {
+                const errorText = await response.text();
+                // ✅ 수정: 서버 오류를 콘솔에 더 자세히 로깅합니다.
+                console.error(`서버 에러: ${response.status} ${response.statusText} - ${errorText}`);
+                return false;
+            }
+
+            const data = await response.json();
+            return data.isForbidden;
+        } catch (error) {
+            // ✅ 수정: 네트워크 에러를 콘솔에 자세히 로깅합니다.
+            console.error("금지어 검사 API 호출 실패. 에러:", error);
+            return false;
         }
-
-        const data = await response.json();
-        return data.isForbidden;
-
-    } catch (error) {
-        console.error("금지어 검사 API 호출 실패. 에러:", error);
-        // 네트워크 에러 시에도 안전하게 금지어로 처리
-        return true;
     }
-}
 
-    // ✅ 봇 메시지 표시 함수
     function displayBotMessage(message) {
         addMessageToChat(message, "bot");
 
@@ -447,10 +459,7 @@ categorySection.prepend(categoryCloseBtn);
         feedbackArea.classList.remove("hidden");
     }
 
-
-    // ✅ 메시지 전송 함수 (언어 파라미터 포함)
     async function sendMessage() {
-        // ✅ 이미 전송 중이면 함수를 종료
         if (isSending) return;
 
         const userMessage = messageInput.value.trim();
@@ -459,20 +468,19 @@ categorySection.prepend(categoryCloseBtn);
 
         if (!userMessage) return;
 
-        // ✅ 수정된 부분: 금지어 검사 및 전송 차단 로직
-        const isForbidden = await containsForbiddenWord(userMessage);
-        if (isForbidden) {
-            // 사용자에게 경고 메시지를 띄우고 함수를 즉시 종료
-            alert(t.alertForbiddenWord);
-            return;
-        }
-
-        // ✅ 전송 상태를 '전송 중'으로 변경하고 UI를 비활성화
         isSending = true;
         sendBtn.disabled = true;
         messageInput.disabled = true;
 
-        // 사용자 메시지를 화면에 추가하고, 기록에도 추가 후 저장
+        const isForbidden = await containsForbiddenWord(userMessage);
+        if (isForbidden) {
+            alert(t.alertForbiddenWord);
+            isSending = false;
+            sendBtn.disabled = false;
+            messageInput.disabled = false;
+            return;
+        }
+
         addMessageToChat(userMessage, 'user');
         const chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
         chatHistory.push({ sender: 'user', message: userMessage });
@@ -484,9 +492,7 @@ categorySection.prepend(categoryCloseBtn);
         try {
             const aiResponse = await fetch("/api/send", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     message: userMessage,
                     chatHistory: chatHistory,
@@ -501,20 +507,17 @@ categorySection.prepend(categoryCloseBtn);
             } else {
                 displayBotMessage(t.apiError);
             }
-
         } catch (error) {
             const errorMessage = `${t.communicationError} ${error.message}`;
             displayBotMessage(errorMessage);
             console.error("Fetch error:", error);
         } finally {
-            // ✅ 네트워크 통신 완료 후 전송 상태를 '가능'으로 변경하고 UI 활성화
             isSending = false;
             sendBtn.disabled = false;
             messageInput.disabled = false;
         }
     }
 
-    // ✅ 피드백 모달 열기 함수
     function openFeedbackModal() {
         const chatHistory = JSON.parse(localStorage.getItem("chatHistory"));
         const lang = document.getElementById("language-select").value;
@@ -534,7 +537,6 @@ categorySection.prepend(categoryCloseBtn);
         }, 10);
     }
 
-    // ✅ 별점 채우기 함수
     function fillStars(count) {
         const stars = document.querySelectorAll('#star-rating .star');
         stars.forEach((star, index) => {
@@ -548,7 +550,6 @@ categorySection.prepend(categoryCloseBtn);
         });
     }
 
-    // ✅ 피드백 제출 함수
     async function submitFeedback() {
         const lang = document.getElementById("language-select").value;
         const t = translations[lang];
@@ -572,7 +573,7 @@ categorySection.prepend(categoryCloseBtn);
             feedbackText: feedbackText,
             chatHistory: chatHistory,
             language: lang,
-            isHelpful: isHelpfulValue // ✅ isHelpful 값을 데이터에 추가
+            isHelpful: isHelpfulValue
         };
 
         try {
@@ -588,10 +589,13 @@ categorySection.prepend(categoryCloseBtn);
                 alert(t.alertSubmissionSuccess);
             } else {
                 const errorText = await response.text();
+                // ✅ 수정: 서버 오류를 콘솔에 더 자세히 로깅합니다.
+                console.error(`피드백 제출 실패: ${response.status} ${response.statusText}`, errorText);
                 throw new Error("서버 에러: " + errorText);
             }
         } catch (error) {
             alert(t.alertSubmissionFailed);
+            // ✅ 수정: 네트워크 에러를 콘솔에 자세히 로깅합니다.
             console.error("Feedback submission error:", error);
         } finally {
             const overlay = document.getElementById("feedback-overlay");
@@ -601,34 +605,18 @@ categorySection.prepend(categoryCloseBtn);
             }, 300);
             document.getElementById("feedback-text").value = "";
             currentRating = 0;
-            isHelpfulValue = null; // ✅ 값 초기화
+            isHelpfulValue = null;
         }
     }
 
-    // ✅ 이벤트 리스너 통합 및 정리
     sendBtn.addEventListener("click", sendMessage);
 
-     // ✅ 수정된 부분: keypress 이벤트 리스너에 비동기 함수 사용 및 전송 차단 로직 추가
     messageInput.addEventListener("keypress", async (event) => {
         if (event.key === "Enter") {
-            const userMessage = messageInput.value.trim();
-            const lang = langSelect.value;
-            const t = translations[lang];
-
-            if (!userMessage) return;
-
-            // 금지어 검사 및 전송 차단 로직
-            const isForbidden = await containsForbiddenWord(userMessage);
-            if (isForbidden) {
-                alert(t.alertForbiddenWord);
-                return; // 함수 즉시 종료
-            }
-
-            // 금지어가 아니면 메시지 전송
+            event.preventDefault();
             sendMessage();
         }
     });
-
 
     newChatBtn.addEventListener("click", () => {
         localStorage.removeItem("chatHistory");
@@ -638,13 +626,10 @@ categorySection.prepend(categoryCloseBtn);
         updateUITexts(langSelect.value);
     });
 
-    // ✅ '예' 버튼 클릭 시 isHelpful 값을 true로 설정하고 모달 열기
     document.getElementById("feedback-yes-btn").addEventListener("click", () => {
         isHelpfulValue = 1;
         openFeedbackModal();
     });
-
-    // ✅ '아니오' 버튼 클릭 시 isHelpful 값을 false로 설정하고 모달 열기
     document.getElementById("feedback-no-btn").addEventListener("click", () => {
         isHelpfulValue = 0;
         openFeedbackModal();
@@ -666,11 +651,9 @@ categorySection.prepend(categoryCloseBtn);
             fillStars(rating);
         }
     });
-
     starContainer.addEventListener('mouseout', () => {
         fillStars(currentRating);
     });
-
     starContainer.addEventListener('click', (e) => {
         const star = e.target.closest('.star');
         if (star) {
@@ -681,50 +664,44 @@ categorySection.prepend(categoryCloseBtn);
 
     document.getElementById("submit-feedback-btn").addEventListener("click", submitFeedback);
 
-    // ✅ Category section 이벤트 리스너가 없는 경우를 대비하여 조건부로 추가
-    if (categorySection) {
-    document.getElementById("toggle-categories").addEventListener("click", async() => {
-        const section = document.getElementById("category-section");
-        const toggleBtn = document.getElementById("toggle-categories");
-
-        toggleBtn.classList.toggle('rotated');
-
-        if (section.classList.contains('visible')) {
-            section.classList.remove('visible');
-            backHistory = [];
+    toggleBtn.addEventListener('click', async () => {
+        if (categorySection.classList.contains('visible')) {
+            hideCategorySection();
         } else {
             await loadMainCategories();
         }
     });
 
-    categorySection.addEventListener("click", async(event) => {
-        const target = event.target.closest('button, div');
-        if (target && target.tagName === 'BUTTON') {
-            const buttonType = target.dataset.type;
-            const id = target.dataset.id;
-            if (buttonType === 'main') {
-                await loadSubCategories(id);
-            } else if (buttonType === 'sub') {
-                await loadQuestions(id);
-            }
-        } else if (target && target.tagName === 'DIV' && target.closest('.question-list')) {
-            const qaId = target.dataset.id;
-            const questionText = target.textContent;
+    categoryCloseBtn.addEventListener('click', () => {
+        hideCategorySection();
+    });
 
-            // 사용자 메시지를 화면에 추가하고, 기록에도 추가 후 저장
+    categorySection.addEventListener("click", async (event) => {
+        const target = event.target;
+
+        if (target.id === 'go-home') {
+            await loadMainCategories();
+        } else if (target.id === 'back-one-step') {
+            await goBackOneStep();
+        } else if (target.dataset.type === 'main') {
+            await loadSubCategories(target.dataset.id);
+        } else if (target.dataset.type === 'sub') {
+            await loadQuestions(target.dataset.id);
+        } else if (target.dataset.type === 'question') {
+            const qaId = target.dataset.id;
+            const questionText = target.textContent.trim();
+
             addMessageToChat(questionText, 'user');
             const chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
             chatHistory.push({ sender: 'user', message: questionText });
             saveToLocalStorage(chatHistory);
 
-            categorySection.classList.remove('visible');
-            document.getElementById("toggle-categories").classList.remove('rotated');
+            hideCategorySection();
             feedbackArea.classList.add('hidden');
 
             await getAnswer(qaId);
         }
     });
-}
 
     const languageSelect = document.getElementById("language-select");
     if (languageSelect) {
@@ -732,9 +709,7 @@ categorySection.prepend(categoryCloseBtn);
             const selectedLang = event.target.value;
             updateUITexts(selectedLang);
             localStorage.removeItem("chatHistory");
-            if (categorySection && categorySection.classList.contains('visible')) {
-                loadMainCategories();
-            }
+            hideCategorySection();
             loadChatHistory();
             feedbackArea.classList.add('hidden');
         });

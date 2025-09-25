@@ -1,5 +1,6 @@
 package com.koreatravel.tabitomo.service.trip;
 
+import com.koreatravel.tabitomo.domain.dto.trip.AddressComponent;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -40,6 +41,68 @@ public class LocationService {
     private String googleMapsApiKey;
 
     private static final String GOOGLE_PLACES_API_URL = "https://maps.googleapis.com/maps/api/place/textsearch/json";
+
+    private static final Map<String, String> REGION_MAP = new HashMap<>();
+    static {
+        REGION_MAP.put("서울", "서울특별시");
+        REGION_MAP.put("서울특별시", "서울특별시");
+        REGION_MAP.put("부산", "부산광역시");
+        REGION_MAP.put("부산광역시", "부산광역시");
+        REGION_MAP.put("대구", "대구광역시");
+        REGION_MAP.put("대구광역시", "대구광역시");
+        REGION_MAP.put("인천", "인천광역시");
+        REGION_MAP.put("인천광역시", "인천광역시");
+        REGION_MAP.put("광주", "광주광역시");
+        REGION_MAP.put("광주광역시", "광주광역시");
+        REGION_MAP.put("대전", "대전광역시");
+        REGION_MAP.put("대전광역시", "대전광역시");
+        REGION_MAP.put("울산", "울산광역시");
+        REGION_MAP.put("울산광역시", "울산광역시");
+        REGION_MAP.put("세종", "세종특별자치시");
+        REGION_MAP.put("세종특별자치시", "세종특별자치시");
+        REGION_MAP.put("경기", "경기도");
+        REGION_MAP.put("경기도", "경기도");
+        REGION_MAP.put("강원", "강원특별자치도");
+        REGION_MAP.put("강원도", "강원특별자치도"); // 이전 명칭 처리
+        REGION_MAP.put("강원특별자치도", "강원특별자치도");
+        REGION_MAP.put("충북", "충청북도");
+        REGION_MAP.put("충청북도", "충청북도");
+        REGION_MAP.put("충남", "충청남도");
+        REGION_MAP.put("충청남도", "충청남도");
+        REGION_MAP.put("전북", "전북특별자치도");
+        REGION_MAP.put("전라북도", "전북특별자치도"); // 이전 명칭 처리
+        REGION_MAP.put("전북특별자치도", "전북특별자치도");
+        REGION_MAP.put("전남", "전라남도");
+        REGION_MAP.put("전라남도", "전라남도");
+        REGION_MAP.put("경북", "경상북도");
+        REGION_MAP.put("경상북도", "경상북도");
+        REGION_MAP.put("경남", "경상남도");
+        REGION_MAP.put("경상남도", "경상남도");
+        REGION_MAP.put("제주", "제주특별자치도");
+        REGION_MAP.put("제주도", "제주특별자치도"); // 이전 명칭 처리
+        REGION_MAP.put("제주특별자치도", "제주특별자치도");
+    }
+
+    public AddressComponent parseAddress(String address) {
+        if (address == null || address.isBlank()) {
+            return new AddressComponent(null, null);
+        }
+
+        String[] parts = address.trim().split("\s+");
+        if (parts.length == 0) {
+            return new AddressComponent(null, null);
+        }
+
+        String regionPart = parts[0];
+        String fullRegion = REGION_MAP.get(regionPart);
+
+        if (fullRegion != null) {
+            String city = (parts.length > 1) ? parts[1] : null;
+            return new AddressComponent(fullRegion, city);
+        } else {
+            return new AddressComponent(null, null);
+        }
+    }
 
     public List<Map<String, Object>> searchGooglePlaces(String query) {
         URI uri = UriComponentsBuilder.fromHttpUrl(GOOGLE_PLACES_API_URL)

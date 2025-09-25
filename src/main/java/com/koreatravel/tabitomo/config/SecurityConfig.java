@@ -1,21 +1,32 @@
 package com.koreatravel.tabitomo.config;
 
+import com.koreatravel.tabitomo.config.security.CustomAuthenticationSuccessHandler;
 import com.koreatravel.tabitomo.config.security.UserDetailsServiceImpl;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import com.koreatravel.tabitomo.config.security.CustomAuthenticationSuccessHandler;
+import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter.HeaderValue;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
@@ -31,100 +42,201 @@ public class SecurityConfig {
     }
 
     @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Collections.singletonList("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+        
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/favorites/**", "/api/**", "/trip/**", "/api/translate/**", "/upload", "/storybook/save", "/storybook/tempsave", "/chat/**")
+        // CORS 설정 적용
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
+        
+        // CSRF 보호 설정 (필요한 엔드포인트만 제외)
+        http.csrf(csrf -> csrf
+            .ignoringRequestMatchers(
+                "/api/favorites/**",
+                "/api/translate/**",
+                "/upload",
+                "/chat/**",
+                "/h2-console/**",
+                "/auth/reset-password"
+            )
+        );
+        
+        // 보안 헤더 설정
+        http.headers(headers -> {
+            headers.frameOptions(frameOptions -> frameOptions.sameOrigin())
+                .xssProtection(xss -> xss
+                    .headerValue(HeaderValue.ENABLED_MODE_BLOCK)
                 )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                        .invalidSessionUrl("/auth/login?expired")
-                        .maximumSessions(1)
-                        .maxSessionsPreventsLogin(true)
-                        .expiredUrl("/auth/login?expired")
-                )
-                .headers(headers -> headers
-                        .frameOptions(frameOptions -> frameOptions.sameOrigin())
-                )
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(
-                            "/", "/css/**", "/js/**", "/image/**", "/error", "/uploadedImages/**"
-                        ).permitAll()
-                        .requestMatchers(
-                                "/trips/public", "/tripinformation",
-                                "/tripinformation/places", "/about", "/contact", "/privacy", "/terms",
-                                "/api/favorites/status", "/api/translate/**",
-                                "/trip/**"
-                        ).permitAll()
-                        .requestMatchers(
-                            "/auth/**", 
-                            "/api/**", 
-                            "/member/api/**"
-                        ).permitAll()
-                        .requestMatchers(
-                            "/member/info/**",
-                            "/member/saved-spots/**"
-                        ).permitAll()
-                        .requestMatchers(
-                            "/storybook/list",
-                            "/storybook/detail/**"
-                        ).permitAll()
-                        .requestMatchers("/upload").permitAll()
-                        .requestMatchers(
-                            "/mypage/**",
-                            "/storybook/write",
-                            "/storybook/editor/**",
-                            "/storybook/save",
-                            "/storybook/tempsave"
-                        ).authenticated()
-                        .requestMatchers(
-                                "/chatbot/intro",
-                                "/chat/**",
-                                "/api/send"
-                        ).permitAll()
-                        .anyRequest().authenticated()
-                )
-                .formLogin(form -> form
-                    .loginPage("/auth/login")
-                    .loginProcessingUrl("/auth/login")
-                    .usernameParameter("email")
-                    .passwordParameter("password")
-                    .successHandler(customAuthenticationSuccessHandler)
-                    .failureHandler((request, response, exception) -> {
-                        String errorMessage = "이메일 또는 비밀번호가 일치하지 않습니다.";
-                        if (exception.getMessage() != null && exception.getMessage().contains("비활성화된 계정")) {
-                            errorMessage = "비활성화된 계정입니다. 관리자에게 문의해주세요.";
-                        }
-                        response.sendRedirect("/auth/login?error=true&message=" + 
-                            java.net.URLEncoder.encode(errorMessage, "UTF-8"));
-                    })
-                    .permitAll()
-                )
-                .logout(logout -> logout
-                        .logoutUrl("/auth/logout")
-                        .logoutSuccessUrl("/")
-                        .invalidateHttpSession(true)
-                        .deleteCookies("JSESSIONID")
-                        .clearAuthentication(true)
-                        .permitAll()
-                )
-                .exceptionHandling(exception -> exception
-                    .authenticationEntryPoint((request, response, authException) -> {
-                        if (isAjaxRequest(request)) {
-                            response.sendError(HttpStatus.UNAUTHORIZED.value(), "Unauthorized");
-                        } else {
-                            response.sendRedirect("/auth/login?error=unauthorized");
-                        }
-                    })
-                    .accessDeniedHandler((request, response, accessDeniedException) -> {
-                        if (isAjaxRequest(request)) {
-                            response.sendError(HttpStatus.FORBIDDEN.value(), "Access Denied");
-                        } else {
-                            response.sendRedirect("/auth/access-denied");
-                        }
-                    })
-                )
-                .userDetailsService(userDetailsService);
+                .contentSecurityPolicy(csp -> csp
+                    .policyDirectives(
+                        "default-src 'self'; " +
+                        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com; " +
+                        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
+                        "style-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
+                        "img-src 'self' data: https:; " +
+                        "font-src 'self' https: data:; " +
+                        "connect-src 'self' http://localhost:8080 https://cdn.jsdelivr.net;"
+                    )
+                );
+        });
+        
+        // 세션 관리 설정
+        http.sessionManagement(session -> {
+            session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                  .sessionFixation().migrateSession()
+                  .maximumSessions(1)
+                  .maxSessionsPreventsLogin(false)
+                  .expiredUrl("/auth/login?expired");
+            
+            // Set invalid session URL separately
+            session.invalidSessionUrl("/auth/login?expired");
+        });
+
+        // 인가 설정 - 모든 사용자에게 허용할 경로
+        http.authorizeHttpRequests(authorize -> {
+            // 정적 리소스
+            authorize.requestMatchers(
+                "/", "/index", "/index.html", "/home",
+                "/css/**", "/js/**", "/images/**", "/image/**", 
+                "/fonts/**", "/favicon.ico", "/error", 
+                "/uploadedImages/**", "/h2-console/**"
+            ).permitAll()
+            
+            // 공개 API 및 페이지
+            .requestMatchers(
+                "/trips/public", "/tripinformation/**", 
+                "/about", "/contact", "/privacy", "/terms",
+                "/api/translate/**", "/trip/**", "/api/favorites/status",
+                "/main", "/main/**", "/api/public/**", "/api/places/**"
+            ).permitAll()
+            
+            // 인증 관련
+            .requestMatchers(
+                "/auth/**", "/login", "/signup", 
+                "/api/auth/**", "/api/email/**"
+            ).permitAll()
+            
+            // 멤버 관련
+            .requestMatchers(
+                "/member/api/**",
+                "/member/info/**",
+                "/member/saved-spots/**"
+            ).permitAll()
+            
+            // 스토리북
+            .requestMatchers(
+                "/storybook/list",
+                "/storybook/detail/**"
+            ).permitAll()
+            
+            // 채팅
+            .requestMatchers(
+                "/chatbot/intro",
+                "/chat/**",
+                "/api/send"
+            ).permitAll()
+            
+            // 파일 업로드
+            .requestMatchers("/upload").permitAll()
+            
+            // 보호된 리소스
+            .requestMatchers(
+                "/mypage/**",
+                "/storybook/write",
+                "/storybook/editor/**",
+                "/storybook/save",
+                "/storybook/tempsave"
+            ).authenticated()
+            
+            // 나머지 요청은 인증 없이 접근 가능 (테스트용)
+            .anyRequest().permitAll(); // TODO: 보안 강화를 위해 나중에 적절한 인증 설정 필요
+        });
+        
+        // 폼 로그인 설정
+        http.formLogin(form -> form
+            .loginPage("/auth/login")
+            .loginProcessingUrl("/auth/login")
+            .usernameParameter("email")
+            .passwordParameter("password")
+            .defaultSuccessUrl("/", true)
+            .successHandler(customAuthenticationSuccessHandler)
+            .failureHandler((request, response, exception) -> {
+                String errorMessage = "이메일 또는 비밀번호가 일치하지 않습니다.";
+                if (exception.getMessage() != null && exception.getMessage().contains("비활성화된 계정")) {
+                    errorMessage = "비활성화된 계정입니다. 관리자에게 문의해주세요.";
+                }
+                response.sendRedirect("/auth/login?error=true&message=" + 
+                    URLEncoder.encode(errorMessage, StandardCharsets.UTF_8));
+            })
+            .permitAll()
+        );
+        
+        // 로그아웃 설정
+        http.logout(logout -> {
+            logout.logoutUrl("/auth/logout")
+                  .logoutSuccessUrl("/?logout")
+                  .invalidateHttpSession(true)
+                  .deleteCookies("JSESSIONID", "remember-me")
+                  .clearAuthentication(true)
+                  .addLogoutHandler((request, response, authentication) -> {
+                      // 세션 무효화
+                      HttpSession session = request.getSession(false);
+                      if (session != null) {
+                          session.invalidate();
+                      }
+                      // SecurityContext 지우기
+                      SecurityContextHolder.clearContext();
+                  });
+        });
+        
+        // 자동 로그인 설정
+        http.rememberMe(remember -> remember
+            .key("uniqueAndSecret")
+            .tokenValiditySeconds(1209600) // 2주
+            .userDetailsService(userDetailsService)
+            .rememberMeParameter("remember-me")
+        );
+        
+        // 예외 처리
+        http.exceptionHandling(exception -> {
+            // 인증 실패 시 처리
+            exception.authenticationEntryPoint((request, response, authException) -> {
+                if (isAjaxRequest(request) || request.getRequestURI().startsWith("/api/")) {
+                    response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write("{\"success\":false,\"message\":\"인증이 필요합니다.\"}");
+                } else {
+                    String message = "로그인이 필요한 서비스입니다. 로그인 후 이용해주세요.";
+                    response.sendRedirect("/auth/login?error=unauthorized&message=" +
+                            URLEncoder.encode(message, StandardCharsets.UTF_8));
+                }
+            });
+            
+            // 인가 실패 시 처리
+            exception.accessDeniedHandler((request, response, accessDeniedException) -> {
+                if (isAjaxRequest(request) || request.getRequestURI().startsWith("/api/")) {
+                    response.setStatus(HttpStatus.FORBIDDEN.value());
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write("{\"success\":false,\"message\":\"접근 권한이 없습니다.\"}");
+                } else {
+                    response.sendRedirect("/auth/access-denied");
+                }
+            });
+        });
+
+        // UserDetailsService 설정
+        http.userDetailsService(userDetailsService);
 
         return http.build();
     }

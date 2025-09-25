@@ -1,419 +1,206 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#2e4c4c">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title data-translatable>로그인 - 타비토모</title>
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Common styles -->
-  <link rel="stylesheet" th:href="@{/css/style.css}">
-  <link href="/css/bootstrap-fixes.css" rel="stylesheet">
-  <style>
-    :root {
-      --primary-color: #2e4c4c;
-      --secondary-color: #5f9ea0;
-      --accent-color: #ff6b6b;
-      --light-gray: #f8f9fa;
-      --dark-gray: #343a40;
-      --error-bg: #f8d7da;
-      --error-text: #721c24;
-      --error-border: #f5c6cb;
-      --success-color: #28a745;
-      --warning-color: #ffc107;
-      --info-color: #17a2b8;
-    }
-    body {
-      font-family: 'Noto Sans KR', sans-serif;
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    }
-    .login-main {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      min-height: calc(100vh - 200px); /* Adjust this value based on actual header/footer height */
-    }
-    .login-card {
-      background: white;
-      border-radius: 15px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-      width: 100%;
-      max-width: 400px;
-    }
-    .login-header {
-      background: var(--primary-color);
-      color: white;
-      padding: 25px;
-      text-align: center;
-    }
-    .login-header h2 {
-      margin: 0;
-      font-weight: 700;
-    }
-    .login-body {
-      padding: 30px;
-    }
-    .form-control:focus {
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 0.25rem rgba(46, 76, 76, 0.25);
-    }
-    .btn-login {
-      background: var(--primary-color);
-      border: none;
-    }
-    .btn-login:hover {
-      background: #1e3c3c;
-    }
-    .login-footer a {
-      color: var(--primary-color);
-    }
-    .form-check-input:checked {
-      background-color: var(--primary-color);
-      border-color: var(--primary-color);
-    }
-  </style>
-</head>
-<body>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="ko" id="htmlTag">
 
+<head th:replace="~{fragments/header :: head}"></head>
+<body>
+<!-- Header -->
 <div th:replace="~{fragments/header :: header}"></div>
+
+<!-- Navigation Menu -->
 <div th:replace="~{fragments/menu :: menu}"></div>
 
-<main class="login-main">
-  <div class="login-card">
-    <div class="login-header">
-      <h2 data-translatable>로그인</h2>
-      <div class="small" data-translatable>타비토모에 오신 것을 환영합니다</div>
-    </div>
-    <div class="login-body">
-      <!-- 오류 메시지 표시 -->
-      <div th:if="${error != null}" class="alert alert-danger" role="alert">
-          <span th:if="${error == 'true'}" data-translatable>이메일 또는 비밀번호가 일치하지 않습니다.</span>
-          <span th:if="${error == 'unauthorized'}" data-translatable>로그인이 필요한 서비스입니다. 로그인 후 이용해주세요.</span>
-      </div>
-      
-      <!-- 이메일 로그인 폼 -->
-      <form id="loginForm" th:action="@{/auth/login}" method="post" onsubmit="return handleLoginSubmit(event)">
-          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-        <div class="mb-3">
-          <label for="email" class="form-label" data-translatable>이메일</label>
-          <input type="email" class="form-control" id="email" name="email" placeholder="이메일을 입력하세요" th:value="${savedEmail}" required data-translatable="placeholder">
-        </div>
-        
-        <div class="mb-3">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <label for="password" class="form-label mb-0" data-translatable>비밀번호</label>
-            <a href="#" id="forgotPassword" class="text-decoration-none small" data-bs-toggle="modal" data-bs-target="#passwordModal" data-translatable>비밀번호 찾기</a>
-          </div>
-          <div class="input-group">
-            <input type="password" class="form-control" id="password" name="password" placeholder="비밀번호를 입력하세요" required
-                   autocomplete="current-password" aria-describedby="passwordHelp" data-translatable="placeholder">
-            <button class="btn btn-outline-secondary" type="button" id="togglePassword" 
-                    aria-label="비밀번호 표시/숨기기" aria-pressed="false" data-translatable="aria-label">
-              <i class="fas fa-eye" aria-hidden="true"></i>
-              <span class="visually-hidden" data-translatable>비밀번호 표시/숨기기</span>
-            </button>
-          </div>
-          <div id="passwordHelp" class="form-text" data-translatable>대소문자, 숫자, 특수문자를 조합하여 8자 이상 입력해주세요.</div>
-        </div>
+<!-- chatbot -->
+<div th:replace="~{fragments/chatbot-button :: chatbot-container}"></div>
+<link rel="stylesheet" href="/css/chatbot.css">
+<script th:src="@{/js/chatbot.js}"></script>
 
-        <!-- 이메일 저장 및 자동 로그인 -->
-        <div class="mb-3 form-check">
-          <input type="checkbox" class="form-check-input" id="rememberEmail" name="remember-email" th:checked="${rememberEmail != null ? rememberEmail : false}">
-          <label class="form-check-label" for="rememberEmail" data-translatable>이메일 저장</label>
+<!-- Main Content -->
+<main class="py-5">
+    <!-- Hero Section -->
+    <section class="hero-section text-center py-5 bg-light rounded-3 mb-5">
+        <div class="container px-4">
+            <h1 class="display-4 fw-bold mb-4" data-translatable>당신의 완벽한 여행을 찾아보세요</h1>
+            <p class="lead mb-4" data-translatable>Tabitomo와 함께라면 여행 계획이 한결 쉬워집니다.</p>
+            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                <a href="/tripselect/step1" class="btn btn-primary btn-lg px-4 gap-3" data-translatable>여행지 추천받기</a>
+                <a href="#features" class="btn btn-outline-secondary btn-lg px-4" data-translatable>자세히 알아보기</a>
+            </div>
         </div>
-        <div class="mb-4 form-check">
-          <input type="checkbox" class="form-check-input" id="autoLogin" name="remember-me">
-          <label class="form-check-label" for="autoLogin" data-translatable>자동 로그인</label>
-          <div class="form-text small text-muted" data-translatable>공용 컴퓨터에서는 사용을 권장하지 않습니다.</div>
-        </div>
+    </section>
 
-        <!-- 로그인 버튼 -->
-        <button type="submit" class="btn btn-primary w-100 py-2 mb-3 btn-login" id="loginButton">
-          <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="loginSpinner"></span>
-          <span id="loginText" data-translatable>로그인</span>
-        </button>
-
-        <!-- 회원가입 링크 -->
-        <div class="text-center mt-4">
-          <p class="mb-0"><span data-translatable>아직 회원이 아니신가요?</span> <a href="/auth/signup" class="text-primary text-decoration-none" data-translatable>회원가입</a></p>
+    <!-- Popular Destinations -->
+    <section class="popular-destinations mb-5" th:if="${not #lists.isEmpty(cities)}">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h3 mb-0" data-translatable>인기 여행지</h2>
+                <a href="/tripinformation" class="btn btn-sm btn-outline-primary" data-translatable>전체보기</a>
+            </div>
+            <div class="row g-4">
+                <!-- Dynamic Cities from Database -->
+                <div class="col-md-4" th:each="city : ${cities}">
+                    <div class="card h-100">
+                        <img th:src="${city.image_url != null ? '/image/local-image/' + city.image_url : '/images/default-placeholder.png'}" 
+                             th:alt="${city.city}" 
+                             class="card-img-top" 
+                             onerror="this.onerror=null; this.src='/images/default-placeholder.png';">
+                        <div class="card-body">
+                            <h5 class="card-title" th:text="${city.city}" data-translatable>도시명</h5>
+                            <p class="card-text" th:text="${city.description}" data-translatable>도시 설명이 여기에 표시됩니다.</p>
+                            <a th:href="@{/travel/} + ${city.city}" class="btn btn-sm btn-outline-primary" data-translatable>탐험하기</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </form>
-    </div>
-  </div>
+    </section>
+
+    <!-- Storybook Section -->
+    <section class="popular-storybooks mb-5" th:if="${not #lists.isEmpty(storylist)}">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h3 mb-0" data-translatable>인기 스토리북</h2>
+                <a href="/storybook/list" class="btn btn-sm btn-outline-primary" data-translatable>전체보기</a>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4" th:each="story : ${storylist}">
+                    <div class="card h-100">
+                        <div class="thumbnail">
+                            <img th:src="${story.thumbnail != null ? story.thumbnail : '/image/tomo.png'}"
+                                 alt="썸네일"
+                                 class="card-img-top"
+                                 onerror="this.onerror=null; this.src='/image/tomo.png';">
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h5 class="card-title mb-0" th:text="${story.title}" data-translatable>제목</h5>
+                                <span class="likes d-flex align-items-center gap-1">
+                                    <span th:text="'❤'" th:style="${story.isLiked} ? 'color:red' : 'color:black'"></span>
+                                    <span th:text="${story.likes}"></span>
+                                </span>
+                            </div>
+                            <p class="card-text" th:text="${story.subtitle}" data-translatable>부제목</p>
+                        </div>
+
+                        <div class="card-footer d-flex justify-content-between small text-muted" style="background-color: #ffffff;">
+                            <span th:text="${story.nickname}"></span>
+                            <span th:text="${#temporals.format(story.createDate, 'yy.MM.dd')}"></span>
+                        </div>
+
+                        <!-- 카드 전체 클릭 가능하도록 링크 -->
+                        <a th:href="@{'/storybook/detail?booknum=' + ${story.booknum}}" class="stretched-link"></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
 </main>
 
-<!-- 비밀번호 재설정 모달 -->
-<div class="modal fade" id="passwordModal" tabindex="-1" aria-labelledby="passwordModalLabel" aria-hidden="true" data-bs-backdrop="static">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="passwordModalLabel" data-translatable>비밀번호 재설정</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <!-- 오류 메시지 영역 -->
-        <div id="errorAlert" class="alert alert-danger d-none" role="alert">
-          <i class="fas fa-exclamation-circle me-2"></i>
-          <span id="errorMessage"></span>
+<!-- 설문조사 안내 모달 -->
+<div id="surveyModal" class="modal fade" tabindex="-1" aria-labelledby="surveyModalLabel" aria-hidden="true" 
+     th:if="${session != null and session.authenticatedEmail != null and session.showQuestionnairePrompt == true}">
+    <div class="modal-dialog modal-dialog-centered">
+        <input type="hidden" id="debugSessionId" th:value="${session.authenticatedEmail ?: 'no-email'}" />
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="surveyModalLabel" data-translatable>환영합니다! 🎉</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p data-translatable>여행 취향을 파악하기 위한 간단한 설문조사에 참여해주세요.</p>
+                <p data-translatable>설문조사를 완료하시면 맞춤형 여행 추천을 받아보실 수 있습니다.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-translatable>나중에 하기</button>
+                <button type="button" class="btn btn-primary" onclick="goToSurvey()" data-translatable>설문조사 하러 가기</button>
+            </div>
         </div>
-
-        <!-- 단계 1: 이메일 입력 -->
-        <div id="step1" class="step">
-          <p class="mb-4" data-translatable>가입하신 이메일 주소를 입력해주세요. 인증번호가 발송됩니다.</p>
-          <div class="mb-3">
-            <label for="resetEmail" class="form-label" data-translatable>이메일 주소</label>
-            <div class="input-group">
-              <input type="email" class="form-control" id="resetEmail" placeholder="example@example.com" data-translatable="placeholder">
-              <button class="btn btn-outline-secondary" type="button" id="sendVerificationBtn" data-translatable>인증번호 전송</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- 단계 2: 인증번호 확인 -->
-        <div id="step2" class="step d-none">
-          <p class="mb-4" data-translatable>이메일로 발송된 인증번호를 입력해주세요.</p>
-          <div class="mb-3">
-            <label for="verificationCode" class="form-label" data-translatable>인증번호</label>
-            <div class="input-group mb-2">
-              <input type="text" class="form-control" id="verificationCode" placeholder="인증번호 6자리" maxlength="6" data-translatable="placeholder">
-              <button class="btn btn-outline-primary" type="button" id="verifyCodeBtn" data-translatable>인증 확인</button>
-            </div>
-            <div class="d-flex justify-content-between align-items-center">
-              <div id="verificationStatus" class="small"></div>
-              <button class="btn btn-link p-0 text-decoration-none" type="button" id="resendCodeBtn" disabled>
-                <small data-translatable>재전송</small> (<small id="countdown">03:00</small>)
-              </button>
-            </div>
-            <div class="form-text text-end">
-              <a href="#" id="resendLink" class="text-decoration-none small d-none" data-translatable>인증번호를 받지 못하셨나요?</a>
-            </div>
-          </div>
-        </div>
-
-        <!-- 단계 3: 새 비밀번호 설정 -->
-        <div id="step3" class="step d-none">
-          <p class="mb-4" data-translatable>새로운 비밀번호를 설정해주세요.</p>
-          <div class="mb-3">
-            <label for="newPassword" class="form-label" data-translatable>새 비밀번호</label>
-            <div class="input-group mb-2">
-              <input type="password" class="form-control" id="newPassword" placeholder="8자 이상의 영문, 숫자, 특수문자 조합" data-translatable="placeholder">
-              <button class="btn btn-outline-secondary toggle-password" type="button" data-target="newPassword">
-                <i class="fas fa-eye"></i>
-              </button>
-            </div>
-            <div class="password-strength mt-2">
-              <div class="progress" style="height: 5px;">
-                <div id="passwordStrength" class="progress-bar" role="progressbar" style="width: 0%"></div>
-              </div>
-              <div id="passwordStrengthText" class="form-text small text-end"></div>
-            </div>
-          </div>
-          <div class="mb-3">
-            <label for="confirmPassword" class="form-label" data-translatable>비밀번호 확인</label>
-            <div class="input-group">
-              <input type="password" class="form-control" id="confirmPassword" placeholder="비밀번호를 다시 입력해주세요" data-translatable="placeholder">
-              <button class="btn btn-outline-secondary toggle-password" type="button" data-target="confirmPassword">
-                <i class="fas fa-eye"></i>
-              </button>
-            </div>
-            <div id="passwordMatch" class="form-text"></div>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" id="prevStepBtn" data-translatable>이전</button>
-        <button type="button" class="btn btn-primary" id="nextStepBtn" data-translatable>다음</button>
-        <button type="button" class="btn btn-primary d-none" id="confirmBtn" data-translatable>확인</button>
-        <button type="button" class="btn btn-primary d-none" id="resetPasswordBtn" data-translatable>비밀번호 재설정</button>
-      </div>
     </div>
-  </div>
 </div>
 
-<div th:replace="~{fragments/footer :: footer}"></div>
+<!-- Footer -->
+<footer th:replace="~{fragments/footer :: footer}"></footer>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script th:src="@{/js/translation.js}"></script>
-<script src="/js/login.js"></script>
-<script>
-// DOM이 완전히 로드된 후 실행
-function handleLoginSubmit(event) {
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-    const loginButton = document.getElementById('loginButton');
-    const loginSpinner = document.getElementById('loginSpinner');
-    const loginText = document.getElementById('loginText');
-    
-    // 간단한 유효성 검사
-    if (!email) {
-        event.preventDefault();
-        showError('이메일을 입력해주세요.', 'email');
-        return false;
+<!-- Styles for modal and chatbot -->
+<style>
+    /* 설문조사 모달 스타일 */
+    .modal-content {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     }
-    
-    if (!password) {
-        event.preventDefault();
-        showError('비밀번호를 입력해주세요.', 'password');
-        return false;
-    }
-    
-    // 로딩 상태 표시
-    loginButton.disabled = true;
-    if (loginSpinner) loginSpinner.classList.remove('d-none');
-    if (loginText) loginText.textContent = '로그인 중...';
-    
-    // 기본 폼 제출을 허용
-    return true;
-}
 
-function showError(message, fieldId) {
-    // 기존 에러 메시지 제거
-    const existingError = document.querySelector(`#${fieldId} ~ .invalid-feedback`);
-    if (existingError) {
-        existingError.remove();
+    .modal-header {
+        border-bottom: 1px solid #eee;
+        background-color: #f8f9fa;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
     }
-    
-    // 새 에러 메시지 추가
-    const input = document.getElementById(fieldId);
-    if (!input) {
-        console.error(`Element with ID '${fieldId}' not found`);
-        // 모달 내부의 에러 메시지 영역에 표시
-        const errorAlert = document.getElementById('errorAlert');
-        if (errorAlert) {
-            const errorMessage = document.getElementById('errorMessage');
-            if (errorMessage) {
-                errorMessage.textContent = message;
-                errorAlert.classList.remove('d-none');
-                // 5초 후 에러 메시지 숨기기
+
+    .modal-title {
+        color: #333;
+        font-weight: 600;
+    }
+</style>
+
+<!-- Scripts -->
+<script th:inline="javascript">
+    // 설문조사 페이지로 이동
+    function goToSurvey() {
+        console.log('Going to survey page...');
+        // Clear the flag when user chooses to take the survey
+        fetch('/auth/clear-questionnaire-prompt', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').getAttribute('content')
+            },
+            credentials: 'same-origin'
+        }).then((response) => {
+            console.log('Prompt cleared, redirecting...');
+            window.location.href = '/question/start';
+        }).catch(error => {
+            console.error('Error clearing prompt:', error);
+            window.location.href = '/question/start'; // Still redirect even if clear fails
+        });
+    }
+
+    // Initialize modal on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Page loaded, checking for survey modal...');
+
+        // Check if we should show the modal
+        const shouldShowModal = /*[[${session != null && session.authenticatedEmail != null && session.showQuestionnairePrompt == true}]]*/ false;
+        console.log('Should show modal:', shouldShowModal);
+
+        if (shouldShowModal) {
+            console.log('Initializing survey modal...');
+            const modalElement = document.getElementById('surveyModal');
+            if (modalElement) {
+                console.log('Modal element found, showing...');
+                const modal = new bootstrap.Modal(modalElement);
+                // Small delay to ensure all elements are ready
                 setTimeout(() => {
-                    errorAlert.classList.add('d-none');
-                }, 5000);
+                    modal.show();
+                    console.log('Modal should be visible now');
+                }, 500);
+            } else {
+                console.error('Survey modal element not found!');
             }
         }
-        return;
-    }
-    
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'invalid-feedback d-block';
-    errorDiv.textContent = message;
-    
-    input.classList.add('is-invalid');
-    
-    // 부모 노드가 있는지 확인 후 에러 메시지 추가
-    if (input.parentNode) {
-        input.parentNode.insertBefore(errorDiv, input.nextSibling);
-        
-        // 포커스 이동
-        input.focus();
-        
-        // 5초 후 에러 메시지 제거
-        setTimeout(() => {
-            input.classList.remove('is-invalid');
-            if (errorDiv.parentNode) {
-                errorDiv.remove();
-            }
-        }, 5000);
-    } else {
-        // 부모 노드가 없는 경우 콘솔에 에러 로그 출력
-        console.error('Input element has no parent node:', input);
-    }
-}
+    });
 
-document.addEventListener('DOMContentLoaded', function() {
-    // 저장된 이메일이 있으면 포커스 이동
-    const emailInput = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
-    if (emailInput.value) {
-        passwordInput.focus();
-    } else {
-        emailInput.focus();
-    }
-    
-    // 비밀번호 보이기/숨기기 토글
-    const togglePassword = document.querySelector('#togglePassword');
-    const password = document.querySelector('#password');
-    const loginForm = document.querySelector('#loginForm');
-    const loginButton = document.querySelector('#loginButton');
-    const loginSpinner = document.querySelector('#loginSpinner');
-    const forgotPassword = document.querySelector('#forgotPassword');
-    const passwordModal = new bootstrap.Modal(document.getElementById('passwordModal'));
-    const loginText = document.querySelector('#loginText');
-    
-    // 로그인 폼 제출 시 로딩 상태 표시
-    if (loginForm) {
-      loginForm.addEventListener('submit', function() {
-        loginButton.disabled = true;
-        loginSpinner.classList.remove('d-none');
-        loginText.textContent = '로그인 중...';
-      });
-    }
-    
-    // 비밀번호 표시/숨기기 토글
-    if (togglePassword) {
-        togglePassword.addEventListener('click', function() {
-            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-            const isPasswordVisible = type === 'text';
-            
-            password.setAttribute('type', type);
-            
-            // 아이콘 업데이트
-            const icon = this.querySelector('i');
-            icon.classList.toggle('fa-eye', !isPasswordVisible);
-            icon.classList.toggle('fa-eye-slash', isPasswordVisible);
-            
-            // ARIA 속성 업데이트
-            this.setAttribute('aria-pressed', isPasswordVisible);
-            this.setAttribute('aria-label', isPasswordVisible ? '비밀번호 숨기기' : '비밀번호 표시');
+    // Initialize tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.forEach(function(tooltipTriggerEl) {
+            new bootstrap.Tooltip(tooltipTriggerEl);
         });
-    }
-    
-    // 비밀번호 찾기 모달은 password-reset.js에서 처리
-    // Bootstrap 5의 data-bs-toggle="modal" data-bs-target="#passwordModal" 속성으로 자동 처리됨
-    
-    // 폼 유효성 검사 초기화
-    if (loginForm) {
-        // 입력 필드의 유효성 검사 상태 초기화
-        const inputs = loginForm.querySelectorAll('input');
-        inputs.forEach(input => {
-            input.addEventListener('input', function() {
-                if (this.checkValidity()) {
-                    this.classList.remove('is-invalid');
-                    const errorMessage = this.nextElementSibling;
-                    if (errorMessage && errorMessage.classList.contains('invalid-feedback')) {
-                        errorMessage.remove();
-                    }
-                }
-            });
-        });
-    }
-    
-    // 자동 로그인 체크박스 이벤트 리스너
-    const autoLoginCheckbox = document.getElementById('autoLogin');
-    const rememberMeCheckbox = document.getElementById('rememberMe');
-    
-    if (autoLoginCheckbox && rememberMeCheckbox) {
-        autoLoginCheckbox.addEventListener('change', function() {
-            if (this.checked) {
-                rememberMeCheckbox.checked = true;
-            }
-        });
-        
-        // 자동 로그인이 체크되어 있으면 로그인 상태 유지도 체크
-        if (autoLoginCheckbox.checked) {
-            rememberMeCheckbox.checked = true;
-        }
-    }
-});
+    });
 </script>
+
 </body>
 </html>

@@ -12,6 +12,10 @@ import jakarta.servlet.http.HttpSession;
 import com.koreatravel.tabitomo.service.trip.CitiesService;
 import com.koreatravel.tabitomo.domain.dto.trip.CitiesDTO;
 import org.springframework.ui.Model;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import jakarta.servlet.http.HttpServletRequest;
 import com.koreatravel.tabitomo.service.storybook.EditorService;
 
 import org.springframework.core.io.Resource;
@@ -35,7 +39,19 @@ public class WebController {
 
     @GetMapping("/")
     public String index(Model model, HttpSession session, Authentication authentication) {
-        log.debug("Accessing index page");
+        log.info("===== Accessing root path =====");
+        log.info("Session ID: {}", session.getId());
+        log.info("Authentication: {}", authentication != null ? authentication.getName() : "anonymous");
+        
+        // Log all request attributes for debugging
+        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+        if (requestAttributes != null && requestAttributes instanceof ServletRequestAttributes) {
+            HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
+            log.info("Request URI: {}", request.getRequestURI());
+            log.info("Request URL: {}", request.getRequestURL());
+            log.info("Requested Session ID: {}", request.getRequestedSessionId());
+            log.info("Request is from valid session: {}", request.isRequestedSessionIdValid());
+        }
         
         try {
             // Add cities and story list to the model

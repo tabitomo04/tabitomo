@@ -16,8 +16,8 @@ public class uploadController {
 
     /**
      * 이미지 업로드
-     * @param file
-     * @return
+     * @param file 업로드한 이미지 파일
+     * @return json응답
      */
     @PostMapping("/upload")
     public Map<String, Object> uploadImage(@RequestParam("upload") MultipartFile file) {

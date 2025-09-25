@@ -1,52 +1,116 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="ko">
-
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title data-translatable>회원가입</title>
+  <meta name="theme-color" content="#2e4c4c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title data-translatable>회원가입 - 타비토모</title>
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <link rel="stylesheet" th:href="@{/css/style.css}">
-  <link rel="stylesheet" href="/css/signup.css" th:href="@{/css/signup.css}">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    :root {
+      --primary-color: #2e4c4c;
+      --secondary-color: #5f9ea0;
+      --accent-color: #ff6b6b;
+      --light-gray: #f8f9fa;
+      --dark-gray: #343a40;
+      --error-bg: #f8d7da;
+      --error-text: #721c24;
+      --error-border: #f5c6cb;
+      --success-color: #28a745;
+      --warning-color: #ffc107;
+      --info-color: #17a2b8;
+    }
     body {
-      background: #f8f9fa;
       font-family: 'Noto Sans KR', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      margin: 0;
+      padding: 0;
     }
-    .main-content {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
+    .signup-main {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
     }
-    .form-container {
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 2rem;
+    .signup-card {
       background: white;
-      border-radius: 10px;
-      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      width: 100%;
+      max-width: 500px;
+      margin: 20px;
     }
-    .form-title {
+    .logo-container {
       text-align: center;
-      margin-bottom: 2rem;
-      color: #333;
-      font-weight: 700;
+      padding: 20px 0 5px;
     }
-    .form-label {
+    .logo-container img {
+      max-width: 120px;
+      height: auto;
+      margin-bottom: 5px;
+    }
+    .signup-header {
+      padding: 15px 25px 10px;
+      text-align: center;
+    }
+    .signup-header h2 {
+      margin: 0;
+      font-weight: 700;
+      color: var(--primary-color);
+    }
+    .signup-body {
+      padding: 20px 30px 30px;
+    }
+    .form-control:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 0.25rem rgba(46, 76, 76, 0.15);
+    }
+    .btn-signup {
+      background: var(--primary-color);
+      border: none;
       font-weight: 600;
-      margin-bottom: 0.5rem;
+      padding: 10px;
+      font-size: 1.05rem;
+      width: 100%;
+    }
+    .btn-signup:hover {
+      background: #1e3c3c;
+    }
+    .form-check-input:checked {
+      background-color: var(--primary-color);
+      border-color: var(--primary-color);
+    }
+    .form-text {
+      font-size: 0.8rem;
+      color: #6c757d;
     }
     .validation-message {
-      font-size: 0.875rem;
+      font-size: 0.8rem;
       margin-top: 0.25rem;
       height: 1.25rem;
     }
-    .validation-message.success {
-      color: #198754;
+    .validation-message.valid {
+      color: var(--success-color);
     }
-    .validation-message.error {
-      color: #dc3545;
+    .validation-message.invalid {
+      color: var(--error-text);
+    }
+    .form-floating > label {
+      padding: 1rem 0.75rem;
+    }
+    .form-floating > .form-control:focus ~ label,
+    .form-floating > .form-control:not(:placeholder-shown) ~ label,
+    .form-floating > .form-select ~ label {
+      transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
     }
     .gender-option {
       cursor: pointer;
@@ -103,12 +167,16 @@
 
 <body>
 
-  <div th:replace="~{fragments/header :: header}"></div>
-  <div th:replace="~{fragments/menu :: menu}"></div>
-
-    <div class="container">
-      <div class="form-container">
-        <h1 class="form-title" data-translatable>회원가입</h1>
+<main class="signup-main">
+  <div class="signup-card">
+    <div class="logo-container">
+      <img src="/image/logo.png" alt="타비토모 로고" onerror="this.src='https://via.placeholder.com/180x50?text=타비토모'" />
+    </div>
+    <div class="signup-header">
+      <h2 data-translatable>회원가입</h2>
+      <div class="small text-muted" data-translatable>타비토모에 오신 것을 환영합니다</div>
+    </div>
+    <div class="signup-body">
         <form th:action="@{/auth/signup}" th:object="${member}" method="post" onsubmit="return handleSubmit(event)">
           <!-- 이메일 입력 필드 -->
           <input type="hidden" id="email" name="email" th:field="*{email}">
@@ -223,9 +291,9 @@
             </div>
           </div>
         </form>
-      </div>
     </div>
-  </main>
+  </div>
+</main>
 
   <!-- 이메일 인증 모달 -->
   <div class="modal fade" id="emailVerificationModal" tabindex="-1" aria-labelledby="verificationModalLabel" aria-hidden="true">
@@ -254,28 +322,34 @@
     </div>
   </div>
   
-  <div th:replace="~{fragments/footer :: footer}"></div>
-
   <!-- JavaScript -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script th:src="@{/js/translation.js}"></script>
-  <script src="/js/signup.js" th:src="@{/js/signup.js}"></script>
+  <script th:src="@{/js/signup.js}"></script>
   <script>
-    // 성별 선택 함수 (HTML에 직접 필요한 함수만 남김)
+    // 성별 선택 함수
     function selectGender(element, genderValue) {
       // 모든 성별 버튼에서 selected 클래스 제거
       document.querySelectorAll('.gender-option').forEach(btn => {
         btn.classList.remove('selected');
       });
       
-      // 선택된 버튼에 selected 클래스 추가
+      // 선택한 버튼에 selected 클래스 추가
       element.classList.add('selected');
       
-      // hidden input 값 업데이트
+      // hidden input 값 설정
       document.getElementById('gender').value = genderValue;
     }
+    
+    // 페이지 로드 시 기본 성별 선택 (선택사항)
+    document.addEventListener('DOMContentLoaded', function() {
+      // 기본으로 남성 선택
+      const defaultGenderBtn = document.querySelector('.gender-option[data-gender="MALE"]');
+      if (defaultGenderBtn) {
+        selectGender(defaultGenderBtn, 'MALE');
+      }
+    });
   </script>
 </body>
-
 </html>

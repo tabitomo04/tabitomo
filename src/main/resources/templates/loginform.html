@@ -13,9 +13,6 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Common styles -->
-  <link rel="stylesheet" th:href="@{/css/style.css}">
-  <link href="/css/bootstrap-fixes.css" rel="stylesheet">
   <style>
     :root {
       --primary-color: #2e4c4c;
@@ -46,18 +43,22 @@
       border-radius: 15px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
       overflow: hidden;
-      width: 100%;
       max-width: 400px;
     }
-    .login-header {
-      background: var(--primary-color);
-      color: white;
-      padding: 25px;
+    .logo-container {
       text-align: center;
+      padding: 20px 0 5px;
     }
-    .login-header h2 {
-      margin: 0;
-      font-weight: 700;
+    .logo-container img {
+      max-width: 120px;
+      height: auto;
+      margin-bottom: 5px;
+    }
+    .login-header {
+      background: white;
+      color: #2E4C4C;
+      padding: 15px 20px 25px;
+      text-align: center;
     }
     .login-body {
       padding: 30px;
@@ -84,14 +85,15 @@
 </head>
 <body>
 
-<div th:replace="~{fragments/header :: header}"></div>
-<div th:replace="~{fragments/menu :: menu}"></div>
 
 <main class="login-main">
   <div class="login-card">
+    <div class="logo-container">
+      <img src="/image/logo.png" alt="타비토모 로고" onerror="this.src='https://via.placeholder.com/180x50?text=타비토모'" />
+    </div>
     <div class="login-header">
       <h2 data-translatable>로그인</h2>
-      <div class="small" data-translatable>타비토모에 오신 것을 환영합니다</div>
+      <div class="small text-muted" data-translatable>타비토모에 오신 것을 환영합니다</div>
     </div>
     <div class="login-body">
       <!-- 오류 메시지 표시 -->
@@ -248,7 +250,6 @@
   </div>
 </div>
 
-<div th:replace="~{fragments/footer :: footer}"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

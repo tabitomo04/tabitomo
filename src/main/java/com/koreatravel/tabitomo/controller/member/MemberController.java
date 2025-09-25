@@ -2,6 +2,7 @@ package com.koreatravel.tabitomo.controller.member;
 
 import com.koreatravel.tabitomo.config.security.UserDetailsImpl;
 import com.koreatravel.tabitomo.domain.dto.member.MemberProfileDTO;
+import com.koreatravel.tabitomo.domain.dto.storybook.StorybookDTO;
 import com.koreatravel.tabitomo.domain.dto.storybook.StorybookListDTO;
 import com.koreatravel.tabitomo.domain.dto.storybook.TempsaveDTO;
 import com.koreatravel.tabitomo.domain.entity.trip.FavoritePlace;
@@ -45,6 +46,7 @@ public class MemberController {
     public String myPage(@AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestParam(value = "tripPage", defaultValue = "0") int tripPage,
             @RequestParam(value = "favPage", defaultValue = "0") int favPage,
+            @RequestParam(value = "storyPage", defaultValue = "0") int mystoryPage,
             @RequestParam(defaultValue = "false") boolean all,
             Model model) {
         if (userDetails == null) {
@@ -81,13 +83,10 @@ public class MemberController {
             model.addAttribute("endFavPage", endFavPage);
         }
 
-        // 내 스토리북 리스트
-        List<StorybookListDTO> storybookList = editorService.getMyStorybookList(memberId);
-        if (!all) {
-            storybookList = storybookList.stream().limit(3).toList();
-        }
-        model.addAttribute("storylist", storybookList);
-        model.addAttribute("all", all);
+        // 가장 최근에 작성한 스토리북
+        Pageable storyPageable = PageRequest.of(mystoryPage, 3);
+        Page<StorybookListDTO> storyPage = editorService.getMyStorybookList(memberId, storyPageable);
+        model.addAttribute("storyPage", storyPage);
 
         // 임시저장 리스트
         List<TempsaveDTO> tempsaveList = editorService.getTempsaveList(email);

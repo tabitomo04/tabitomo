@@ -42,6 +42,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -190,8 +191,10 @@ public class EditorService {
      * 마이페이지의 스토리북 리스트 가져오기
      * @return 쿼리에 해당하는 리스트 가져옴
      */
-    public List<StorybookListDTO> getMyStorybookList(UUID memberId) {
-        return storybookRepository.StorybookList(memberId);
+    public Page<StorybookListDTO> getMyStorybookList(UUID memberId, Pageable pageable) {
+        MemberEntity member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NoSuchElementException("회원을 찾을 수 없습니다: " + memberId));
+        return storybookRepository.StorybookList(memberId, pageable);
     }
 
     /**

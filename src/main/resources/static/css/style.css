@@ -10,9 +10,7 @@
 
 /* Header/Navbar 통합 스타일 */
 .navbar {
-    background-color: var(--color-accent);
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    /* Increase vertical padding to make it taller */
     padding: 1.5rem 1rem;
 }
 

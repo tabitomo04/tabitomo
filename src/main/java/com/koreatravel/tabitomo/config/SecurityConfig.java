@@ -267,7 +267,9 @@ public class SecurityConfig {
                 "/tripinformation/places",
                 "/auth/signup",
                 "/storybook/save",
-                "/storybook/tempsave"
+                "/storybook/tempsave",
+                "/question/form",
+                "/question/submit"
             )
         );
         

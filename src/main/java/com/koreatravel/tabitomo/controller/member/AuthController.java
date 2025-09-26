@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,7 +29,11 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.client.RestTemplate;
 
 import org.springframework.web.bind.annotation.CookieValue;
-
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.web.authentication.WebAuthenticationDetails;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @Slf4j
 @Controller
@@ -39,9 +42,10 @@ import org.springframework.web.bind.annotation.CookieValue;
 public class AuthController {
 
     private final AuthService authService;
-
     private final MemberService memberService;
+    @SuppressWarnings("unused")
     private final RestTemplate restTemplate;
+    private final UserDetailsService userDetailsService;
 
     // 로그인 페이지 이동
     @GetMapping("/login")
@@ -105,30 +109,33 @@ public class AuthController {
             HttpSession session,
             HttpServletResponse response,
             RedirectAttributes redirectAttributes) {
-
         try {
             // 서비스를 통해 로그인 처리 및 사용자 프로필 가져오기
             MemberProfileDTO memberProfile = authService.login(email, password);
             
-            // 세션 무효화 후 새 세션 생성 (기존 세션 정리)
-            session.invalidate();
-            session = request.getSession(true);
-            
-            // 세션에 MemberProfileDTO 저장
-            session.setAttribute("memberProfile", memberProfile);
-            
-            // 기존에 개별로 저장하던 속성 제거
+            // Clear any existing attributes
+            session.removeAttribute("memberProfile");
             session.removeAttribute("userId");
             session.removeAttribute("authenticatedEmail");
             session.removeAttribute("questionnaireCompleted");
             
-            // 세션에 저장된 값 확인 로그
+            // Set the new member profile in session
+            session.setAttribute("memberProfile", memberProfile);
+            
+            // Set authentication in SecurityContext
+            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                userDetails, null, userDetails.getAuthorities());
+            authentication.setDetails(new WebAuthenticationDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            
+            // Log user info
             log.info("Login - User: {}, Questionnaire completed: {}", 
                 memberProfile.getEmail(), 
                 memberProfile.isQuestionnaireCompleted()
             );
             
-            // 설문조사 프롬프트 표시 여부 설정
+            // Set questionnaire prompt if not completed
             if (!memberProfile.isQuestionnaireCompleted()) {
                 session.setAttribute("showQuestionnairePrompt", true);
                 log.info("Setting showQuestionnairePrompt flag for user {}", memberProfile.getEmail());
@@ -155,40 +162,13 @@ public class AuthController {
                 response.addCookie(emailCookie);
             }
             
-            // 자동 로그인 설정 (30일)
-            if (Boolean.TRUE.equals(autoLogin)) {
-                // 세션 만료 시간 설정 (30일)
-                session.setMaxInactiveInterval(60 * 60 * 24 * 30); // 30일
-                
-                // 자동 로그인 토큰 생성 및 쿠키 설정 (30일 유지)
-                String token = UUID.randomUUID().toString();
-                // 토큰을 DB에 저장하는 로직 추가 (예: memberService.saveAutoLoginToken(email, token))
-                
-                // 쿠키 설정
-                Cookie autoLoginCookie = new Cookie("autoLogin", token);
-                autoLoginCookie.setMaxAge(60 * 60 * 24 * 30); // 30일
-                autoLoginCookie.setPath("/");
-                autoLoginCookie.setHttpOnly(true);
-                // HTTPS 사용 시에만 secure 플래그 설정
-                // autoLoginCookie.setSecure(true);
-                response.addCookie(autoLoginCookie);
-            } else {
-                // 기본 세션 시간 (30분)
-                session.setMaxInactiveInterval(60 * 30);
-                
-                // 쿠키 삭제
-                Cookie autoLoginCookie = new Cookie("autoLogin", null);
-                autoLoginCookie.setMaxAge(0);
-                autoLoginCookie.setPath("/");
-                response.addCookie(autoLoginCookie);
-            }
-            
             return "redirect:/";
             
         } catch (BadCredentialsException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
             return "redirect:/auth/login";
         } catch (Exception e) {
+            log.error("로그인 처리 중 오류 발생: {}", e.getMessage(), e);
             redirectAttributes.addFlashAttribute("error", "로그인 처리 중 오류가 발생했습니다.");
             return "redirect:/auth/login";
         }

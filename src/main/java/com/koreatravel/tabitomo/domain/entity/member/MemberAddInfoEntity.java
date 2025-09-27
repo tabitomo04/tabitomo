@@ -15,28 +15,31 @@ import java.util.UUID;
 @Table(name = "member_add_info")
 @IdClass(MemberAddInfoId.class)
 public class MemberAddInfoEntity {
-    
     @Id
     @Column(name = "member_id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID memberId;
     
     @Id
-    @Column(name = "info_high_num", nullable = false, insertable = false, updatable = false)
+    @Column(name = "info_high_num", nullable = false)
     private Integer infoHighNum;
     
     @Id
-    @Column(name = "info_low_num", nullable = false, insertable = false, updatable = false)
+    @Column(name = "info_low_num", nullable = false)
     private Integer infoLowNum;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumns({
         @JoinColumn(
             name = "info_high_num",
-            referencedColumnName = "info_high_num"
+            referencedColumnName = "info_high_num",
+            insertable = false,
+            updatable = false
         ),
         @JoinColumn(
             name = "info_low_num",
-            referencedColumnName = "info_low_num"
+            referencedColumnName = "info_low_num",
+            insertable = false,
+            updatable = false
         )
     })
     private AddInfoEntity addInfo;
@@ -46,19 +49,15 @@ public class MemberAddInfoEntity {
     
     @PrePersist
     protected void onCreate() {
-        if (this.addInfo != null) {
-            this.infoHighNum = this.addInfo.getInfoHighNum();
-            this.infoLowNum = this.addInfo.getInfoLowNum();
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
         }
-        this.createdAt = LocalDateTime.now();
     }
-    
     // AddInfoEntity의 이름 가져오기
     public String getInfoName() {
         return this.addInfo != null ? this.addInfo.getInfoName() : null;
     }
     
-    // AddInfoEntity의 컨텐츠 가져오기
     public String getContent() {
         return this.addInfo != null ? this.addInfo.getContent() : null;
     }

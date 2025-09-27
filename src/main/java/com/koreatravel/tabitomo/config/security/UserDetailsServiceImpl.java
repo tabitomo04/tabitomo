@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -32,8 +33,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             throw new DisabledException("비활성화된 계정입니다. 관리자에게 문의해주세요.");
         }
         
+        // Get member ID as UUID
+        UUID memberId = member.getId();
+        
         // Fetch additional member information
-        List<MemberAddInfoEntity> additionalInfo = memberAddInfoRepository.findByMemberId(member.getId());
+        List<MemberAddInfoEntity> additionalInfo = memberAddInfoRepository.findByMemberId(memberId);
         
         return new UserDetailsImpl(member, additionalInfo);
     }

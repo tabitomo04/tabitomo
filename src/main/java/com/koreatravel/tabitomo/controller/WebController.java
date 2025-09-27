@@ -19,8 +19,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.koreatravel.tabitomo.service.member.MemberService;
 import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
@@ -97,6 +95,7 @@ public class WebController {
                     
                     // Update session with fresh data
                     MemberProfileDTO memberProfile = MemberProfileDTO.builder()
+                        .id(memberUuid)  // Add member ID
                         .email(email)
                         .nickname(nickname)
                         .profileImageUrl(memberEntity.getProfileImageUrl())
@@ -212,4 +211,14 @@ public class WebController {
                 .body(resource);
     }
 
+    @GetMapping("/error")
+    public String showErrorPage(
+            @RequestParam(value = "message", required = false) String message,
+            @RequestParam(value = "code", required = false) String errorCode,
+            Model model) {
+        
+        model.addAttribute("message", message != null ? message : "알 수 없는 오류가 발생했습니다.");
+        model.addAttribute("code", errorCode);
+        return "error";
+    }
 }

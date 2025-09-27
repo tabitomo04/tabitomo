@@ -20,27 +20,34 @@ import jakarta.validation.Valid;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.ui.Model;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContext;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 @Slf4j
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/auth")
 public class AuthController {
-
     private final AuthService authService;
     private final MemberService memberService;
     @SuppressWarnings("unused")
@@ -113,21 +120,24 @@ public class AuthController {
             // 서비스를 통해 로그인 처리 및 사용자 프로필 가져오기
             MemberProfileDTO memberProfile = authService.login(email, password);
             
-            // Clear any existing attributes
-            session.removeAttribute("memberProfile");
-            session.removeAttribute("userId");
-            session.removeAttribute("authenticatedEmail");
-            session.removeAttribute("questionnaireCompleted");
+            // Invalidate the current session and create a new one to prevent session fixation
+            session.invalidate();
+            session = request.getSession(true);
             
             // Set the new member profile in session
             session.setAttribute("memberProfile", memberProfile);
+            session.setAttribute("userId", memberProfile.getId());
+            session.setAttribute("authenticatedEmail", memberProfile.getEmail());
+            session.setAttribute("questionnaireCompleted", memberProfile.isQuestionnaireCompleted());
             
             // Set authentication in SecurityContext
             UserDetails userDetails = userDetailsService.loadUserByUsername(email);
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                 userDetails, null, userDetails.getAuthorities());
             authentication.setDetails(new WebAuthenticationDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+            securityContext.setAuthentication(authentication);
+            SecurityContextHolder.setContext(securityContext);
             
             // Log user info
             log.info("Login - User: {}, Questionnaire completed: {}", 
@@ -144,18 +154,20 @@ public class AuthController {
                 log.info("Questionnaire already completed for user {}", memberProfile.getEmail());
             }
             
-            // 세션 속성 강제 저장
+            // Force session to be created
             session.setAttribute("sessionUpdated", System.currentTimeMillis());
-            log.info("Session created - ID: {}", session.getId());
+            log.info("New session created - ID: {}, memberProfile: {}", session.getId(), memberProfile);
             
-            // 이메일 저장 쿠키 설정 (1년 유지)
+            // Set remember-me cookie if needed
             if (Boolean.TRUE.equals(rememberEmail)) {
                 Cookie emailCookie = new Cookie("savedEmail", email);
                 emailCookie.setMaxAge(60 * 60 * 24 * 365); // 1년
                 emailCookie.setPath("/");
+                emailCookie.setHttpOnly(true);
+                emailCookie.setSecure(request.isSecure());
                 response.addCookie(emailCookie);
             } else {
-                // 이메일 저장 체크 해제 시 쿠키 삭제
+                // Remove email cookie if exists
                 Cookie emailCookie = new Cookie("savedEmail", null);
                 emailCookie.setMaxAge(0);
                 emailCookie.setPath("/");
@@ -165,12 +177,13 @@ public class AuthController {
             return "redirect:/";
             
         } catch (BadCredentialsException e) {
+            log.warn("Login failed for user {}: {}", email, e.getMessage());
             redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return "redirect:/auth/login";
+            return "redirect:/auth/login?error=" + URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
         } catch (Exception e) {
             log.error("로그인 처리 중 오류 발생: {}", e.getMessage(), e);
             redirectAttributes.addFlashAttribute("error", "로그인 처리 중 오류가 발생했습니다.");
-            return "redirect:/auth/login";
+            return "redirect:/auth/login?error=" + URLEncoder.encode("로그인 처리 중 오류가 발생했습니다.", StandardCharsets.UTF_8);
         }
     }
 

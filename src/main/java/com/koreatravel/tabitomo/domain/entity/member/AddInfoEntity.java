@@ -1,12 +1,14 @@
 package com.koreatravel.tabitomo.domain.entity.member;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import jakarta.persistence.*;
 
 @Getter
 @Setter
 @Entity
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "add_info")
 @IdClass(AddInfoId.class)
 public class AddInfoEntity {

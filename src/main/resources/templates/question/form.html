@@ -198,9 +198,14 @@
     </div>
     
     <div class="container">
-        <form id="questionForm" th:action="@{/question/submit}" th:object="${questionAnswers}" method="post" class="question-container">
+        <form id="questionForm" th:action="@{/question/submit}" method="post" class="question-container">
             <!-- CSRF Token -->
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+            <!-- Hidden fields for array data -->
+            <div id="hobbiesContainer"></div>
+            <div id="travelStylesContainer"></div>
+            <div id="companionsContainer"></div>
+            <div id="foodPreferencesContainer"></div>
             <div class="text-center mb-5">
                 <h2>여행 취향 설문 조사</h2>
                 <p class="text-muted">당신의 여행 스타일을 알려주시면 더 나은 추천을 드릴 수 있어요!</p>
@@ -222,7 +227,7 @@
                 <h4 class="question-title">1. 어떤 활동에 관심이 있으신가요? (다중 선택 가능)</h4>
                 <div class="d-flex flex-wrap">
                     <div th:each="hobby : ${questionsByCategory.get(1)}" class="form-check form-check-inline">
-                        <input type="checkbox" th:field="*{hobbies}" th:value="${hobby.infoLowNum}" class="form-check-input" th:id="'hobby-' + ${hobby.infoLowNum}">
+                        <input type="checkbox" name="hobbies" th:value="${hobby.infoLowNum}" class="form-check-input" th:id="'hobby-' + ${hobby.infoLowNum}">
                         <label th:for="${'hobby-' + hobby.infoLowNum}" class="option-label">
                             <i class="fas me-1" th:classappend="'fa-' + ${hobby.content}"></i>
                             <span th:text="${hobby.infoName}"></span>
@@ -236,7 +241,7 @@
                 <h4 class="question-title">2. 당신의 MBTI는 무엇인가요? (선택사항)</h4>
                 <div id="mbti-grid">
                     <div th:each="mbti : ${questionsByCategory.get(2)}" class="form-check">
-                        <input type="radio" th:field="*{mbti}" th:value="${mbti.infoName}" class="form-check-input" th:id="'mbti-' + ${mbti.infoLowNum}">
+                        <input type="radio" name="mbti" th:value="${mbti.infoLowNum}" class="form-check-input" th:id="'mbti-' + ${mbti.infoLowNum}">
                         <label th:for="${'mbti-' + mbti.infoLowNum}" class="option-label">
                             <span th:text="${mbti.infoName}"></span>
                         </label>
@@ -249,7 +254,7 @@
                 <h4 class="question-title">3. 선호하는 여행 스타일은 무엇인가요? (다중 선택 가능)</h4>
                 <div class="d-flex flex-wrap">
                     <div th:each="style : ${questionsByCategory.get(3)}" class="form-check form-check-inline">
-                        <input type="checkbox" th:field="*{travelStyles}" th:value="${style.infoLowNum}" class="form-check-input" th:id="'style-' + ${style.infoLowNum}">
+                        <input type="checkbox" name="travelStyles" th:value="${style.infoLowNum}" class="form-check-input" th:id="'style-' + ${style.infoLowNum}">
                         <label th:for="${'style-' + style.infoLowNum}" class="option-label">
                             <i class="fas me-1" th:classappend="'fa-' + ${style.content}"></i>
                             <span th:text="${style.infoName}"></span>
@@ -263,7 +268,7 @@
                 <h4 class="question-title">4. 주로 누구와 여행을 가시나요? (다중 선택 가능)</h4>
                 <div class="d-flex flex-wrap">
                     <div th:each="companion : ${questionsByCategory.get(4)}" class="form-check form-check-inline">
-                        <input type="checkbox" th:field="*{companions}" th:value="${companion.infoLowNum}" class="form-check-input" th:id="'companion-' + ${companion.infoLowNum}">
+                        <input type="checkbox" name="companions" th:value="${companion.infoLowNum}" class="form-check-input" th:id="'companion-' + ${companion.infoLowNum}">
                         <label th:for="${'companion-' + companion.infoLowNum}" class="option-label">
                             <i class="fas me-1" th:classappend="'fa-' + ${companion.content}"></i>
                             <span th:text="${companion.infoName}"></span>
@@ -277,7 +282,7 @@
                 <h4 class="question-title">5. 선호하는 음식은 무엇인가요? (다중 선택 가능)</h4>
                 <div class="d-flex flex-wrap">
                     <div th:each="food : ${questionsByCategory.get(5)}" class="form-check form-check-inline">
-                        <input type="checkbox" th:field="*{foodPreferences}" th:value="${food.infoLowNum}" class="form-check-input" th:id="'food-' + ${food.infoLowNum}">
+                        <input type="checkbox" name="foodPreferences" th:value="${food.infoLowNum}" class="form-check-input" th:id="'food-' + ${food.infoLowNum}">
                         <label th:for="${'food-' + food.infoLowNum}" class="option-label">
                             <i class="fas me-1" th:classappend="'fa-' + ${food.content}"></i>
                             <span th:text="${food.infoName}"></span>
@@ -320,6 +325,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Ensure loading overlay is hidden when page loads
             const loadingOverlay = document.getElementById('loadingOverlay');
+            const form = document.getElementById('questionForm');
+            
             if (loadingOverlay) {
                 loadingOverlay.style.display = 'none';
                 loadingOverlay.classList.remove('d-flex');
@@ -332,6 +339,98 @@
                     window.history.pushState('forward', null, '');
                     window.location.href = '/';
                 };
+            }
+            
+            // Form submission handler
+            if (form) {
+                // Remove any existing submit event listeners to prevent duplicates
+                const newForm = form.cloneNode(true);
+                form.parentNode.replaceChild(newForm, form);
+                
+                newForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    // Show loading overlay
+                    if (loadingOverlay) {
+                        loadingOverlay.style.display = 'flex';
+                        loadingOverlay.classList.add('d-flex');
+                    }
+                    
+                    // Get all form data
+                    const formData = new FormData(newForm);
+                    
+                    // Convert FormData to object with proper types
+                    const formDataObj = {
+                        hobbies: formData.getAll('hobbies').map(Number).filter(Boolean),
+                        mbti: formData.get('mbti'),
+                        travelStyles: formData.getAll('travelStyles').map(Number).filter(Boolean),
+                        companions: formData.getAll('companions').map(Number).filter(Boolean),
+                        foodPreferences: formData.getAll('foodPreferences').map(Number).filter(Boolean)
+                    };
+                    
+                    console.log('Submitting form data:', formDataObj);
+                    
+                    // Get CSRF token
+                    const csrfToken = document.querySelector('input[name="_csrf"]').value;
+                    
+                    try {
+                        // Use the AJAX endpoint instead of the form action
+                        const response = await fetch('/api/question/submit', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-TOKEN': csrfToken
+                            },
+                            body: JSON.stringify(formDataObj)
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (!response.ok) {
+                            // Handle validation errors
+                            if (data.fieldErrors) {
+                                const errorMessages = Object.entries(data.fieldErrors)
+                                    .map(([field, message]) => `${field}: ${message}`)
+                                    .join('\n');
+                                throw new Error(`유효성 검사 오류:\n${errorMessages}`);
+                            }
+                            throw new Error(data.message || '서버 오류가 발생했습니다.');
+                        }
+                        
+                        // Store completion status in localStorage
+                        localStorage.setItem('questionnaireCompleted', 'true');
+                        
+                        // Redirect to completion page
+                        window.location.href = '/question/complete';
+                        
+                    } catch (error) {
+                        console.error('Error:', error);
+                        
+                        // More detailed error handling
+                        let errorMessage = '요청을 처리하는 중 오류가 발생했습니다.';
+                        
+                        if (error instanceof TypeError) {
+                            // Check if this is a JSON parse error (which might happen if server returns HTML error page)
+                            if (error.message.includes('JSON')) {
+                                errorMessage = '서버에서 잘못된 응답을 받았습니다. 잠시 후 다시 시도해주세요.';
+                                console.error('JSON parse error - server might have returned an error page:', error);
+                            } else {
+                                errorMessage = '네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.';
+                                console.error('Network error details:', error);
+                            }
+                        } else if (error.message) {
+                            errorMessage = error.message;
+                        }
+                        
+                        // Show user-friendly error message
+                        alert(errorMessage);
+                    } finally {
+                        if (loadingOverlay) {
+                            loadingOverlay.style.display = 'none';
+                        }
+                    }
+                });
             }
             
             // Add global error handler to hide loading overlay on errors
@@ -535,11 +634,8 @@
                 return checkboxes.length > 0 || radios.length > 0;
             }
             
-            // 폼 제출 시 전체 유효성 검사
-            document.querySelector('form').addEventListener('submit', async function(e) {
-                // Prevent default form submission
-                e.preventDefault();
-                
+            // 폼 제출 전에 hidden input 생성
+            document.querySelector('form').addEventListener('submit', function(e) {
                 // 폼 요소 참조
                 const form = this;
                 const loadingOverlay = document.getElementById('loadingOverlay');
@@ -560,6 +656,7 @@
                     alert('하나 이상의 항목을 선택해주세요.');
                     if (loadingOverlay) loadingOverlay.style.display = 'none';
                     if (submitButton) submitButton.disabled = false;
+                    e.preventDefault();
                     return false;
                 }
                 
@@ -589,78 +686,99 @@
                     alert('모든 질문에 답변해주세요.');
                     if (loadingOverlay) loadingOverlay.style.display = 'none';
                     if (submitButton) submitButton.disabled = false;
+                    e.preventDefault();
                     return false;
                 }
                 
-                // 폼 데이터 수집
-                const formData = new FormData(form);
-                const formDataObj = {};
+                // Get member ID from hidden input
+                const memberId = document.querySelector('input[name="memberId"]')?.value;
+                if (!memberId) {
+                    alert('회원 정보를 찾을 수 없습니다. 다시 로그인해주세요.');
+                    if (loadingOverlay) loadingOverlay.style.display = 'none';
+                    if (submitButton) submitButton.disabled = false;
+                    e.preventDefault();
+                    return false;
+                }
+
+                // 기존 hidden input 제거
+                document.querySelectorAll('input[name^="hobbies["], input[name^="travelStyles["], input[name^="companions["], input[name^="foodPreferences["]').forEach(el => el.remove());
                 
-                // FormData를 객체로 변환 (배열 필드 처리 포함)
-                formData.forEach((value, key) => {
-                    if (formDataObj[key]) {
-                        if (!Array.isArray(formDataObj[key])) {
-                            formDataObj[key] = [formDataObj[key]];
-                        }
-                        formDataObj[key].push(value);
-                    } else {
-                        formDataObj[key] = value;
-                    }
-                });
-                
-                // Ensure array fields are arrays
-                const arrayFields = ['hobbies', 'travelStyles', 'companions', 'foodPreferences'];
-                arrayFields.forEach(field => {
-                    if (formDataObj[field] && !Array.isArray(formDataObj[field])) {
-                        formDataObj[field] = [formDataObj[field]];
-                    } else if (!formDataObj[field]) {
-                        formDataObj[field] = [];
-                    }
-                });
-                
-                // Get CSRF token
-                const csrfToken = document.querySelector('input[name="_csrf"]').value;
-                
-                // Debug: Log the data being sent
-                console.log('Submitting form data:', formDataObj);
-                
-                // Send the data as JSON
-                try {
-                    const response = await fetch(form.action, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken
-                        },
-                        body: JSON.stringify(formDataObj)
+                // 선택된 값들을 hidden input으로 추가
+                const addHiddenInputs = (containerId, name, values) => {
+                    const container = document.getElementById(containerId);
+                    values.forEach((value, index) => {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = `${name}[${index}]`;
+                        input.value = value;
+                        container.appendChild(input);
                     });
-                    
-                    const data = await response.json();
-                    
+                };
+                
+                // 각 섹션의 선택된 값 수집
+                const hobbies = Array.from(document.querySelectorAll('input[name="hobbies"]:checked')).map(el => el.value);
+                const travelStyles = Array.from(document.querySelectorAll('input[name="travelStyles"]:checked')).map(el => el.value);
+                const companions = Array.from(document.querySelectorAll('input[name="companions"]:checked')).map(el => el.value);
+                const foodPreferences = Array.from(document.querySelectorAll('input[name="foodPreferences"]:checked')).map(el => el.value);
+                const mbti = document.querySelector('input[name="mbti"]:checked')?.value;
+                
+                // AJAX 요청을 위한 데이터 준비
+                const formData = {
+                    memberId: document.querySelector('input[name="memberId"]').value,
+                    mbti: mbti,
+                    hobbies: hobbies.map(Number),
+                    travelStyles: travelStyles.map(Number),
+                    companions: companions.map(Number),
+                    foodPreferences: foodPreferences.map(Number)
+                };
+
+                // 로딩 오버레이 표시 (기존에 선언된 변수 사용)
+                if (loadingOverlay) loadingOverlay.style.display = 'flex';
+
+                // AJAX 요청 보내기
+                fetch('/api/question/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        '${_csrf.headerName}': '${_csrf.token}'
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => {
                     if (!response.ok) {
-                        throw new Error(data.message || '서버 오류가 발생했습니다.');
+                        return response.json().then(err => { throw err; });
                     }
-                    
-                    console.log('Success:', data);
-                    
+                    return response.json();
+                })
+                .then(data => {
                     if (data.success) {
-                        // 성공 시 완료 페이지로 이동
-                        window.location.href = '/question/complete';
+                        window.location.href = data.redirect;
                     } else {
-                        // 실패 시 에러 메시지 표시
-                        throw new Error(data.message || '요청 처리 중 오류가 발생했습니다.');
+                        alert(data.message || '오류가 발생했습니다.');
+                        if (loadingOverlay) loadingOverlay.style.display = 'none';
                     }
-                } catch (error) {
+                })
+                .catch(error => {
                     console.error('Error:', error);
                     alert(error.message || '요청을 처리하는 중 오류가 발생했습니다.');
-                } finally {
-                    if (loadingOverlay) {
-                        loadingOverlay.style.display = 'none';
-                    }
-                    if (submitButton) {
-                        submitButton.disabled = false;
-                    }
-                }
+                    if (loadingOverlay) loadingOverlay.style.display = 'none';
+                });
+
+                // 폼 제출 중단
+                e.preventDefault();
+                
+                // 폼 제출 로그
+                console.log('Submitting form with data:', {
+                    memberId: memberId,
+                    hobbies: hobbies,
+                    mbti: mbti,
+                    travelStyles: travelStyles,
+                    companions: companions,
+                    foodPreferences: foodPreferences
+                });
+                
+                // 폼 제출 (기본 동작을 허용)
             });
             
             // Initialize the form

@@ -2,7 +2,6 @@ package com.koreatravel.tabitomo.domain.dto.member;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,9 +31,11 @@ public class QuestionAnswersDTO implements Serializable {
     @NotEmpty(message = "하나 이상의 취미를 선택해주세요.")
     private List<Long> hobbies;
 
-    /** MBTI 유형 (info_high_num = 2) */
-    @Pattern(regexp = "^[EI][SN][TF][PJ]$", message = "유효한 MBTI 유형이 아닙니다.")
+    /** MBTI 유형 (info_high_num = 2) - 문자열 형식 (예: "INTJ") */
     private String mbti;
+    
+    /** MBTI ID (숫자) */
+    private Long mbtiId;
 
     /** 여행 스타일 목록 (info_high_num = 3) */
     @Size(min = 1, message = "하나 이상의 여행 스타일을 선택해주세요.")

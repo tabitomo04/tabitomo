@@ -3,24 +3,36 @@ package com.koreatravel.tabitomo.service.trip;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StreamUtils;
-import org.springframework.web.client.RestTemplate;
+
+// Vertex AI 관련 import 모두 제거
+// import com.google.auth.oauth2.GoogleCredentials;
+// import com.google.cloud.vertexai.VertexAI;
+// import com.google.cloud.vertexai.api.GenerateContentResponse;
+// import com.google.cloud.vertexai.generativeai.GenerativeModel;
+// import com.google.cloud.vertexai.generativeai.ResponseHandler;
+
 import com.koreatravel.tabitomo.client.GoogleMapsApiClient;
 import com.koreatravel.tabitomo.client.KakaoLocalApiClient;
 import com.koreatravel.tabitomo.domain.dto.trip.ScheduleInfo;
 import com.koreatravel.tabitomo.domain.dto.trip.TourRecommendation;
 import com.koreatravel.tabitomo.domain.entity.trip.Place;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StreamUtils;
+import org.springframework.web.client.RestTemplate;
+
+// ✅ HTTP 통신 관련 import 추가
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -29,38 +41,48 @@ public class GeminiAIService {
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(GeminiAIService.class);
 
-    @Value("${google.gemini.api-key}")
-    private String geminiApiKey;
+    // ⚠️ Vertex AI 설정 필드는 주석 처리하거나 제거
+    @Value("${google.vertexai.project-id}")
+    private String vertexAiProjectId;
+    @Value("${google.vertexai.location}")
+    private String vertexAiLocation;
+    @Value("${google.credentials.location}")
+    private String credentialsPath;
 
     @Value("${pixabay.api.key}")
     private String pixabayApiKey;
 
+    // ✅ OpenAI API Key 및 URL로 변경
+    @Value("${openai.api.key}") // application.properties의 새로운 OpenAI 키 속성
+    private String openaiApiKey;
+    private static final String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
+
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final KakaoLocalApiClient kakaoLocalApiClient;
-    private final GoogleMapsApiClient googleMapsApiClient; // Inject Google Maps API client
+    private final GoogleMapsApiClient googleMapsApiClient;
     private final ResourceLoader resourceLoader;
 
     private List<Map<String, Object>> accommodationData;
 
     private static final Map<String, String> DESTINATION_MAP = Map.ofEntries(
-        Map.entry("경상남도", "경남"),
-        Map.entry("경상북도", "경북"),
-        Map.entry("충청남도", "충남"),
-        Map.entry("충청북도", "충북"),
-        Map.entry("전라남도", "전남"),
-        Map.entry("전북특별자치도", "전북"),
-        Map.entry("강원특별자치도", "강원"),
-        Map.entry("제주특별자치도", "제주"),
-        Map.entry("서울특별시", "서울"),
-        Map.entry("부산광역시", "부산"),
-        Map.entry("대구광역시", "대구"),
-        Map.entry("인천광역시", "인천"),
-        Map.entry("광주광역시", "광주"),
-        Map.entry("대전광역시", "대전"),
-        Map.entry("울산광역시", "울산"),
-        Map.entry("세종특별자치시", "세종"),
-        Map.entry("경기도", "경기")
+            Map.entry("경상남도", "경남"),
+            Map.entry("경상북도", "경북"),
+            Map.entry("충청남도", "충남"),
+            Map.entry("충청북도", "충북"),
+            Map.entry("전라남도", "전남"),
+            Map.entry("전북특별자치도", "전북"),
+            Map.entry("강원특별자치도", "강원"),
+            Map.entry("제주특별자치도", "제주"),
+            Map.entry("서울특별시", "서울"),
+            Map.entry("부산광역시", "부산"),
+            Map.entry("대구광역시", "대구"),
+            Map.entry("인천광역시", "인천"),
+            Map.entry("광주광역시", "광주"),
+            Map.entry("대전광역시", "대전"),
+            Map.entry("울산광역시", "울산"),
+            Map.entry("세종특별자치시", "세종"),
+            Map.entry("경기도", "경기")
     );
 
     public GeminiAIService(RestTemplate restTemplate, ObjectMapper objectMapper, KakaoLocalApiClient kakaoLocalApiClient, GoogleMapsApiClient googleMapsApiClient, ResourceLoader resourceLoader) {
@@ -86,7 +108,8 @@ public class GeminiAIService {
     }
 
     public TourRecommendation getRecommendation(String destination, String duration, String theme, String priceRange, Integer accommodationBudget, List<String> facilities) {
-        String apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=" + geminiApiKey;
+        // ✅ GPT 모델 사용
+        String modelId = "gpt-4o-mini";
 
         StringBuilder promptBuilder = new StringBuilder();
         String durationText = duration;
@@ -98,27 +121,27 @@ public class GeminiAIService {
             // Ignore
         }
         promptBuilder.append(String.format(
-    "사용자가 요청한 여행지, 기간, 테마에 맞춰서 상세한 여행 코스와 숙소를 추천해줘. 숙소 추천은 필수야. 각 장소에 대한 설명을 포함하고, 반드시 지도에서 검색 가능한 실제 장소 이름과 대한민국 행정안전부에서 제공하는 공식 도로명 주소 형식의 정확한 전체 주소를 사용해줘. 주소는 절대 꾸며내지 말고, 검증된 실제 주소여야만 해. '(가상)'이라는 단어는 이름에 넣지마.\n" +
-    "여행지: %s\n" +
-    "기간: %s\n" +
-    "테마: %s\n",
-    destination, durationText, theme
-));
+                "사용자가 요청한 여행지, 기간, 테마에 맞춰서 상세한 여행 코스와 숙소를 추천해줘. 숙소 추천은 필수야. 각 장소에 대한 설명을 포함하고, 반드시 지도에서 검색 가능한 실제 장소 이름과 대한민국 행정안전부에서 제공하는 공식 도로명 주소 형식의 정확한 전체 주소를 사용해줘. 주소는 절대 꾸며내지 말고, 검증된 실제 주소여야만 해. '(가상)'이라는 단어는 이름에 넣지마.\n" +
+                        "여행지: %s\n" +
+                        "기간: %s\n" +
+                        "테마: %s\n",
+                destination, durationText, theme
+        ));
 
         promptBuilder.append(String.format("모든 추천 결과(명소, 숙소)는 반드시 '%s' 지역 내에서만 추천해야 합니다. 주소에 '%s'가 포함되지 않는 장소는 절대 추천하지 마세요.\n", destination, destination));
 
         List<Map<String, Object>> filteredAccommodations = accommodationData.stream()
-            .filter(Objects::nonNull)
-            .filter(acc -> Optional.ofNullable(acc.get("지역")).map(Object::toString).map(destination::contains).orElse(false))
-            .filter(acc -> {
-                if (accommodationBudget == null || accommodationBudget <= 0) return true;
-                return Optional.ofNullable(acc.get("가격")).map(Object::toString).map(s -> s.replaceAll("[^\\d]", "")).filter(s -> !s.isEmpty()).map(Integer::parseInt).map(price -> price <= accommodationBudget).orElse(false);
-            })
-            .filter(acc -> {
-                if (facilities == null || facilities.isEmpty()) return true;
-                return Optional.ofNullable(acc.get("부대시설")).map(Object::toString).map(facilityInfo -> facilities.stream().allMatch(facilityInfo::contains)).orElse(false);
-            })
-            .collect(Collectors.toList());
+                .filter(Objects::nonNull)
+                .filter(acc -> Optional.ofNullable(acc.get("지역")).map(Object::toString).map(destination::contains).orElse(false))
+                .filter(acc -> {
+                    if (accommodationBudget == null || accommodationBudget <= 0) return true;
+                    return Optional.ofNullable(acc.get("가격")).map(Object::toString).map(s -> s.replaceAll("[^\\d]", "")).filter(s -> !s.isEmpty()).map(Integer::parseInt).map(price -> price <= accommodationBudget).orElse(false);
+                })
+                .filter(acc -> {
+                    if (facilities == null || facilities.isEmpty()) return true;
+                    return Optional.ofNullable(acc.get("부대시설")).map(Object::toString).map(facilityInfo -> facilities.stream().allMatch(facilityInfo::contains)).orElse(false);
+                })
+                .collect(Collectors.toList());
 
         if (filteredAccommodations.isEmpty()) {
             promptBuilder.append(String.format("숙소는 여행 기간 전체를 대표하는 단 하나를 반드시 추천해야 해. 사용자가 제시한 조건에 맞는 숙소를 찾지 못했더라도, 반드시 %s 내에서 아래 조건을 최대한 만족하는 다른 숙소를 찾아서 추천해줘.\n", destination));
@@ -138,48 +161,66 @@ public class GeminiAIService {
         }
 
         promptBuilder.append(
-            "\n응답은 반드시 JSON 형식으로 해줘. `accommodation` 필드는 필수 항목이므로 절대 생략하면 안돼. `address` 필드도 항상 실제적이고 검증된 주소로 포함해줘.\n" +
-            "예시:\n" +
-            "{\n" +
-            "  \"title\": \"추천 여행 코스 제목\",\n" +
-            "  \"itinerary\": [\n" +
-            "    {\"day\": 1, \"time\": \"09:00-11:00\", \"category\": \"명소\", \"place_name\": \"해운대해수욕장\", \"description\": \"설명1\", \"address\": \"부산광역시 해운대구 우동\"}\n" +
-            "  ],\n" +
-            "  \"accommodation\": {\n" +
-            "    \"category\": \"숙소\", \"place_name\": \"토요코인 부산역1\", \"description\": \"숙소 설명1\", \"price_range\": \"100000-150000\", \"address\": \"부산광역시 동구 중앙대로 225\"\n" +
-            "  }\n" +
-            "}\n"
+                "\n응답은 반드시 JSON 형식으로 해줘. `accommodation` 필드는 필수 항목이므로 절대 생략하면 안돼. `address` 필드도 항상 실제적이고 검증된 주소로 포함해줘.\n" +
+                        "예시:\n" +
+                        "{\n" +
+                        "  \"title\": \"추천 여행 코스 제목\",\n" +
+                        "  \"itinerary\": [\n" +
+                        "    {\"day\": 1, \"time\": \"09:00-11:00\", \"category\": \"명소\", \"place_name\": \"해운대해수욕장\", \"description\": \"설명1\", \"address\": \"부산광역시 해운대구 우동\"}\n" +
+                        "  ],\n" +
+                        "  \"accommodation\": {\n" +
+                        "    \"category\": \"숙소\", \"place_name\": \"토요코인 부산역1\", \"description\": \"숙소 설명1\", \"price_range\": \"100000-150000\", \"address\": \"부산광역시 동구 중앙대로 225\"\n" +
+                        "  }\r\n" +
+                        "}\n"
         );
 
         try {
-            Map<String, Object> part = Map.of("text", promptBuilder.toString());
-            Map<String, Object> content = Map.of("parts", List.of(part));
-            Map<String, Object> requestBodyMap = Map.of("contents", List.of(content));
+            String prompt = promptBuilder.toString();
+            String jsonResponse;
+
+            // ✅ OpenAI API 요청 본문 생성 (JSON 형식 강제)
+            Map<String, Object> message = Map.of("role", "user", "content", prompt);
+            Map<String, Object> requestBodyMap = Map.of(
+                    "model", modelId,
+                    "messages", List.of(message),
+                    "response_format", Map.of("type", "json_object"), // JSON 형식 응답 요청
+                    "temperature", 0.7
+            );
             String requestBody = objectMapper.writeValueAsString(requestBodyMap);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(openaiApiKey); // ✅ OpenAI API Key로 인증
+
             HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
 
-            String response = restTemplate.postForObject(apiUrl, entity, String.class);
-            logger.info("Gemini API 원본 응답: {}", response);
-            return parseResponse(response, destination);
+            // ✅ RestTemplate을 사용하여 OpenAI API 호출
+            URI uri = UriComponentsBuilder.fromHttpUrl(OPENAI_API_URL).build().toUri();
+
+            String rawResponse = restTemplate.postForObject(uri, entity, String.class);
+
+            // OpenAI 응답에서 텍스트 추출
+            JsonNode rootNode = objectMapper.readTree(rawResponse);
+            jsonResponse = rootNode.path("choices").get(0).path("message").path("content").asText();
+
+            logger.info("OpenAI API 응답 텍스트: {}", jsonResponse);
+
+            return parseResponse(jsonResponse, destination);
 
         } catch (Exception e) {
-            logger.error("Gemini API 호출 중 에러 발생: {}", e.getMessage(), e);
-            return new TourRecommendation("추천을 받지 못했습니다.", Collections.emptyList(), null);
+            // 오류 메시지를 OpenAI 관련으로 변경
+            logger.error("OpenAI API 호출 중 에러 발생: {}", e.getMessage(), e);
+            return new TourRecommendation("추천을 받지 못했습니다. (OpenAI API 오류)", Collections.emptyList(), null);
         }
     }
 
     private TourRecommendation parseResponse(String jsonResponse, String destination) {
         try {
-            JsonNode root = objectMapper.readTree(jsonResponse);
-            String textContent = root.path("candidates").get(0).path("content").path("parts").get(0).path("text").asText();
-            String cleanJson = textContent.trim().replace("```json", "").replace("```", "").trim().replaceAll(",\\s*([}\\]])", "$1");
+            String cleanJson = jsonResponse.trim().replace("```json", "").replace("```", "").trim().replaceAll(",\\s*([}\\]])", "$1");
             int startIndex = cleanJson.indexOf('{');
             int endIndex = cleanJson.lastIndexOf('}');
             if (startIndex == -1 || endIndex == -1 || startIndex >= endIndex) {
-                logger.error("응답에서 유효한 JSON 부분을 찾을 수 없습니다: {}", textContent);
+                logger.error("응답에서 유효한 JSON 부분을 찾을 수 없습니다: {}", jsonResponse);
                 return new TourRecommendation("응답 파싱 오류", Collections.emptyList(), null);
             }
             String jsonContent = cleanJson.substring(startIndex, endIndex + 1);
@@ -246,12 +287,10 @@ public class GeminiAIService {
         String addressFromAI = itemNode.path("address").asText(null);
 
         try {
-            // 1. Try searching by keyword first (Kakao)
             String searchResponse = kakaoLocalApiClient.searchKeyword(cleanedPlaceName, 1, 1);
             JsonNode searchRoot = objectMapper.readTree(searchResponse);
             JsonNode documents = searchRoot.path("documents");
 
-            // 2. If keyword search fails, try searching by address (Kakao)
             if ((!documents.isArray() || documents.size() == 0) && addressFromAI != null && !addressFromAI.trim().isEmpty()) {
                 logger.warn("Kakao keyword search for '{}' failed. Retrying with address: {}", cleanedPlaceName, addressFromAI);
                 searchResponse = kakaoLocalApiClient.searchAddress(addressFromAI, 1, 1);
@@ -267,66 +306,62 @@ public class GeminiAIService {
                 }
 
                 if (!isAddressInDestination(address, destination)) {
-                    logger.warn("Place '{}' with address '{}' is outside the destination '{}'. Skipping for itinerary, but including for accommodation.", cleanedPlaceName, address, destination);
                     if (!isAccommodation) return null;
                 }
 
                 return Place.builder()
-                    .name(cleanedPlaceName)
-                    .categoryCode(itemNode.path("category").asText())
-                    .description(itemNode.path("description").asText())
-                    .priceRange(itemNode.path("price_range").asText())
-                    .address(address)
-                    .latitude(firstResult.path("y").asDouble())
-                    .longitude(firstResult.path("x").asDouble())
-                    .imageUrl(getPixabayImageUrl(cleanedPlaceName))
-                    .build();
+                        .name(cleanedPlaceName)
+                        .categoryCode(itemNode.path("category").asText())
+                        .description(itemNode.path("description").asText())
+                        .priceRange(itemNode.path("price_range").asText())
+                        .address(address)
+                        .latitude(firstResult.path("y").asDouble())
+                        .longitude(firstResult.path("x").asDouble())
+                        .imageUrl(getPixabayImageUrl(cleanedPlaceName))
+                        .build();
             }
         } catch (Exception e) {
             logger.error("Kakao API data enrichment failed for place '{}': {}", cleanedPlaceName, e.getMessage());
         }
 
-        // 3. If all Kakao searches fail, try Google Geocoding API
         if (addressFromAI != null && !addressFromAI.trim().isEmpty()) {
             logger.warn("All Kakao searches failed for '{}'. Retrying with Google Geocoding API.", cleanedPlaceName);
             Optional<GoogleMapsApiClient.Coordinates> coords = googleMapsApiClient.geocodeAddress(addressFromAI);
             if (coords.isPresent()) {
                 return Place.builder()
-                    .name(cleanedPlaceName)
-                    .categoryCode(itemNode.path("category").asText())
-                    .description(itemNode.path("description").asText())
-                    .priceRange(itemNode.path("price_range").asText())
-                    .address(addressFromAI)
-                    .latitude(coords.get().getLatitude())
-                    .longitude(coords.get().getLongitude())
-                    .imageUrl(getPixabayImageUrl(cleanedPlaceName))
-                    .build();
+                        .name(cleanedPlaceName)
+                        .categoryCode(itemNode.path("category").asText())
+                        .description(itemNode.path("description").asText())
+                        .priceRange(itemNode.path("price_range").asText())
+                        .address(addressFromAI)
+                        .latitude(coords.get().getLatitude())
+                        .longitude(coords.get().getLongitude())
+                        .imageUrl(getPixabayImageUrl(cleanedPlaceName))
+                        .build();
             }
         }
 
         logger.warn("Could not enrich place data for '{}' after all attempts.", cleanedPlaceName);
 
         if (isAccommodation) {
-            logger.warn("Creating partial Place object for accommodation: {}. Address from AI: {}", cleanedPlaceName, addressFromAI);
             return Place.builder()
-                .name(cleanedPlaceName)
-                .categoryCode(itemNode.path("category").asText())
-                .description(itemNode.path("description").asText())
-                .priceRange(itemNode.path("price_range").asText())
-                .address(addressFromAI) // At least save the address from AI
-                .imageUrl(getPixabayImageUrl(cleanedPlaceName))
-                .build();
+                    .name(cleanedPlaceName)
+                    .categoryCode(itemNode.path("category").asText())
+                    .description(itemNode.path("description").asText())
+                    .priceRange(itemNode.path("price_range").asText())
+                    .address(addressFromAI)
+                    .imageUrl(getPixabayImageUrl(cleanedPlaceName))
+                    .build();
         }
 
-        logger.warn("It will not be included.");
         return null;
     }
 
     private String getPixabayImageUrl(String query) {
         try {
             String pixabayUrl = String.format(
-                "https://pixabay.com/api/?key=%s&q=%s&image_type=photo&per_page=3",
-                pixabayApiKey, query
+                    "https://pixabay.com/api/?key=%s&q=%s&image_type=photo&per_page=3",
+                    pixabayApiKey, query
             );
             JsonNode response = restTemplate.getForObject(pixabayUrl, JsonNode.class);
             if (response != null && response.path("hits").isArray() && response.path("hits").size() > 0) {

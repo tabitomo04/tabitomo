@@ -25,7 +25,7 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
     }
-    
+
     // For Spring Boot 3.x
     sourceCompatibility = '17'
     targetCompatibility = '17'
@@ -43,21 +43,26 @@ tasks.named('compileTestJava') {
 
 configurations {
     compileOnly {
-        extendsFrom annotationProcessor
+        // extendsFrom annotationProcessor ⬅️ 제거 유지
     }
 }
 
 repositories {
     mavenCentral()
     maven { url 'https://repo.spring.io/milestone' }
+    google()       // Google 라이브러리용 저장소 (Google Cloud/Firebase 등)
 }
+
+// ⚠️ 버전 충돌의 주범일 수 있는 libraries-bom을 제거합니다.
+// dependencyManagement 섹션 전체를 제거합니다.
+// ext 섹션부터 다시 시작합니다.
 
 ext {
     snippetsDir = file("build/generated-snippets")
 }
 
 dependencies {
-    // Spring Boot Starters
+    // Spring Boot Starters... (유지)
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-data-rest'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
@@ -91,9 +96,16 @@ dependencies {
     implementation 'org.jsoup:jsoup:1.17.2' // HTML parsing
     implementation 'net.coobird:thumbnailator:0.4.19' // Image processing
 
-    // Google Cloud Services
-    implementation 'com.google.cloud:google-cloud-translate:2.38.0'
-    
+    // Google Cloud Services (Vertex AI SDK 및 인증 라이브러리 제거)
+    // Vertex AI와 충돌을 일으켰던 라이브러리들은 모두 제거했습니다.
+    implementation 'com.google.cloud:google-cloud-translate:2.38.0' // 번역 (버전 명시)
+
+    // ✅ OpenAI API 라이브러리 (최신 안정 버전)
+    // RestTemplate을 사용하므로 굳이 복잡한 전용 클라이언트 라이브러리 대신,
+    // 기본적으로 JSON/HTTP 통신만 필요합니다.
+    // RestTemplate만 사용해도 충분합니다. 전용 SDK 종속성은 제거하여 충돌을 막습니다.
+
+
     // DeepL API
     implementation 'com.deepl.api:deepl-java:1.7.0'
 

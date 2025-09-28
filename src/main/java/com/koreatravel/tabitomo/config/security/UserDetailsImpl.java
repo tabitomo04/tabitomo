@@ -7,70 +7,78 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.io.Serial;
-import java.time.LocalDate;
-import java.time.Period;
+import java.io.Serializable;
 import java.util.Collection;
-import com.koreatravel.tabitomo.domain.entity.member.MemberAddInfoEntity;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
 @Getter
-public class UserDetailsImpl implements UserDetails {
+public class UserDetailsImpl implements UserDetails, Serializable {
 
-    // Re-applying the correct serialVersionUID to resolve session deserialization issues.
-    @Serial
-    private static final long serialVersionUID = 4215309437416150371L;
-
-    private final MemberEntity member;
-    private final List<MemberAddInfoEntity> additionalInfo;
+    private static final long serialVersionUID = 1L;
+    
+    private final UUID id;
+    private final String email;
+    private final String nickname;
+    private final String password;
+    private final boolean active;
+    private final String role;
     private final Collection<? extends GrantedAuthority> authorities;
 
-    public UserDetailsImpl(MemberEntity member, List<MemberAddInfoEntity> additionalInfo) {
-        this.member = member;
-        this.additionalInfo = additionalInfo != null ? additionalInfo : Collections.emptyList();
+    public UserDetailsImpl(MemberEntity member, List<?> additionalInfo) {
+        this.id = member.getId();
+        this.email = member.getEmail();
+        this.nickname = member.getNickname();
+        this.password = member.getPassword();
+        this.active = member.isActive();
+        this.role = member.getRole();
         this.authorities = Collections.singletonList(
             new SimpleGrantedAuthority(member.getRole())
         );
     }
 
     public String getEmail() {
-        return member.getEmail();
+        return email;
     }
 
     public String getNickname() {
-        return member.getNickname();
+        return nickname;
+    }
+    
+    public UUID getId() {
+        return id;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return authorities;
+        return authorities != null ? authorities : Collections.emptyList();
+    }
+    
+    // This method is kept for backward compatibility
+    public Object getMember() {
+        return null;
     }
     
     /**
      * Get additional member information (hashtags, etc.)
-     * @return List of additional member information
+     * @return Empty list as we're not storing additional info in session
      */
-    public List<MemberAddInfoEntity> getAdditionalInfo() {
-        return additionalInfo;
+    public List<?> getAdditionalInfo() {
+        return Collections.emptyList();
     }
 
     @Override
     @JsonIgnore
     public String getPassword() {
-        return member.getPassword();
+        return password;
     }
 
     @Override
     public String getUsername() {
-        return member.getNickname();
+        return nickname;
     }
 
-    @JsonIgnore
-    public UUID getId() {
-        return member.getId();
-    }
 
     @Override
     public boolean isAccountNonExpired() {
@@ -89,41 +97,57 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return member.isActive();
+        return active;
     }
 
     // Additional profile information
     public UUID getUserId() {
-        return member.getId();
+        return id;
     }
 
     public String getProfileImageUrl() {
-        return member.getProfileImageUrl();
+        // This would need to be handled differently since we're not storing the member entity
+        return null;
     }
 
     public Integer getAge() {
-        if (member.getDateOfBirth() == null) {
-            return null;
-        }
-        return Period.between(member.getDateOfBirth(), LocalDate.now()).getYears();
+        // Date of birth is no longer stored in the session
+        return null;
     }
 
     public Integer getGender() {
-        return member.getGender();
+        // Gender is no longer stored in the session
+        return null;
     }
 
     public String getCountryCode() {
-        return member.getCountry() != null ? member.getCountry().getCountryCode() : null;
+        // Country info is no longer stored in the session
+        return null;
     }
 
     public String getNativeLanguageName() {
-        return member.getPreferredLanguage() != null ? 
-               member.getPreferredLanguage().getNameNative() : null;
+        return null;
     }
 
     // For backward compatibility with existing code
     @JsonIgnore
     public UUID getMemberId() {
-        return member.getId();
+        return id;
+    }
+
+    @JsonIgnore
+    public String getMbti() {
+        // MBTI is no longer stored in the session
+        return null;
+    }
+    
+    /**
+     * Check if the user has completed the questionnaire
+     * @return true if the user has completed the questionnaire, false otherwise
+     */
+    public boolean isQuestionnaireCompleted() {
+        // Default implementation - you may need to implement the actual logic
+        // based on how you track questionnaire completion in your application
+        return false;
     }
 }

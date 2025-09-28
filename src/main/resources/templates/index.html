@@ -118,23 +118,21 @@
     </section>
 </main>
 
-<!-- 설문조사 안내 모달 (JavaScript에서 표시 여부 결정) -->
-<!-- ... (모달 내용은 변경하지 않음) ... -->
-<div class="modal fade" id="surveyModal" tabindex="-1" role="dialog" aria-labelledby="surveyModalLabel" aria-hidden="true" style="display: none;">
+<!-- 설문조사 안내 모달 -->
+<div class="modal fade" id="surveyModal" tabindex="-1" role="dialog" aria-labelledby="surveyModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="surveyModalLabel">환영합니다! 🎉</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeSurveyBtn"></button>
             </div>
             <div class="modal-body">
                 <p>여행 취향을 파악하기 위한 간단한 설문조사에 참여해주세요.</p>
                 <p>설문조사를 완료하시면 맞춤형 여행 추천을 받아보실 수 있습니다.</p>
             </div>
             <div class="modal-footer">
-                <!-- 버튼 색상 통일 -->
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">나중에 하기</button>
-                <button type="button" class="btn btn-primary custom-point-btn-sm" onclick="goToSurvey()">설문조사 하러 가기</button>
+                <button type="button" class="btn btn-primary custom-point-btn-sm" id="startSurveyBtn">설문조사 하러 가기</button>
             </div>
         </div>
     </div>
@@ -474,30 +472,28 @@
         const sliderContainer = document.getElementById('hero-slider');
         if (!sliderContainer) return;
 
-        const images = sliderContainer.querySelectorAll('.slider-image');
-        let currentIndex = 0;
-        const intervalTime = 5000; // 5초마다 전환
+        const slides = sliderContainer.querySelectorAll('.slider-image');
+        let currentSlide = 0;
 
-        function showNextImage() {
-            // 현재 활성 이미지를 비활성화
-            images[currentIndex].classList.remove('active');
+        // 슬라이드 전환 함수
+        function showSlide(index) {
+            // 모든 슬라이드 숨기기
+            slides.forEach(slide => {
+                slide.classList.remove('active');
+            });
 
-            // 다음 인덱스로 이동 (순환)
-            currentIndex = (currentIndex + 1) % images.length;
+            // 현재 슬라이드 표시
+            slides[index].classList.add('active');
 
-            // 다음 이미지를 활성화
-            images[currentIndex].classList.add('active');
+            // 다음 슬라이드 인덱스 계산
+            currentSlide = (index + 1) % slides.length;
         }
 
-        // 초기 시작 시 첫 번째 이미지 활성화
-        if (images.length > 0) {
-            images[currentIndex].classList.add('active');
-        }
+        // 5초마다 슬라이드 전환
+        setInterval(() => {
+            showSlide(currentSlide);
+        }, 5000);
 
-        // 인터벌 시작
-        setInterval(showNextImage, intervalTime);
+        // 첫 번째 슬라이드 표시
+        showSlide(0);
     }
-</script>
-
-</body>
-</html>

@@ -70,9 +70,6 @@ public class MemberEntity implements Serializable {
 
     @Column(name = "role")
     private String role;
-    
-    @Column(name = "mbti", length = 4)
-    private String mbti;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "country_id", referencedColumnName = "country_id")
@@ -134,13 +131,5 @@ public class MemberEntity implements Serializable {
     
     public void setPreferredLanguage(LanguageEntity language) {
         this.preferredLanguage = language;
-    }
-    
-    public String getMbti() {
-        return mbti;
-    }
-    
-    public void setMbti(String mbti) {
-        this.mbti = mbti;
     }
 }

@@ -63,13 +63,13 @@ public class QuestionController {
             }
             
             UserDetailsImpl userDetails = (UserDetailsImpl) principal;
-            if (userDetails.getMember() == null || userDetails.getMember().getId() == null) {
+            if (userDetails == null || userDetails.getId() == null) {
                 log.error("사용자 정보가 올바르지 않습니다.");
                 model.addAttribute("error", "사용자 정보를 찾을 수 없습니다.");
                 return "error";
             }
             
-            UUID memberId = userDetails.getMember().getId();
+            UUID memberId = userDetails.getId();
             log.info("User {} accessing question form (ID: {})", userDetails.getUsername(), memberId);
             
             // Add memberId to the model for the form
@@ -126,7 +126,7 @@ public class QuestionController {
             }
 
             UserDetailsImpl userDetails = (UserDetailsImpl) principal;
-            UUID memberId = userDetails.getMember().getId();
+            UUID memberId = userDetails.getId();
             log.info("User authenticated: {} (ID: {})", userDetails.getUsername(), memberId);
             
             boolean hasCompletedQuestionnaire = memberAddInfoRepository.existsByMemberId(memberId);
@@ -182,25 +182,17 @@ public class QuestionController {
             
             // Get authenticated user details
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-            log.info("UserDetails: {}, Member: {}, Member ID: {}", 
+            log.info("UserDetails: {}, User ID: {}", 
                 userDetails,
-                userDetails != null ? userDetails.getMember() : "null",
-                (userDetails != null && userDetails.getMember() != null) ? 
-                    userDetails.getMember().getId() : "null");
+                userDetails != null ? userDetails.getId() : "null");
             
-            if (userDetails == null || userDetails.getMember() == null || userDetails.getMember().getId() == null) {
+            if (userDetails == null || userDetails.getId() == null) {
                 log.error("사용자 정보를 가져올 수 없습니다. 인증 정보: {}", authentication);
                 log.error("UserDetails: {}", userDetails);
-                if (userDetails != null) {
-                    log.error("Member: {}", userDetails.getMember());
-                    if (userDetails.getMember() != null) {
-                        log.error("Member ID: {}", userDetails.getMember().getId());
-                    }
-                }
                 throw new BusinessException("사용자 정보를 가져올 수 없습니다. 다시 로그인해주세요.");
             }
             
-            UUID memberId = userDetails.getMember().getId();
+            UUID memberId = userDetails.getId();
             log.info("Processing form submission for user ID: {}", memberId);
             
             // Initialize request data

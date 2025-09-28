@@ -4,44 +4,40 @@ import com.koreatravel.tabitomo.domain.dto.member.CountryDTO;
 import com.koreatravel.tabitomo.domain.dto.member.LanguageDTO;
 import com.koreatravel.tabitomo.domain.dto.member.MemberProfileDTO;
 import com.koreatravel.tabitomo.domain.dto.auth.SignUpDTO;
-import com.koreatravel.tabitomo.service.member.AuthService;
-import com.koreatravel.tabitomo.service.member.MemberService;
-import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+import com.koreatravel.tabitomo.config.security.UserDetailsImpl;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.WebAuthenticationDetails;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
-import jakarta.validation.Valid;
-
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.validation.BindingResult;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.context.SecurityContext;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
+import com.koreatravel.tabitomo.service.member.AuthService;
+import com.koreatravel.tabitomo.service.member.MemberService;
 
 @Slf4j
 @Controller
@@ -187,15 +183,43 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/clear-questionnaire-prompt")
     public ResponseEntity<?> clearQuestionnairePrompt(HttpSession session) {
         session.removeAttribute("showQuestionnairePrompt");
         return ResponseEntity.ok().build();
     }
     
+    @GetMapping("/session")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getSessionData() {
+        Map<String, Object> sessionData = new HashMap<>();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        
+        if (authentication != null && authentication.isAuthenticated() && 
+            !(authentication.getPrincipal() instanceof String && authentication.getPrincipal().equals("anonymousUser"))) {
+            
+            // Get the current session attributes
+            boolean questionnaireCompleted = false;
+            if (authentication.getPrincipal() instanceof UserDetailsImpl) {
+                UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+                questionnaireCompleted = userDetails.isQuestionnaireCompleted();
+                sessionData.put("email", userDetails.getEmail());
+            }
+            
+            sessionData.put("isAuthenticated", true);
+            sessionData.put("questionnaireCompleted", questionnaireCompleted);
+            sessionData.put("showQuestionnairePrompt", !questionnaireCompleted);
+            sessionData.put("sessionId", SecurityContextHolder.getContext().getAuthentication().getDetails() instanceof WebAuthenticationDetails ? 
+                ((WebAuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails()).getSessionId() : null);
+        } else {
+            sessionData.put("isAuthenticated", false);
+        }
+        
+        return ResponseEntity.ok(sessionData);
+    }
+    
     @PostMapping("/logout")
-    public String logout(HttpSession session) {
-        session.invalidate();
+    public String logout(HttpServletRequest request) {
+        // Spring Security가 처리하므로 로그아웃 로직은 불필요
         return "redirect:/";
     }
     

@@ -28,7 +28,7 @@
                 </div>
                 
                 <!-- Debug information (only show in development) -->
-                <div th:if="${#maps.containsKey(#ctx.vars, 'exception')}" class="mt-8 p-4 bg-gray-100 rounded text-left text-sm">
+                <div th:if="${exception != null}" class="mt-8 p-4 bg-gray-100 rounded text-left text-sm">
                     <h3 class="font-bold mb-2">오류 상세 정보:</h3>
                     <p class="font-mono break-words" th:text="${exception?.message} ?: 'No error message available'"></p>
                     <div th:if="${exception?.stackTrace}" class="mt-2 overflow-auto max-h-40">

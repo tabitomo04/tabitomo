@@ -21,6 +21,8 @@ public class UserDetailsImpl implements UserDetails {
     
     private final UUID id;
     private final String email;
+    @JsonIgnore
+    private final String password;
     private final String nickname;
     private final boolean active;
     private final String role;
@@ -30,6 +32,7 @@ public class UserDetailsImpl implements UserDetails {
     public UserDetailsImpl(MemberEntity member, boolean hasCompletedQuestionnaire) {
         this.id = member.getId();
         this.email = member.getEmail();
+        this.password = member.getPassword();
         this.nickname = member.getNickname();
         this.active = member.isActive();
         this.role = member.getRole();
@@ -45,9 +48,8 @@ public class UserDetailsImpl implements UserDetails {
     }
 
     @Override
-    @JsonIgnore
     public String getPassword() {
-        return null; // Password should not be exposed
+        return this.password;
     }
 
     @Override
@@ -122,6 +124,7 @@ public class UserDetailsImpl implements UserDetails {
     private UserDetailsImpl(UserDetailsImpl original, boolean questionnaireCompleted) {
         this.id = original.id;
         this.email = original.email;
+        this.password = original.password;
         this.nickname = original.nickname;
         this.active = original.active;
         this.role = original.role;

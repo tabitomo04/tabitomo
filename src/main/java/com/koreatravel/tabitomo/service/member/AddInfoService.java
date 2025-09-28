@@ -45,6 +45,31 @@ public class AddInfoService {
         return result;
     }
 
+    /**
+     * 사용자가 이미 설문을 완료했는지 확인합니다.
+     * @param memberId 확인할 사용자 ID
+     * @return 설문 완료 여부
+     */
+    public boolean hasUserCompletedQuestionnaire(UUID memberId) {
+        log.debug("Checking if user {} has completed the questionnaire", memberId);
+        return memberAddInfoRepository.existsByMemberId(memberId);
+    }
+
+    /**
+     * 사용자의 설문 완료 상태를 업데이트합니다.
+     * @param memberId 사용자 ID
+     * @param completed 완료 여부
+     */
+    @Transactional
+    public void updateQuestionnaireCompletion(UUID memberId, boolean completed) {
+        memberRepository.findById(memberId).ifPresent(member -> {
+            member.setQuestionnaireCompleted(completed);
+            memberRepository.save(member);
+            log.info("Updated questionnaire completion status for member {} to {}", memberId, completed);
+        });
+    }
+
+    @Transactional
     public void saveAnswers(UUID memberId, QuestionAnswersDTO answers) {
         log.info("Saving answers for member: {}", memberId);
         
@@ -63,11 +88,18 @@ public class AddInfoService {
             saveCategoryInternal(memberId, 5, answers.getFoodPreferences());
             
             // Update questionnaire completion status
-            memberRepository.findById(memberId).ifPresent(member -> {
+            log.info("Updating questionnaire completion status for member: {}", memberId);
+            Optional<MemberEntity> memberOpt = memberRepository.findById(memberId);
+            if (memberOpt.isPresent()) {
+                MemberEntity member = memberOpt.get();
+                log.info("Current questionnaire status before update: {}", member.isQuestionnaireCompleted());
                 member.setQuestionnaireCompleted(true);
-                memberRepository.save(member);
-                log.info("Updated questionnaire completion status for member: {}", memberId);
-            });
+                MemberEntity savedMember = memberRepository.save(member);
+                log.info("Updated questionnaire completion status for member: {}, new status: {}", 
+                        memberId, savedMember.isQuestionnaireCompleted());
+            } else {
+                log.error("Member not found with ID: {}", memberId);
+            }
             
         } catch (Exception e) {
             log.error("Error saving answers for member {}: {}", memberId, e.getMessage(), e);

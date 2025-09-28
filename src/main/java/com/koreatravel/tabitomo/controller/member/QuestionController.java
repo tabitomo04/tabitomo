@@ -1,11 +1,9 @@
 package com.koreatravel.tabitomo.controller.member;
-
 import com.koreatravel.tabitomo.PathConstants;
 import com.koreatravel.tabitomo.config.security.UserDetailsImpl;
 import com.koreatravel.tabitomo.domain.dto.member.AddInfoDTO;
 import com.koreatravel.tabitomo.domain.dto.member.QuestionAnswersDTO;
 import com.koreatravel.tabitomo.exception.BusinessException;
-import com.koreatravel.tabitomo.repository.member.MemberAddInfoRepository;
 import com.koreatravel.tabitomo.service.member.AddInfoService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -13,6 +11,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
@@ -32,7 +33,6 @@ import java.util.stream.Collectors;
 public class QuestionController {
 
     private final AddInfoService addInfoService;
-    private final MemberAddInfoRepository memberAddInfoRepository;
 
     @GetMapping(PathConstants.QUESTION_FORM)
     public String showQuestionForm(Authentication authentication, Model model, HttpServletRequest request) {
@@ -76,8 +76,7 @@ public class QuestionController {
             model.addAttribute("memberId", memberId);
             
             // Check if the user has already submitted the form
-            boolean hasSubmitted = memberAddInfoRepository.existsByMemberId(memberId);
-            if (hasSubmitted) {
+            if (addInfoService.hasUserCompletedQuestionnaire(memberId)) {
                 log.info("User has already submitted the form, redirecting to start page");
                 model.addAttribute("message", "이미 설문을 완료하셨습니다.");
                 return "redirect:" + PathConstants.QUESTION_START;
@@ -129,8 +128,7 @@ public class QuestionController {
             UUID memberId = userDetails.getId();
             log.info("User authenticated: {} (ID: {})", userDetails.getUsername(), memberId);
             
-            boolean hasCompletedQuestionnaire = memberAddInfoRepository.existsByMemberId(memberId);
-            if (hasCompletedQuestionnaire) {
+            if (addInfoService.hasUserCompletedQuestionnaire(memberId)) {
                 log.info("User {} has already completed the questionnaire", userDetails.getUsername());
                 return "redirect:/";
             }
@@ -318,7 +316,30 @@ public class QuestionController {
             addInfoService.saveAnswers(memberId, requestData);
             log.info("설문 응답 저장 완료");
             
+            // Update session with questionnaire completion status
             session.setAttribute("questionnaireCompleted", true);
+            session.setAttribute("showQuestionnairePrompt", false);
+            
+            // Update the authentication object with the new questionnaire status
+            Authentication currentAuth = SecurityContextHolder.getContext().getAuthentication();
+            if (currentAuth != null && currentAuth.getPrincipal() instanceof UserDetailsImpl) {
+                UserDetailsImpl currentUserDetails = (UserDetailsImpl) currentAuth.getPrincipal();
+                
+                // Create a new authentication token with updated questionnaire status
+                UserDetailsImpl updatedUserDetails = currentUserDetails.withQuestionnaireCompleted(true);
+                
+                Authentication newAuth = new UsernamePasswordAuthenticationToken(
+                    updatedUserDetails,
+                    currentAuth.getCredentials(),
+                    currentAuth.getAuthorities()
+                );
+                
+                SecurityContextHolder.getContext().setAuthentication(newAuth);
+                log.info("Updated authentication with questionnaireCompleted=true");
+            }
+            
+            // Log the session update
+            log.info("Session and authentication updated with questionnaireCompleted=true and showQuestionnairePrompt=false");
             
             if (isAjax) {
                 Map<String, Object> response = new HashMap<>();

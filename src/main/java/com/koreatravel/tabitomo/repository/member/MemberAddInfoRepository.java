@@ -28,4 +28,7 @@ public interface MemberAddInfoRepository extends JpaRepository<MemberAddInfoEnti
             @Param("infoHighNum") int infoHighNum, 
             @Param("infoLowNum") int infoLowNum
     );
+    
+    @Query("SELECT COUNT(m) FROM MemberAddInfoEntity m WHERE m.memberId = :memberId")
+    long countByMemberId(@Param("memberId") UUID memberId);
 }

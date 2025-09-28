@@ -126,6 +126,13 @@ public class AuthController {
             session.setAttribute("authenticatedEmail", memberProfile.getEmail());
             session.setAttribute("questionnaireCompleted", memberProfile.isQuestionnaireCompleted());
             
+            // Ensure both session attributes are in sync
+            if (memberProfile.isQuestionnaireCompleted()) {
+                session.removeAttribute("showQuestionnairePrompt");
+            } else {
+                session.setAttribute("showQuestionnairePrompt", true);
+            }
+            
             // Set authentication in SecurityContext
             UserDetails userDetails = userDetailsService.loadUserByUsername(email);
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
@@ -190,26 +197,67 @@ public class AuthController {
     
     @GetMapping("/session")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> getSessionData() {
+    public ResponseEntity<Map<String, Object>> getSessionData(HttpSession session) {
         Map<String, Object> sessionData = new HashMap<>();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         
         if (authentication != null && authentication.isAuthenticated() && 
             !(authentication.getPrincipal() instanceof String && authentication.getPrincipal().equals("anonymousUser"))) {
             
-            // Get the current session attributes
+            // Initialize variables to track questionnaire status
             boolean questionnaireCompleted = false;
+            boolean showQuestionnairePrompt = true;
+            String email = null;
+            
+            // Get user details from authentication
             if (authentication.getPrincipal() instanceof UserDetailsImpl) {
                 UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
                 questionnaireCompleted = userDetails.isQuestionnaireCompleted();
-                sessionData.put("email", userDetails.getEmail());
+                email = userDetails.getEmail();
+                sessionData.put("email", email);
             }
             
+            // Check session for overrides
+            Boolean sessionQuestionnaireCompleted = (Boolean) session.getAttribute("questionnaireCompleted");
+            Boolean sessionShowPrompt = (Boolean) session.getAttribute("showQuestionnairePrompt");
+            
+            // Use session values if they exist, otherwise use authentication values
+            if (sessionQuestionnaireCompleted != null) {
+                questionnaireCompleted = sessionQuestionnaireCompleted;
+            }
+            
+            if (sessionShowPrompt != null) {
+                showQuestionnairePrompt = sessionShowPrompt;
+            } else {
+                // Default to showing prompt if questionnaire is not completed
+                showQuestionnairePrompt = !questionnaireCompleted;
+            }
+            
+            // Ensure consistency between session and authentication
+            if (authentication.getPrincipal() instanceof UserDetailsImpl) {
+                UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+                if (userDetails.isQuestionnaireCompleted() != questionnaireCompleted) {
+                    // Update authentication if out of sync
+                    UserDetailsImpl updatedUserDetails = userDetails.withQuestionnaireCompleted(questionnaireCompleted);
+                    Authentication newAuth = new UsernamePasswordAuthenticationToken(
+                        updatedUserDetails,
+                        authentication.getCredentials(),
+                        authentication.getAuthorities()
+                    );
+                    SecurityContextHolder.getContext().setAuthentication(newAuth);
+                    log.debug("Synchronized authentication with session for questionnaire status");
+                }
+            }
+            
+            // Set response data
             sessionData.put("isAuthenticated", true);
             sessionData.put("questionnaireCompleted", questionnaireCompleted);
-            sessionData.put("showQuestionnairePrompt", !questionnaireCompleted);
-            sessionData.put("sessionId", SecurityContextHolder.getContext().getAuthentication().getDetails() instanceof WebAuthenticationDetails ? 
-                ((WebAuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails()).getSessionId() : null);
+            sessionData.put("showQuestionnairePrompt", showQuestionnairePrompt);
+            sessionData.put("sessionId", session.getId());
+            
+            log.debug("Session data for {} - completed: {}, showPrompt: {}", 
+                email, questionnaireCompleted, showQuestionnairePrompt);
+                
         } else {
             sessionData.put("isAuthenticated", false);
         }

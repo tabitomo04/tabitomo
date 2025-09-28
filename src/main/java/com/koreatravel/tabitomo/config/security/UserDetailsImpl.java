@@ -7,78 +7,53 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.UUID;
 
+/**
+ * Custom UserDetails implementation for Spring Security.
+ * This class represents the authenticated user's principal and contains user details.
+ */
 @Getter
-public class UserDetailsImpl implements UserDetails, Serializable {
-
+public class UserDetailsImpl implements UserDetails {
     private static final long serialVersionUID = 1L;
     
     private final UUID id;
     private final String email;
     private final String nickname;
-    private final String password;
     private final boolean active;
     private final String role;
+    private final boolean questionnaireCompleted;
     private final Collection<? extends GrantedAuthority> authorities;
 
-    public UserDetailsImpl(MemberEntity member, List<?> additionalInfo) {
+    public UserDetailsImpl(MemberEntity member, boolean hasCompletedQuestionnaire) {
         this.id = member.getId();
         this.email = member.getEmail();
         this.nickname = member.getNickname();
-        this.password = member.getPassword();
         this.active = member.isActive();
         this.role = member.getRole();
+        this.questionnaireCompleted = hasCompletedQuestionnaire;
         this.authorities = Collections.singletonList(
             new SimpleGrantedAuthority(member.getRole())
         );
     }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public String getNickname() {
-        return nickname;
-    }
-    
-    public UUID getId() {
-        return id;
-    }
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return authorities != null ? authorities : Collections.emptyList();
-    }
-    
-    // This method is kept for backward compatibility
-    public Object getMember() {
-        return null;
-    }
-    
-    /**
-     * Get additional member information (hashtags, etc.)
-     * @return Empty list as we're not storing additional info in session
-     */
-    public List<?> getAdditionalInfo() {
-        return Collections.emptyList();
+        return authorities;
     }
 
     @Override
     @JsonIgnore
     public String getPassword() {
-        return password;
+        return null; // Password should not be exposed
     }
 
     @Override
     public String getUsername() {
-        return nickname;
+        return email;
     }
-
 
     @Override
     public boolean isAccountNonExpired() {
@@ -100,28 +75,28 @@ public class UserDetailsImpl implements UserDetails, Serializable {
         return active;
     }
 
-    // Additional profile information
-    public UUID getUserId() {
+    // Additional methods
+    public UUID getMemberId() {
         return id;
     }
 
-    public String getProfileImageUrl() {
-        // This would need to be handled differently since we're not storing the member entity
-        return null;
+    public String getEmail() {
+        return email;
     }
 
-    public Integer getAge() {
-        // Date of birth is no longer stored in the session
-        return null;
+    public String getNickname() {
+        return nickname;
+    }
+
+    public String getProfileImageUrl() {
+        return "/images/default-profile.png";
     }
 
     public Integer getGender() {
-        // Gender is no longer stored in the session
-        return null;
+        return 0; // 0: unspecified, 1: male, 2: female
     }
 
     public String getCountryCode() {
-        // Country info is no longer stored in the session
         return null;
     }
 
@@ -129,25 +104,28 @@ public class UserDetailsImpl implements UserDetails, Serializable {
         return null;
     }
 
-    // For backward compatibility with existing code
-    @JsonIgnore
-    public UUID getMemberId() {
-        return id;
-    }
-
     @JsonIgnore
     public String getMbti() {
-        // MBTI is no longer stored in the session
         return null;
     }
-    
-    /**
-     * Check if the user has completed the questionnaire
-     * @return true if the user has completed the questionnaire, false otherwise
-     */
+
     public boolean isQuestionnaireCompleted() {
-        // Default implementation - you may need to implement the actual logic
-        // based on how you track questionnaire completion in your application
-        return false;
+        return this.questionnaireCompleted;
+    }
+
+    // For updating questionnaire status
+    public UserDetailsImpl withQuestionnaireCompleted(boolean completed) {
+        return new UserDetailsImpl(this, completed);
+    }
+
+    // Private constructor for creating copies with updated fields
+    private UserDetailsImpl(UserDetailsImpl original, boolean questionnaireCompleted) {
+        this.id = original.id;
+        this.email = original.email;
+        this.nickname = original.nickname;
+        this.active = original.active;
+        this.role = original.role;
+        this.authorities = original.authorities;
+        this.questionnaireCompleted = questionnaireCompleted;
     }
 }

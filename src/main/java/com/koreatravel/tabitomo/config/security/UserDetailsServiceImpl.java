@@ -1,8 +1,6 @@
 package com.koreatravel.tabitomo.config.security;
 
-import com.koreatravel.tabitomo.domain.entity.member.MemberAddInfoEntity;
 import com.koreatravel.tabitomo.domain.entity.member.MemberEntity;
-import com.koreatravel.tabitomo.repository.member.MemberAddInfoRepository;
 import com.koreatravel.tabitomo.repository.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,16 +10,16 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class UserDetailsServiceImpl implements UserDetailsService {
 
     private final MemberRepository memberRepository;
-    private final MemberAddInfoRepository memberAddInfoRepository;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException, DisabledException {
@@ -36,9 +34,14 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         // Get member ID as UUID
         UUID memberId = member.getId();
         
-        // Fetch additional member information
-        List<MemberAddInfoEntity> additionalInfo = memberAddInfoRepository.findByMemberId(memberId);
+        // Log member details for debugging
+        log.debug("Member ID: {}, Email: {}, Role: {}, Is Active: {}", 
+            memberId, member.getEmail(), member.getRole(), member.isActive());
         
-        return new UserDetailsImpl(member, additionalInfo);
+        // Use the questionnaireCompleted field from MemberEntity
+        boolean hasCompletedQuestionnaire = member.isQuestionnaireCompleted();
+        log.debug("Questionnaire completed: {}", hasCompletedQuestionnaire);
+        
+        return new UserDetailsImpl(member, hasCompletedQuestionnaire);
     }
 }

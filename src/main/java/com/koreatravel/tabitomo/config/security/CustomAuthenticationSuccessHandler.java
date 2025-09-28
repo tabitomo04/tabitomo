@@ -11,7 +11,9 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,7 +53,7 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
 
             // Create MemberProfileDTO from UserDetails
             MemberProfileDTO memberProfile = MemberProfileDTO.builder()
-                    .id(userDetails.getId())
+                    .id(userDetails.getMemberId())
                     .email(userDetails.getEmail())
                     .nickname(userDetails.getNickname())
                     .profileImageUrl(userDetails.getProfileImageUrl())
@@ -91,15 +93,42 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
             
             // Always get the latest questionnaire status from the database
             boolean latestQuestionnaireStatus = member != null && member.isQuestionnaireCompleted();
+            
+            // Update session attributes
             session.setAttribute("questionnaireCompleted", latestQuestionnaireStatus);
             session.setAttribute("showQuestionnairePrompt", !latestQuestionnaireStatus);
+            
+            // Update the authentication object with the latest questionnaire status
+            if (authentication.getPrincipal() instanceof UserDetailsImpl) {
+                UserDetailsImpl updatedUserDetails = ((UserDetailsImpl) authentication.getPrincipal())
+                    .withQuestionnaireCompleted(latestQuestionnaireStatus);
+                
+                // Create a new authentication token with the updated user details
+                Authentication newAuth = new UsernamePasswordAuthenticationToken(
+                    updatedUserDetails,
+                    authentication.getCredentials(),
+                    authentication.getAuthorities()
+                );
+                
+                // Update the security context
+                SecurityContextHolder.getContext().setAuthentication(newAuth);
+                log.debug("Updated authentication with questionnaireCompleted={}", latestQuestionnaireStatus);
+            }
 
             log.info("Login successful - User: {}, Questionnaire completed: {}", email, latestQuestionnaireStatus);
             log.info("Setting showQuestionnairePrompt={} for user {}", !latestQuestionnaireStatus, email);
             log.info("Session ID after login: {}", session.getId());
 
-            // Redirect to home page
-            response.sendRedirect("/");
+            // Check if we need to redirect to the questionnaire
+            String redirectUrl = "/";
+            if (!latestQuestionnaireStatus) {
+                // Add a flag to indicate we just logged in and should show the questionnaire
+                session.setAttribute("justLoggedIn", true);
+                redirectUrl = "/question/start";
+            }
+            
+            // Redirect to the appropriate page
+            response.sendRedirect(redirectUrl);
             
         } catch (ClassCastException e) {
             log.error("Invalid user details type in authentication: {}", e.getMessage(), e);

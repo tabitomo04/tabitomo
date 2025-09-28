@@ -2,107 +2,138 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>설문 완료</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        .complete-container {
-            max-width: 600px;
-            margin: 5rem auto;
-            padding: 3rem;
-            text-align: center;
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-        }
-        .checkmark {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            display: block;
-            stroke-width: 5;
-            stroke: #4bb71b;
-            stroke-miterlimit: 10;
-            margin: 0 auto 2rem;
-            box-shadow: inset 0 0 0 #4bb71b;
-            animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both;
-        }
-        .checkmark__circle {
-            stroke-dasharray: 166;
-            stroke-dashoffset: 166;
-            stroke-width: 5;
-            stroke-miterlimit: 10;
-            stroke: #4bb71b;
-            fill: none;
-            animation: stroke .6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
-        }
-        .checkmark__check {
-            transform-origin: 50% 50%;
-            stroke-dasharray: 48;
-            stroke-dashoffset: 48;
-            animation: stroke .3s cubic-bezier(0.65, 0, 0.45, 1) .8s forwards;
-        }
-        @keyframes stroke {
-            100% { stroke-dashoffset: 0; }
-        }
-        @keyframes scale {
-            0%, 100% { transform: none; }
-            50% { transform: scale3d(1.1, 1.1, 1); }
-        }
-        @keyframes fill {
-            100% { box-shadow: inset 0 0 0 100vh #fff; }
-        }
-        .btn-explore {
-            padding: 12px 30px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            background-color: #4e73df;
-            border: none;
-            border-radius: 50px;
-            transition: all 0.3s;
-        }
-        .btn-explore:hover {
-            background-color: #2e59d9;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(78, 115, 223, 0.3);
-        }
-    </style>
-</head>
+<!-- 1. Head 프래그먼트 호출만 남기고, 내부의 중복 콘텐츠(meta, title, link)를 모두 제거합니다. -->
+<head th:replace="~{fragments/header :: head}"></head>
+
 <body class="bg-light">
-    <div th:replace="fragments/header :: header"></div>
-    
-    <div class="container">
-        <div class="complete-container">
-            <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-                <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
-                <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
-            </svg>
-            
-            <h2 class="mb-3">설문이 완료되었습니다!</h2>
-            <p class="lead text-muted mb-4">
-                귀중한 시간 내어 설문에 참여해 주셔서 감사합니다.<br>
-                입력하신 정보를 바탕으로 맞춤형 여행 추천을 제공해 드리겠습니다.
+<!-- 2. 헤더 영역 -->
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="container">
+    <div class="complete-container">
+        <!-- Checkmark SVG -->
+        <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+            <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+            <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+        </svg>
+
+        <h2 class="mb-3 text-accent fw-bold" data-translatable>설문이 완료되었습니다!</h2>
+        <p class="lead text-muted mb-4" data-translatable>
+            귀중한 시간 내어 설문에 참여해 주셔서 감사합니다.<br>
+            입력하신 정보를 바탕으로 **맞춤형 여행 추천**을 제공해 드릴게요.
+        </p>
+
+        <div class="mt-5">
+            <a th:href="@{/}" class="btn btn-primary btn-explore" data-translatable>
+                <i class="fas fa-compass me-2"></i> 추천 여행지 확인하기
+            </a>
+        </div>
+
+        <div class="mt-4">
+            <p class="text-muted small" data-translatable>
+                마이페이지에서 언제든지 취향을 수정하거나 다시 설정하실 수 있습니다.
             </p>
-            
-            <div class="mt-5">
-                <a th:href="@{/}" class="btn btn-primary btn-explore">
-                    <i class="fas fa-compass me-2"></i> 추천 여행지 확인하기
-                </a>
-            </div>
-            
-            <div class="mt-4">
-                <p class="text-muted small">
-                    마이페이지에서 언제든지 취향을 수정하실 수 있습니다.
-                </p>
-            </div>
         </div>
     </div>
+</div>
 
-    <div th:replace="fragments/footer :: footer"></div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- 3. 푸터 영역 -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<!-- 4. Bootstrap JS 및 CSS 링크/스타일은 body의 끝 부분에 위치시켜 원본 디자인을 유지합니다. -->
+<!-- Bootstrap 5.3.0 -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Font Awesome 6 -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<style>
+    /* Tabitomo 색상 변수 정의 */
+    :root {
+        --color-primary: #5D6C7E;    /* Urban Blue (헤더/일반 버튼 등에 사용) */
+        --color-point: #E88326;     /* Terracotta Orange (메인 버튼에 사용) */
+        --color-secondary: #F2F4F7; /* Light Gray */
+        --color-accent: #293341;    /* Dark Navy */
+        --color-bright-blue: #4e99f5; /* 체크마크용 밝은 파란색 */
+    }
+
+    .bg-light {
+        background-color: var(--color-secondary) !important;
+    }
+
+    .complete-container {
+        max-width: 650px;
+        margin: 5rem auto;
+        padding: 3.5rem 3rem;
+        text-align: center;
+        background-color: #fff;
+        border-radius: 12px; /* 더 둥글게 */
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1); /* 그림자 강화 */
+    }
+
+    /* Checkmark (밝은 파란색 #4e99f5 적용) */
+    .checkmark {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        display: block;
+        stroke-width: 5;
+        stroke: var(--color-bright-blue); /* Bright Blue 적용 */
+        stroke-miterlimit: 10;
+        margin: 0 auto 2rem;
+        box-shadow: inset 0 0 0 var(--color-bright-blue);
+        animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both;
+    }
+    .checkmark__circle {
+        stroke-dasharray: 166;
+        stroke-dashoffset: 166;
+        stroke-width: 5;
+        stroke-miterlimit: 10;
+        stroke: var(--color-bright-blue); /* Bright Blue 적용 */
+        fill: none;
+        animation: stroke .6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+    }
+    .checkmark__check {
+        transform-origin: 50% 50%;
+        stroke-dasharray: 48;
+        stroke-dashoffset: 48;
+        animation: stroke .3s cubic-bezier(0.65, 0, 0.45, 1) .8s forwards;
+    }
+    @keyframes stroke {
+        100% { stroke-dashoffset: 0; }
+    }
+    @keyframes scale {
+        0%, 100% { transform: none; }
+        50% { transform: scale3d(1.05, 1.05, 1); } /* 애니메이션 조절 */
+    }
+    @keyframes fill {
+        100% { box-shadow: inset 0 0 0 52px #fff; } /* 배경 채우기 */
+    }
+
+    /* 메인 버튼 (Terracotta Orange 적용) */
+    .btn-explore {
+        padding: 15px 40px;
+        font-size: 1.2rem;
+        font-weight: 700;
+        background-color: var(--color-point); /* Terracotta Orange */
+        border: none;
+        border-radius: 50px;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(232, 131, 38, 0.4);
+    }
+    .btn-explore:hover {
+        background-color: #d17522; /* Darker Orange */
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(232, 131, 38, 0.5);
+    }
+
+    /* 텍스트 스타일 */
+    .text-accent {
+        color: var(--color-accent) !important;
+    }
+    .lead {
+        font-size: 1.1rem;
+    }
+</style>
 </body>
 </html>

@@ -1,17 +1,33 @@
-/* Custom Styles for Tabitomo Header */
+/* Custom Styles for Tabitomo Header and Global Theme */
 
-/* 색상 변수 정의 */
+/* 색상 변수 정의: 부트스트랩 기본값을 대체합니다. */
 :root {
-    --color-primary: #5D6C7E;    /* Urban Blue */
-    --color-point: #E88326;     /* Terracotta Orange */
-    --color-accent: #293341;    /* Dark Navy */
-    --color-secondary: #F2F4F7; /* Light Gray */
+    --color-primary: #5D6C7E;    /* Urban Blue (메인 색상) */
+    --color-point: #E88326;     /* Terracotta Orange (포인트 색상/경고) */
+    --color-accent: #293341;    /* Dark Navy (강조 색상/헤더 & 푸터 배경) */
+    --color-secondary: #F2F4F7; /* Light Gray (보조 색상) */
+
+    /* [★★핵심 수정 사항★★] 부트스트랩의 기본 primary 색상을 메인 색상으로 재정의합니다. */
+    --bs-primary: var(--color-primary);
+    --bs-primary-rgb: 93, 108, 126; /* #5D6C7E의 RGB 값 */
+
+    /* [추가] 부트스트랩 버튼 관련 변수를 명시적으로 재정의하여 btn-primary가 Urban Blue를 따르도록 합니다. */
+    --bs-btn-bg: var(--color-primary);
+    --bs-btn-border-color: var(--color-primary);
+    --bs-btn-hover-bg: #4C5969; /* 약간 어두운 Urban Blue */
+    --bs-btn-hover-border-color: #4C5969;
+    --bs-btn-active-bg: #4C5969;
+    --bs-btn-active-border-color: #4C5969;
 }
 
 /* Header/Navbar 통합 스타일 */
 .navbar {
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     padding: 1.5rem 1rem;
+}
+/* [★★핵심 수정 사항★★] bg-dark 클래스가 Dark Navy(--color-accent)를 사용하도록 강제합니다. */
+.navbar.bg-dark {
+    background-color: var(--color-accent) !important;
 }
 
 /* 로고 이미지 스타일 */
@@ -78,6 +94,7 @@
     border-color: var(--color-primary);
 }
 
+/* 포인트 색상(Terracotta Orange)을 활용한 버튼 스타일 재정의 */
 .navbar .btn-warning {
     background-color: var(--color-point);
     border-color: var(--color-point);

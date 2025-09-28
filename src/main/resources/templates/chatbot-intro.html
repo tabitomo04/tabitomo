@@ -8,66 +8,112 @@
 <!-- Header -->
 <div th:replace="~{fragments/header :: header}"></div>
 
-<!-- chatbot -->
+<!-- chatbot (챗봇 버튼은 항상 하단에 표시) -->
 <div th:replace="~{fragments/chatbot-button :: chatbot-container}"></div>
 <link rel="stylesheet" href="/css/chatbot.css">
 <script th:src="@{/js/chatbot.js}"></script>
 
 <!-- Main Content -->
 <main class="py-5">
-    <section class="hero-section text-center py-5 bg-light rounded-3 mb-5">
-        <div class="container px-4">
-            <h1 class="display-4 fw-bold mb-4">Tabitomo 챗봇, 당신의 여행 비서</h1>
-            <p class="lead mb-4">로그인하고 나만의 여행 정보를 더욱 편리하게 찾아보세요.</p>
-            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-                <!-- 로그인 유도 버튼 -->
-                <a href="/loginform" class="btn btn-primary btn-lg px-4 gap-3">로그인하고 챗봇 사용하기</a>
-            </div>
-        </div>
-    </section>
-
-    <section class="chatbot-info mb-5">
-        <div class="container">
-            <div class="row g-4 align-items-center">
-                <div class="col-md-6 order-md-2">
-                    <h2 class="h3 mb-3">Tabitomo의 챗봇 토모가 도와드릴게요</h2>
-                    <p>저 토모는 사용자의 여행 취향과 선호도를 분석하여 맞춤형 답변을 해주고, 그 외의 사이트나 여러 정보를 실시간으로 제공합니다. 복잡한 검색 없이 챗봇에게 뭐든지 물어보세요. 가장 완벽한 답변을 찾아드릴게요!</p>
+    <div class="container">
+        <!-- 1. 히어로 섹션: 깔끔한 배경과 아이콘으로 세련되게 재구성 -->
+        <section class="hero-section text-center py-5 rounded-4 shadow-lg-sm mb-5 bg-white border">
+            <div class="px-4">
+                <!-- 챗봇 아이콘 추가 -->
+                <div class="mb-4 d-inline-block p-3 rounded-circle" style="background-color: var(--color-point-light);">
+                    <i class="fas fa-robot fa-3x" style="color: var(--color-point);"></i>
                 </div>
-                <div class="col-md-6 order-md-1 text-center">
-                    <img th:src="@{/image/smile.png}" alt="웃는 토모" width="200" height="200">
+                <h1 class="display-3 fw-bolder mb-3 text-accent">Tabitomo AI 비서, 토모</h1>
+                <p class="lead mb-5 text-muted">
+                    복잡한 여행 계획은 이제 그만! 로그인하고 『나만을 위한 맞춤형 여행 솔루션』을 경험해 보세요.
+                </p>
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                    <!-- 버튼에 Terracotta Orange (Point) 색상 사용 -->
+                    <a href="/loginform" class="btn btn-primary btn-xl px-5 py-3 custom-point-btn">
+                        지금 바로 로그인하고 챗봇 사용하기
+                    </a>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section class="how-to-use-section py-5 bg-light rounded-3 mb-5">
-        <div class="container">
-            <h2 class="text-center mb-5">어떻게 사용하나요?</h2>
+        <!-- 2. 토모 소개 섹션: 기능 강조와 명확한 레이아웃 재구성 -->
+        <section class="chatbot-info mb-5">
+            <div class="p-5 rounded-4 shadow-lg-sm bg-secondary-light">
+                <div class="row g-5 align-items-center">
+
+                    <!-- 왼쪽: 핵심 기능 리스트 및 설명 -->
+                    <div class="col-md-7 order-md-1">
+                        <h2 class="h2 fw-bold mb-4 text-primary">나만의 AI 여행 파트너, 토모를 소개합니다</h2>
+                        <p class="lead mb-4 text-muted">
+                            토모는 최신 기술을 활용하여 사용자님의 「여행 스타일에 100% 최적화된」 정보를 제공하며, 단순한 검색을 넘어선 진정한 여행 비서 역할을 수행합니다.
+                        </p>
+
+                        <!-- 핵심 기능 3가지 (아이콘과 함께) -->
+                        <div class="row mt-4">
+                            <div class="col-12 mb-3 feature-detail">
+                                <i class="fas fa-chart-line text-point me-3 fa-lg"></i>
+                                <span class="fw-bold text-accent">개인화 추천</span>: 지난 기록을 분석하여 취향에 맞는 장소만 추천
+                            </div>
+                            <div class="col-12 mb-3 feature-detail">
+                                <i class="fas fa-globe-americas text-point me-3 fa-lg"></i>
+                                <span class="fw-bold text-accent">실시간 정보</span>: 항공, 날씨, 현지 이벤트 등을 실시간으로 업데이트
+                            </div>
+                            <div class="col-12 mb-3 feature-detail">
+                                <i class="fas fa-headset text-point me-3 fa-lg"></i>
+                                <span class="fw-bold text-accent">24/7 지원</span>: 여행 중 언제든지 궁금한 점에 즉시 답변
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 오른쪽: 토모 이미지 -->
+                    <div class="col-md-5 text-center order-md-2">
+                        <img th:src="@{/image/smile.png}" alt="웃는 토모 캐릭터" class="img-fluid rounded-circle shadow-xl chatbot-image-hover" style="max-width: 300px; height: auto;">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. 사용 방법 섹션: (기존 디자인 유지 - 깔끔하므로) -->
+        <section class="how-to-use-section py-5">
+            <h2 class="text-center fw-bold mb-5 display-5 text-primary">챗봇 사용, 단 3단계로 시작하세요</h2>
             <div class="row g-4">
-                <div class="col-md-4 text-center">
-                    <div class="feature-icon mb-3">
-                        <i class="fas fa-sign-in-alt fa-3x text-primary"></i>
+
+                <!-- Step 1: 로그인 -->
+                <div class="col-md-4">
+                    <div class="feature-card shadow-lg p-4 h-100 rounded-3 text-center border-start border-point border-4">
+                        <div class="feature-icon mb-4 bg-primary text-white">
+                            <i class="fas fa-sign-in-alt fa-3x"></i>
+                        </div>
+                        <h3 class="h4 fw-bold mb-2 text-point">1. 로그인하기</h3>
+                        <p class="text-muted">간단한 회원가입 후 Tabitomo에 로그인하여 개인화된 서비스를 활성화합니다.</p>
                     </div>
-                    <h3 class="h5">1. 로그인하기</h3>
-                    <p>간단한 회원가입 후 Tabitomo에 로그인하세요.</p>
                 </div>
-                <div class="col-md-4 text-center">
-                    <div class="feature-icon mb-3">
-                        <i class="fas fa-comment-dots fa-3x text-primary"></i>
+
+                <!-- Step 2: 챗봇 버튼 클릭 -->
+                <div class="col-md-4">
+                    <div class="feature-card shadow-lg p-4 h-100 rounded-3 text-center border-start border-point border-4">
+                        <div class="feature-icon mb-4 bg-primary text-white">
+                            <i class="fas fa-comment-dots fa-3x"></i>
+                        </div>
+                        <h3 class="h4 fw-bold mb-2 text-point">2. 챗봇 버튼 클릭</h3>
+                        <p class="text-muted">로그인 후, 화면 오른쪽 하단에 나타나는 토모 아이콘을 클릭하여 대화를 시작하세요.</p>
                     </div>
-                    <h3 class="h5">2. 챗봇 버튼 클릭</h3>
-                    <p>로그인 후, 오른쪽 아래에 나타나는 챗봇 버튼을 클릭하세요.</p>
                 </div>
-                <div class="col-md-4 text-center">
-                    <div class="feature-icon mb-3">
-                        <i class="fas fa-lightbulb fa-3x text-primary"></i>
+
+                <!-- Step 3: 질문하기 -->
+                <div class="col-md-4">
+                    <div class="feature-card shadow-lg p-4 h-100 rounded-3 text-center border-start border-point border-4">
+                        <div class="feature-icon mb-4 bg-primary text-white">
+                            <i class="fas fa-lightbulb fa-3x"></i>
+                        </div>
+                        <h3 class="h4 fw-bold mb-2 text-point">3. 질문하기</h3>
+                        <p class="text-muted">여행지, 숙소, 액티비티 등 여행과 관련된 모든 것을 챗봇에게 물어보고 답변을 받으세요.</p>
                     </div>
-                    <h3 class="h5">3. 질문하기</h3>
-                    <p>여행과 관련된 모든 것을 챗봇에게 물어보고 답변을 받으세요.</p>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+
+    </div>
 </main>
 
 <!-- Footer -->
@@ -75,19 +121,102 @@
 
 <!-- Styles and Scripts -->
 <style>
-    /* 아이콘 컨테이너 스타일 */
+    /* style.css의 변수를 가져와서 사용합니다. */
+    :root {
+        --color-primary: #5D6C7E;    /* Urban Blue */
+        --color-point: #E88326;     /* Terracotta Orange */
+        --color-point-light: #fbe6d5; /* Terracotta Orange의 연한 버전 */
+        --color-accent: #293341;    /* Dark Navy */
+        --color-secondary: #F2F4F7; /* Light Gray */
+    }
+
+    /* 1. 히어로 섹션 배경 및 그림자 스타일 */
+    .custom-hero-bg {
+        /* 배경색을 흰색으로 변경하여 깔끔함 강조 */
+        background-color: #fff !important;
+        border: 1px solid var(--color-secondary);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05); /* 그림자 톤 다운 */
+    }
+    .text-accent {
+        color: var(--color-accent) !important;
+    }
+    .text-primary {
+        color: var(--color-primary) !important;
+    }
+
+    /* 히어로 섹션 버튼 스타일 (포인트 색상) */
+    .custom-point-btn {
+        background-color: var(--color-point) !important;
+        border-color: var(--color-point) !important;
+        color: #fff !important;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border-radius: 0.5rem;
+    }
+
+    .custom-point-btn:hover {
+        background-color: #d17522 !important;
+        border-color: #d17522 !important;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(232, 131, 38, 0.4);
+    }
+
+    /* 2. 토모 소개 섹션 배경색 */
+    .bg-secondary-light {
+        background-color: var(--color-secondary) !important;
+    }
+
+    /* 2. 토모 소개 섹션 - 핵심 기능 리스트 스타일 */
+    .feature-detail {
+        font-size: 1.1rem;
+    }
+
+    /* 토모 이미지에 호버 효과 추가 */
+    .chatbot-image-hover {
+        transition: transform 0.4s ease-in-out;
+    }
+    .chatbot-image-hover:hover {
+        transform: scale(1.05);
+    }
+
+    /* 3. 사용 방법 섹션 - 아이콘 컨테이너 스타일 */
     .feature-icon {
-        background-color: #e9ecef;
+        background-color: var(--color-primary); /* Urban Blue 배경 */
         width: 80px;
         height: 80px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         border-radius: 50%;
-        margin-bottom: 3rem;
+        margin: 0 auto;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        transition: background-color 0.3s;
     }
-    .feature-icon i {
-        color: #fff;
+
+    /* 3. 사용 방법 섹션 - 카드 스타일 */
+    .feature-card {
+        background-color: #fff;
+        transition: transform 0.3s, box-shadow 0.3s;
+        border: 1px solid var(--color-secondary);
+        position: relative;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .feature-card:hover .feature-icon {
+        background-color: var(--color-point); /* Hover 시 아이콘 색상을 포인트 색상으로 변경 */
+    }
+
+    /* 일반적인 그림자 스타일 정의 */
+    .shadow-lg-sm {
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
+    }
+    .shadow-xl {
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
     }
 </style>
 

@@ -2,40 +2,71 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/header :: head}"></head>
 <body>
+<!-- Header -->
 <div th:replace="~{fragments/header :: header}"></div>
-<div th:replace="~{fragments/menu :: menu}"></div>
 
 <main class="py-5">
-    <div class="container">
-        <h1 data-translatable>Contact Us</h1>
-        <p class="lead" data-translatable>tabitomo에 궁금한 점이 있으신가요? 언제든지 편하게 연락주세요. 최고의 여행 친구가 되어 귀 기울여 듣겠습니다.</p>
-        <hr class="my-5">
+    <div class="container my-5">
 
-        <div class="row">
-            <div class="col-md-8">
-                <h2 data-translatable>고객센터 안내 (Customer Support)</h2>
-                <p data-translatable>예약, 결제, 변경, 취소 등 서비스 이용과 관련된 모든 문의사항을 도와드립니다.</p>
-                <ul>
-                    <li><strong data-translatable>운영시간:</strong> <span data-translatable>평일 09:00 ~ 18:00 (주말/공휴일 휴무)</span></li>
-                    <li><strong data-translatable>점심시간:</strong> <span data-translatable>12:00 ~ 13:00</span></li>
-                </ul>
-                <p data-translatable>이메일 문의는 접수 후 1~2 영업일 이내에 답변 드립니다.</p>
+        <!-- 메인 타이틀 섹션 -->
+        <header class="text-center mb-5">
+            <h1 class="display-3 fw-bolder mb-2 text-primary" data-translatable>Contact Us</h1>
+            <p class="lead fs-5 text-dark-emphasis" data-translatable>tabitomo에 궁금한 점이 있으신가요? 언제든지 편하게 연락주세요. 최고의 여행 친구가 되어 귀 기울여 듣겠습니다.</p>
+        </header>
 
-                <h2 class="mt-5" data-translatable>제휴 및 광고 문의 (Partnership & AD)</h2>
-                <p data-translatable>tabitomo와의 비즈니스 협력, 마케팅 및 광고 제휴를 원하시면 아래 이메일로 연락주시기 바랍니다.</p>
+        <hr class="my-5 border-2 text-point"> <!-- 포인트 색상 구분선 -->
 
-                <h2 class="mt-5" data-translatable>오시는 길 (Location)</h2>
-                <p data-translatable>tabitomo를 만들어가는 사람들을 만나고 싶으시다면, 언제나 환영입니다.</p>
+        <div class="row g-5">
+            <div class="col-md-7">
+
+                <!-- 고객센터 안내 -->
+                <section class="mb-5">
+                    <h2 class="h4 fw-bold mb-3 text-primary" data-translatable>고객센터 안내 (Customer Support)</h2>
+                    <p data-translatable>예약, 결제, 변경, 취소 등 서비스 이용과 관련된 모든 문의사항을 도와드립니다.</p>
+                    <ul class="list-unstyled contact-list mt-3">
+                        <li><i class="fas fa-clock text-point me-2"></i> <strong data-translatable>운영시간:</strong> <span data-translatable>평일 10:00 ~ 18:00 (주말/공휴일 휴무)</span></li>
+                        <li><i class="fas fa-utensils text-point me-2"></i> <strong data-translatable>점심시간:</strong> <span data-translatable>12:50 ~ 14:00</span></li>
+                    </ul>
+                    <p class="small text-muted" data-translatable>이메일 문의는 접수 후 1~2 영업일 이내에 답변 드립니다.</p>
+                </section>
+
+                <!-- 제휴 및 광고 문의 -->
+                <section class="mb-5">
+                    <h2 class="h4 fw-bold mb-3 text-primary" data-translatable>제휴 및 광고 문의 (Partnership & AD)</h2>
+                    <p data-translatable>tabitomo와의 비즈니스 협력, 마케팅 및 광고 제휴를 원하시면 아래 이메일로 연락주시기 바랍니다.</p>
+                    <p class="fs-5 fw-medium text-point-bold mt-3"><i class="fas fa-handshake me-2"></i> partner@tabitomo.com</p>
+                </section>
+
+                <!-- 오시는 길 -->
+                <section class="mb-5">
+                    <h2 class="h4 fw-bold mb-3 text-primary" data-translatable>오시는 길 (Location)</h2>
+                    <p data-translatable>tabitomo를 만들어가는 사람들을 만나고 싶으시다면, 언제나 환영입니다. 방문 전 연락 부탁드립니다.</p>
+                </section>
+
             </div>
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title" data-translatable>Contact Info</h5>
-                        <p class="card-text"><i class="fas fa-envelope me-2"></i> tabitomo04@gmai.com</p>
-                        <p class="card-text"><i class="fas fa-phone me-2"></i> +82-51-442-5739</p>
-                        <hr>
-                        <h6 class="card-subtitle mb-2 text-muted" data-translatable>주식회사 타비토모</h6>
-                        <p class="card-text"><i class="fas fa-map-marker-alt me-2"></i> <span data-translatable>부산광역시 해운대구 센텀</span></p>
+            <div class="col-md-5">
+                <!-- 연락처 카드 -->
+                <div class="card contact-card shadow-lg border-0 h-100">
+                    <div class="card-body p-4 p-md-5">
+                        <h5 class="card-title h3 fw-bold mb-4 text-white" data-translatable>Contact Info</h5>
+
+                        <div class="contact-detail mb-3">
+                            <h6 class="text-secondary fw-semibold mb-1">EMAIL</h6>
+                            <p class="card-text fs-5 text-white"><i class="fas fa-envelope me-3"></i> tabitomo04@gmail.com</p>
+                        </div>
+
+                        <div class="contact-detail mb-3">
+                            <h6 class="text-secondary fw-semibold mb-1">PHONE</h6>
+                            <p class="card-text fs-5 text-white"><i class="fas fa-phone me-3"></i> +82-51-442-5739</p>
+                        </div>
+
+                        <hr class="my-4 border-light">
+
+                        <div class="contact-detail">
+                            <h6 class="text-secondary fw-semibold mb-1" data-translatable>주식회사 타비토모</h6>
+                            <p class="card-text fs-5 text-white"><i class="fas fa-map-marker-alt me-3"></i> <span data-translatable>부산광역시 DSA 센터</span></p>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -44,5 +75,60 @@
 </main>
 
 <div th:replace="~{fragments/footer :: footer}"></div>
+
+<!-- 페이지 전용 스타일 -->
+<style>
+    /* style.css에 정의된 변수 사용 */
+    :root {
+        --color-primary: #5D6C7E;
+        --color-point: #E88326;
+        --color-accent: #293341;
+        --color-secondary: #F2F4F7;
+    }
+
+    /* 메인 색상으로 텍스트 강조 */
+    .text-primary {
+        color: var(--color-primary) !important;
+    }
+
+    /* 포인트 색상으로 텍스트 강조 */
+    .text-point {
+        color: var(--color-point) !important;
+    }
+
+    /* 굵은 포인트 텍스트 */
+    .text-point-bold {
+        color: var(--color-point) !important;
+        font-weight: 700;
+    }
+
+    /* Contact Card 스타일링: Urban Blue 배경 적용 */
+    .contact-card {
+        background-color: var(--color-primary); /* Urban Blue */
+        color: #fff;
+        border-radius: 1rem;
+    }
+
+    /* 연락처 상세 정보 아이콘 및 텍스트 색상 */
+    .contact-card .contact-detail i {
+        color: var(--color-point); /* Terracotta Orange 아이콘 */
+    }
+
+    .contact-card .text-secondary {
+        /* Light Gray에 가까운 색상으로 변경하여 어반 블루 배경과 대비 */
+        color: rgba(255, 255, 255, 0.7) !important;
+    }
+
+    /* 구분선 색상 지정 */
+    hr.text-point {
+        opacity: 0.6;
+        border-color: var(--color-point) !important;
+    }
+
+    .contact-list li {
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+    }
+</style>
 </body>
 </html>

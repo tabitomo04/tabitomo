@@ -7,69 +7,54 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.io.Serial;
-import java.time.LocalDate;
-import java.time.Period;
 import java.util.Collection;
-import com.koreatravel.tabitomo.domain.entity.member.MemberAddInfoEntity;
 import java.util.Collections;
-import java.util.List;
 import java.util.UUID;
 
+/**
+ * Custom UserDetails implementation for Spring Security.
+ * This class represents the authenticated user's principal and contains user details.
+ */
 @Getter
 public class UserDetailsImpl implements UserDetails {
-
-    // Re-applying the correct serialVersionUID to resolve session deserialization issues.
-    @Serial
-    private static final long serialVersionUID = 4215309437416150371L;
-
-    private final MemberEntity member;
-    private final List<MemberAddInfoEntity> additionalInfo;
+    private static final long serialVersionUID = 1L;
+    
+    private final UUID id;
+    private final String email;
+    @JsonIgnore
+    private final String password;
+    private final String nickname;
+    private final boolean active;
+    private final String role;
+    private final boolean questionnaireCompleted;
     private final Collection<? extends GrantedAuthority> authorities;
 
-    public UserDetailsImpl(MemberEntity member, List<MemberAddInfoEntity> additionalInfo) {
-        this.member = member;
-        this.additionalInfo = additionalInfo != null ? additionalInfo : Collections.emptyList();
+    public UserDetailsImpl(MemberEntity member, boolean hasCompletedQuestionnaire) {
+        this.id = member.getId();
+        this.email = member.getEmail();
+        this.password = member.getPassword();
+        this.nickname = member.getNickname();
+        this.active = member.isActive();
+        this.role = member.getRole();
+        this.questionnaireCompleted = hasCompletedQuestionnaire;
         this.authorities = Collections.singletonList(
             new SimpleGrantedAuthority(member.getRole())
         );
-    }
-
-    public String getEmail() {
-        return member.getEmail();
-    }
-
-    public String getNickname() {
-        return member.getNickname();
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities;
     }
-    
-    /**
-     * Get additional member information (hashtags, etc.)
-     * @return List of additional member information
-     */
-    public List<MemberAddInfoEntity> getAdditionalInfo() {
-        return additionalInfo;
-    }
 
     @Override
-    @JsonIgnore
     public String getPassword() {
-        return member.getPassword();
+        return this.password;
     }
 
     @Override
     public String getUsername() {
-        return member.getNickname();
-    }
-
-    @JsonIgnore
-    public UUID getId() {
-        return member.getId();
+        return email;
     }
 
     @Override
@@ -89,41 +74,61 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return member.isActive();
+        return active;
     }
 
-    // Additional profile information
-    public UUID getUserId() {
-        return member.getId();
+    // Additional methods
+    public UUID getMemberId() {
+        return id;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getNickname() {
+        return nickname;
     }
 
     public String getProfileImageUrl() {
-        return member.getProfileImageUrl();
-    }
-
-    public Integer getAge() {
-        if (member.getDateOfBirth() == null) {
-            return null;
-        }
-        return Period.between(member.getDateOfBirth(), LocalDate.now()).getYears();
+        return "/images/default-profile.png";
     }
 
     public Integer getGender() {
-        return member.getGender();
+        return 0; // 0: unspecified, 1: male, 2: female
     }
 
     public String getCountryCode() {
-        return member.getCountry() != null ? member.getCountry().getCountryCode() : null;
+        return null;
     }
 
     public String getNativeLanguageName() {
-        return member.getPreferredLanguage() != null ? 
-               member.getPreferredLanguage().getNameNative() : null;
+        return null;
     }
 
-    // For backward compatibility with existing code
     @JsonIgnore
-    public UUID getMemberId() {
-        return member.getId();
+    public String getMbti() {
+        return null;
+    }
+
+    public boolean isQuestionnaireCompleted() {
+        return this.questionnaireCompleted;
+    }
+
+    // For updating questionnaire status
+    public UserDetailsImpl withQuestionnaireCompleted(boolean completed) {
+        return new UserDetailsImpl(this, completed);
+    }
+
+    // Private constructor for creating copies with updated fields
+    private UserDetailsImpl(UserDetailsImpl original, boolean questionnaireCompleted) {
+        this.id = original.id;
+        this.email = original.email;
+        this.password = original.password;
+        this.nickname = original.nickname;
+        this.active = original.active;
+        this.role = original.role;
+        this.authorities = original.authorities;
+        this.questionnaireCompleted = questionnaireCompleted;
     }
 }

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}">
+    <title>Error - Tabitomo</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen flex items-center justify-center px-4">
+        <div class="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
+            <div class="text-center">
+                <h1 class="text-4xl font-bold text-red-500 mb-4">오류가 발생했습니다</h1>
+                
+                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded" role="alert">
+                    <p class="font-bold" th:if="${error != null}" th:text="${error}"></p>
+                    <p class="font-bold" th:if="${status != null}">Status: <span th:text="${status}"></span></p>
+                    <p class="font-bold" th:if="${message != null}" th:text="${message}"></p>
+                    <p class="font-bold" th:if="${error == null and status == null and message == null}">요청을 처리하는 중 오류가 발생했습니다.</p>
+                    <p class="text-sm mt-2">계속해서 문제가 발생한다면 관리자에게 문의해주세요.</p>
+                </div>
+                
+                <div class="mt-6">
+                    <a href="/" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                        홈으로 돌아가기
+                    </a>
+                </div>
+                
+                <!-- Debug information (only show in development) -->
+                <div th:if="${exception != null}" class="mt-8 p-4 bg-gray-100 rounded text-left text-sm">
+                    <h3 class="font-bold mb-2">오류 상세 정보:</h3>
+                    <p class="font-mono break-words" th:text="${exception?.message} ?: 'No error message available'"></p>
+                    <div th:if="${exception?.stackTrace}" class="mt-2 overflow-auto max-h-40">
+                        <pre class="text-xs" th:text="${#strings.arrayJoin(#arrays.toArray(exception.stackTrace, 'java.lang.StackTraceElement'), '&#10;')}"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

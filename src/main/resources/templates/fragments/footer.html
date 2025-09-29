@@ -1,30 +1,31 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+<link rel="stylesheet" th:href="@{/css/style.css}">
 <body>
-<footer class="bg-dark text-white mt-5" th:fragment="footer">
+<footer class="footer-custom mt-5" th:fragment="footer">
     <div class="container py-4">
         <div class="row">
             <div class="col-md-4">
-                <h5>Tabitomo</h5>
+                <h5 class="text-uppercase" data-translatable>Tabitomo</h5>
                 <p data-translatable>여행의 모든 것, Tabitomo와 함께하세요.</p>
                 <p data-translatable>여행지 추천부터 예약까지 한 번에!</p>
             </div>
             <div class="col-md-4">
-                <h5 data-translatable>Quick Links</h5>
+                <h5 class="text-uppercase" data-translatable>Quick Links</h5>
                 <ul class="list-unstyled">
-                    <li><a th:href="@{/about}" class="text-white" data-translatable>About Us</a></li>
-                    <li><a th:href="@{/contact}" class="text-white" data-translatable>Contact</a></li>
-                    <li><a th:href="@{/privacy}" class="text-white" data-translatable>Privacy Policy</a></li>
-                    <li><a th:href="@{/terms}" class="text-white" data-translatable>Terms of Service</a></li>
+                    <li><a th:href="@{/about}" data-translatable>About Us</a></li>
+                    <li><a th:href="@{/contact}" data-translatable>Contact</a></li>
+                    <li><a th:href="@{/privacy}" data-translatable>Privacy Policy</a></li>
+                    <li><a th:href="@{/terms}" data-translatable>Terms of Service</a></li>
                 </ul>
             </div>
             <div class="col-md-4">
-                <h5 data-translatable>Connect With Us</h5>
-                <div class="social-links">
-                    <a href="#" class="text-white me-2"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" class="text-white me-2"><i class="fab fa-twitter"></i></a>
-                    <a href="#" class="text-white me-2"><i class="fab fa-instagram"></i></a>
-                    <a href="#" class="text-white"><i class="fab fa-youtube"></i></a>
+                <h5 class="text-uppercase" data-translatable>Connect With Us</h5>
+                <div class="social-links d-flex">
+                    <a href="#" class="me-3"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="me-3"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="me-3"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="me-3"><i class="fab fa-youtube"></i></a>
                 </div>
                 <div class="mt-3">
                     <p><i class="fas fa-envelope me-2"></i> tabitomo04@gmail.com</p>
@@ -32,7 +33,7 @@
                 </div>
             </div>
         </div>
-        <hr class="bg-light">
+        <hr>
         <div class="text-center">
             <p class="mb-0">&copy; <span th:text="${#temporals.year(#temporals.createNow())}">2025</span> Tabitomo. <span data-translatable>All rights reserved.</span></p>
         </div>

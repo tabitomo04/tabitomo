@@ -4,44 +4,51 @@ import com.koreatravel.tabitomo.domain.dto.member.CountryDTO;
 import com.koreatravel.tabitomo.domain.dto.member.LanguageDTO;
 import com.koreatravel.tabitomo.domain.dto.member.MemberProfileDTO;
 import com.koreatravel.tabitomo.domain.dto.auth.SignUpDTO;
-import com.koreatravel.tabitomo.service.member.AuthService;
-import com.koreatravel.tabitomo.service.member.MemberService;
-import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
+import com.koreatravel.tabitomo.config.security.UserDetailsImpl;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.ui.Model;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.WebAuthenticationDetails;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import org.springframework.web.bind.annotation.CookieValue;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import com.koreatravel.tabitomo.service.member.AuthService;
+import com.koreatravel.tabitomo.service.member.MemberService;
 
 @Slf4j
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/auth")
 public class AuthController {
-
     private final AuthService authService;
-
     private final MemberService memberService;
+    @SuppressWarnings("unused")
     private final RestTemplate restTemplate;
+    private final UserDetailsService userDetailsService;
 
     // 로그인 페이지 이동
     @GetMapping("/login")
@@ -105,30 +112,43 @@ public class AuthController {
             HttpSession session,
             HttpServletResponse response,
             RedirectAttributes redirectAttributes) {
-
         try {
             // 서비스를 통해 로그인 처리 및 사용자 프로필 가져오기
             MemberProfileDTO memberProfile = authService.login(email, password);
             
-            // 세션 무효화 후 새 세션 생성 (기존 세션 정리)
+            // Invalidate the current session and create a new one to prevent session fixation
             session.invalidate();
             session = request.getSession(true);
             
-            // 세션에 MemberProfileDTO 저장
+            // Set the new member profile in session
             session.setAttribute("memberProfile", memberProfile);
+            session.setAttribute("userId", memberProfile.getId());
+            session.setAttribute("authenticatedEmail", memberProfile.getEmail());
+            session.setAttribute("questionnaireCompleted", memberProfile.isQuestionnaireCompleted());
             
-            // 기존에 개별로 저장하던 속성 제거
-            session.removeAttribute("userId");
-            session.removeAttribute("authenticatedEmail");
-            session.removeAttribute("questionnaireCompleted");
+            // Ensure both session attributes are in sync
+            if (memberProfile.isQuestionnaireCompleted()) {
+                session.removeAttribute("showQuestionnairePrompt");
+            } else {
+                session.setAttribute("showQuestionnairePrompt", true);
+            }
             
-            // 세션에 저장된 값 확인 로그
+            // Set authentication in SecurityContext
+            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                userDetails, null, userDetails.getAuthorities());
+            authentication.setDetails(new WebAuthenticationDetails(request));
+            SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+            securityContext.setAuthentication(authentication);
+            SecurityContextHolder.setContext(securityContext);
+            
+            // Log user info
             log.info("Login - User: {}, Questionnaire completed: {}", 
                 memberProfile.getEmail(), 
                 memberProfile.isQuestionnaireCompleted()
             );
             
-            // 설문조사 프롬프트 표시 여부 설정
+            // Set questionnaire prompt if not completed
             if (!memberProfile.isQuestionnaireCompleted()) {
                 session.setAttribute("showQuestionnairePrompt", true);
                 log.info("Setting showQuestionnairePrompt flag for user {}", memberProfile.getEmail());
@@ -137,72 +157,117 @@ public class AuthController {
                 log.info("Questionnaire already completed for user {}", memberProfile.getEmail());
             }
             
-            // 세션 속성 강제 저장
+            // Force session to be created
             session.setAttribute("sessionUpdated", System.currentTimeMillis());
-            log.info("Session created - ID: {}", session.getId());
+            log.info("New session created - ID: {}, memberProfile: {}", session.getId(), memberProfile);
             
-            // 이메일 저장 쿠키 설정 (1년 유지)
+            // Set remember-me cookie if needed
             if (Boolean.TRUE.equals(rememberEmail)) {
                 Cookie emailCookie = new Cookie("savedEmail", email);
                 emailCookie.setMaxAge(60 * 60 * 24 * 365); // 1년
                 emailCookie.setPath("/");
+                emailCookie.setHttpOnly(true);
+                emailCookie.setSecure(request.isSecure());
                 response.addCookie(emailCookie);
             } else {
-                // 이메일 저장 체크 해제 시 쿠키 삭제
+                // Remove email cookie if exists
                 Cookie emailCookie = new Cookie("savedEmail", null);
                 emailCookie.setMaxAge(0);
                 emailCookie.setPath("/");
                 response.addCookie(emailCookie);
             }
             
-            // 자동 로그인 설정 (30일)
-            if (Boolean.TRUE.equals(autoLogin)) {
-                // 세션 만료 시간 설정 (30일)
-                session.setMaxInactiveInterval(60 * 60 * 24 * 30); // 30일
-                
-                // 자동 로그인 토큰 생성 및 쿠키 설정 (30일 유지)
-                String token = UUID.randomUUID().toString();
-                // 토큰을 DB에 저장하는 로직 추가 (예: memberService.saveAutoLoginToken(email, token))
-                
-                // 쿠키 설정
-                Cookie autoLoginCookie = new Cookie("autoLogin", token);
-                autoLoginCookie.setMaxAge(60 * 60 * 24 * 30); // 30일
-                autoLoginCookie.setPath("/");
-                autoLoginCookie.setHttpOnly(true);
-                // HTTPS 사용 시에만 secure 플래그 설정
-                // autoLoginCookie.setSecure(true);
-                response.addCookie(autoLoginCookie);
-            } else {
-                // 기본 세션 시간 (30분)
-                session.setMaxInactiveInterval(60 * 30);
-                
-                // 쿠키 삭제
-                Cookie autoLoginCookie = new Cookie("autoLogin", null);
-                autoLoginCookie.setMaxAge(0);
-                autoLoginCookie.setPath("/");
-                response.addCookie(autoLoginCookie);
-            }
-            
             return "redirect:/";
             
         } catch (BadCredentialsException e) {
+            log.warn("Login failed for user {}: {}", email, e.getMessage());
             redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return "redirect:/auth/login";
+            return "redirect:/auth/login?error=" + URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
         } catch (Exception e) {
+            log.error("로그인 처리 중 오류 발생: {}", e.getMessage(), e);
             redirectAttributes.addFlashAttribute("error", "로그인 처리 중 오류가 발생했습니다.");
-            return "redirect:/auth/login";
+            return "redirect:/auth/login?error=" + URLEncoder.encode("로그인 처리 중 오류가 발생했습니다.", StandardCharsets.UTF_8);
         }
     }
 
-    @PostMapping("/clear-questionnaire-prompt")
     public ResponseEntity<?> clearQuestionnairePrompt(HttpSession session) {
         session.removeAttribute("showQuestionnairePrompt");
         return ResponseEntity.ok().build();
     }
     
+    @GetMapping("/session")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getSessionData(HttpSession session) {
+        Map<String, Object> sessionData = new HashMap<>();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        
+        if (authentication != null && authentication.isAuthenticated() && 
+            !(authentication.getPrincipal() instanceof String && authentication.getPrincipal().equals("anonymousUser"))) {
+            
+            // Initialize variables to track questionnaire status
+            boolean questionnaireCompleted = false;
+            boolean showQuestionnairePrompt = true;
+            String email = null;
+            
+            // Get user details from authentication
+            if (authentication.getPrincipal() instanceof UserDetailsImpl) {
+                UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+                questionnaireCompleted = userDetails.isQuestionnaireCompleted();
+                email = userDetails.getEmail();
+                sessionData.put("email", email);
+            }
+            
+            // Check session for overrides
+            Boolean sessionQuestionnaireCompleted = (Boolean) session.getAttribute("questionnaireCompleted");
+            Boolean sessionShowPrompt = (Boolean) session.getAttribute("showQuestionnairePrompt");
+            
+            // Use session values if they exist, otherwise use authentication values
+            if (sessionQuestionnaireCompleted != null) {
+                questionnaireCompleted = sessionQuestionnaireCompleted;
+            }
+            
+            if (sessionShowPrompt != null) {
+                showQuestionnairePrompt = sessionShowPrompt;
+            } else {
+                // Default to showing prompt if questionnaire is not completed
+                showQuestionnairePrompt = !questionnaireCompleted;
+            }
+            
+            // Ensure consistency between session and authentication
+            if (authentication.getPrincipal() instanceof UserDetailsImpl) {
+                UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+                if (userDetails.isQuestionnaireCompleted() != questionnaireCompleted) {
+                    // Update authentication if out of sync
+                    UserDetailsImpl updatedUserDetails = userDetails.withQuestionnaireCompleted(questionnaireCompleted);
+                    Authentication newAuth = new UsernamePasswordAuthenticationToken(
+                        updatedUserDetails,
+                        authentication.getCredentials(),
+                        authentication.getAuthorities()
+                    );
+                    SecurityContextHolder.getContext().setAuthentication(newAuth);
+                    log.debug("Synchronized authentication with session for questionnaire status");
+                }
+            }
+            
+            // Set response data
+            sessionData.put("isAuthenticated", true);
+            sessionData.put("questionnaireCompleted", questionnaireCompleted);
+            sessionData.put("showQuestionnairePrompt", showQuestionnairePrompt);
+            sessionData.put("sessionId", session.getId());
+            
+            log.debug("Session data for {} - completed: {}, showPrompt: {}", 
+                email, questionnaireCompleted, showQuestionnairePrompt);
+                
+        } else {
+            sessionData.put("isAuthenticated", false);
+        }
+        
+        return ResponseEntity.ok(sessionData);
+    }
+    
     @PostMapping("/logout")
-    public String logout(HttpSession session) {
-        session.invalidate();
+    public String logout(HttpServletRequest request) {
+        // Spring Security가 처리하므로 로그아웃 로직은 불필요
         return "redirect:/";
     }
     

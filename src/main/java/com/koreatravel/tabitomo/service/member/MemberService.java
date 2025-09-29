@@ -132,6 +132,32 @@ public class MemberService {
         return memberRepository.save(member);
     }
 
+    /**
+     * 이메일로 회원 ID 조회
+     * @param email 조회할 회원 이메일
+     * @return 회원 ID (UUID)
+     * @throws ResourceNotFoundException 해당 이메일의 회원이 없는 경우
+     */
+    @Transactional(readOnly = true)
+    public UUID findMemberIdByEmail(String email) {
+        MemberEntity member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Member not found with email: " + email));
+        return member.getId();
+    }
+
+    /**
+     * 이메일로 회원의 설문조사 완료 상태 업데이트
+     * @param email 회원 이메일
+     * @param completed 완료 여부
+     */
+    @Transactional
+    public void updateQuestionnaireStatusByEmail(String email, boolean completed) {
+        MemberEntity member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Member not found with email: " + email));
+        member.setQuestionnaireCompleted(completed);
+        memberRepository.save(member);
+    }
+
 
     /**
      * 이메일 중복 확인

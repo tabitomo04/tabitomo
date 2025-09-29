@@ -11,7 +11,9 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,111 +23,118 @@ import java.io.IOException;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class CustomAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
 
     @PersistenceContext
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
 
     @Override
+    @Transactional
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-                                        Authentication authentication) throws IOException, ServletException {
+                                      Authentication authentication) throws IOException, ServletException {
         if (authentication == null || !(authentication.getPrincipal() instanceof UserDetailsImpl)) {
             log.error("Invalid authentication object or principal");
             response.sendRedirect("/auth/login?error=invalid_auth");
             return;
         }
 
+        HttpSession session = request.getSession();
         try {
             // Get UserDetails from authentication principal
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-            if (userDetails == null || userDetails.getUsername() == null) {
+            if (userDetails == null || userDetails.getEmail() == null) {
                 log.error("User details or username is null");
                 response.sendRedirect("/auth/login?error=invalid_user_details");
                 return;
             }
 
-            String email = userDetails.getUsername();
+            String email = userDetails.getEmail();
             log.debug("Processing authentication success for user: {}", email);
 
-            // Check if member exists
-            if (userDetails.getMember() == null || userDetails.getMember().getId() == null) {
-                log.error("Member information is missing in user details for email: {}", email);
-                response.sendRedirect("/auth/login?error=missing_member_info");
-                return;
-            }
+            // Create MemberProfileDTO from UserDetails
+            MemberProfileDTO memberProfile = MemberProfileDTO.builder()
+                    .id(userDetails.getMemberId())
+                    .email(userDetails.getEmail())
+                    .nickname(userDetails.getNickname())
+                    .profileImageUrl(userDetails.getProfileImageUrl())
+                    .gender(userDetails.getGender())
+                    .isActive(userDetails.isEnabled())
+                    .build();
 
-            // Reattach the entity to the current persistence context
-            MemberEntity member = entityManager.find(MemberEntity.class, userDetails.getMember().getId());
-
-            if (member == null) {
-                log.error("Member not found in database for email: {}", email);
-                response.sendRedirect("/auth/login?error=user_not_found");
-                return;
-            }
-
-            try {
-                // Force initialization of lazy-loaded relationships
-                if (member.getCountry() != null) {
-                    Hibernate.initialize(member.getCountry());
-                }
-                if (member.getPreferredLanguage() != null) {
-                    Hibernate.initialize(member.getPreferredLanguage());
-                }
-
-                // MemberEntity를 MemberProfileDTO로 변환
-                MemberProfileDTO memberProfile = MemberProfileDTO.builder()
-                        .id(member.getId())
-                        .email(member.getEmail())
-                        .nickname(member.getNickname())
-                        .profileImageUrl(member.getProfileImageUrl())
-                        .dateOfBirth(member.getDateOfBirth())
-                        .gender(member.getGender())
-                        .isActive(member.isActive())
-                        .questionnaireCompleted(member.isQuestionnaireCompleted())
-                        .createdAt(member.getCreatedAt())
-                        .updatedAt(member.getUpdatedAt())
-                        .build();
+            boolean isQuestionnaireCompleted = false;
+            
+            // Get additional member info from database if needed
+            MemberEntity member = entityManager.find(MemberEntity.class, userDetails.getId());
+            if (member != null) {
+                memberProfile.setDateOfBirth(member.getDateOfBirth());
+                isQuestionnaireCompleted = member.isQuestionnaireCompleted();
+                memberProfile.setQuestionnaireCompleted(isQuestionnaireCompleted);
+                memberProfile.setCreatedAt(member.getCreatedAt());
+                memberProfile.setUpdatedAt(member.getUpdatedAt());
 
                 // 국가 정보 설정
                 if (member.getCountry() != null) {
+                    Hibernate.initialize(member.getCountry());
                     memberProfile.setCountryCode(member.getCountry().getCountryCode());
                     memberProfile.setCountryName(member.getCountry().getNameEn());
                 }
 
                 // 언어 설정
                 if (member.getPreferredLanguage() != null) {
+                    Hibernate.initialize(member.getPreferredLanguage());
                     memberProfile.setPreferredLanguageId(member.getPreferredLanguage().getLanguageId());
                     memberProfile.setPreferredLanguageName(member.getPreferredLanguage().getNameEn());
                 }
-
-                // 세션에 사용자 정보 저장
-                HttpSession session = request.getSession();
-                boolean isCompleted = member.isQuestionnaireCompleted();
-
-                // 세션에 사용자 정보 저장
-                session.setAttribute("userId", memberProfile.getId());
-                session.setAttribute("authenticatedEmail", email);
-                session.setAttribute("questionnaireCompleted", isCompleted);
-                session.setAttribute("showQuestionnairePrompt", !isCompleted);
-
-                log.info("Login successful - User: {}, Questionnaire completed: {}", email, isCompleted);
-                log.info("Setting showQuestionnairePrompt={} for user {}", !isCompleted, email);
-                log.info("Session ID after login: {}", session.getId());
-
-                // 홈페이지로 리다이렉트
-                response.sendRedirect("/");
-
-            } catch (Exception e) {
-                log.error("Error processing member profile for {}: {}", email, e.getMessage(), e);
-                response.sendRedirect("/auth/login?error=profile_processing_error");
-                return;
             }
+
+            // Set session attributes
+            session.setAttribute("userId", memberProfile.getId());
+            session.setAttribute("authenticatedEmail", email);
+            
+            // Always get the latest questionnaire status from the database
+            boolean latestQuestionnaireStatus = member != null && member.isQuestionnaireCompleted();
+            
+            // Update session attributes
+            session.setAttribute("questionnaireCompleted", latestQuestionnaireStatus);
+            session.setAttribute("showQuestionnairePrompt", !latestQuestionnaireStatus);
+            
+            // Update the authentication object with the latest questionnaire status
+            if (authentication.getPrincipal() instanceof UserDetailsImpl) {
+                UserDetailsImpl updatedUserDetails = ((UserDetailsImpl) authentication.getPrincipal())
+                    .withQuestionnaireCompleted(latestQuestionnaireStatus);
+                
+                // Create a new authentication token with the updated user details
+                Authentication newAuth = new UsernamePasswordAuthenticationToken(
+                    updatedUserDetails,
+                    authentication.getCredentials(),
+                    authentication.getAuthorities()
+                );
+                
+                // Update the security context
+                SecurityContextHolder.getContext().setAuthentication(newAuth);
+                log.debug("Updated authentication with questionnaireCompleted={}", latestQuestionnaireStatus);
+            }
+
+            log.info("Login successful - User: {}, Questionnaire completed: {}", email, latestQuestionnaireStatus);
+            log.info("Setting showQuestionnairePrompt={} for user {}", !latestQuestionnaireStatus, email);
+            log.info("Session ID after login: {}", session.getId());
+
+            // Check if we need to redirect to the questionnaire
+            String redirectUrl = "/";
+            if (!latestQuestionnaireStatus) {
+                // Add a flag to indicate we just logged in and should show the questionnaire
+                session.setAttribute("justLoggedIn", true);
+                redirectUrl = "/question/start";
+            }
+            
+            // Redirect to the appropriate page
+            response.sendRedirect(redirectUrl);
+            
         } catch (ClassCastException e) {
             log.error("Invalid user details type in authentication: {}", e.getMessage(), e);
             response.sendRedirect("/auth/login?error=invalid_user_type");
         } catch (Exception e) {
-            log.error("Unexpected error during authentication success handling: {}", e.getMessage(), e);
+            log.error("Error during authentication success handling: {}", e.getMessage(), e);
             response.sendRedirect("/auth/login?error=auth_error");
         }
     }

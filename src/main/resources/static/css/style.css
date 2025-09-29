@@ -1,110 +1,160 @@
-/* General Styles */
-body {
-    font-family: 'Arial', sans-serif;
-    color: #333;
-    background-color: #f8f9fa;
+/* Custom Styles for Tabitomo Header and Global Theme */
+
+/* 색상 변수 정의: 부트스트랩 기본값을 대체합니다. */
+:root {
+    --color-primary: #5D6C7E;    /* Urban Blue (메인 색상) */
+    --color-point: #E88326;     /* Terracotta Orange (포인트 색상/경고) */
+    --color-accent: #293341;    /* Dark Navy (강조 색상/헤더 & 푸터 배경) */
+    --color-secondary: #F2F4F7; /* Light Gray (보조 색상) */
+
+    /* [★★핵심 수정 사항★★] 부트스트랩의 기본 primary 색상을 메인 색상으로 재정의합니다. */
+    --bs-primary: var(--color-primary);
+    --bs-primary-rgb: 93, 108, 126; /* #5D6C7E의 RGB 값 */
+
+    /* [추가] 부트스트랩 버튼 관련 변수를 명시적으로 재정의하여 btn-primary가 Urban Blue를 따르도록 합니다. */
+    --bs-btn-bg: var(--color-primary);
+    --bs-btn-border-color: var(--color-primary);
+    --bs-btn-hover-bg: #4C5969; /* 약간 어두운 Urban Blue */
+    --bs-btn-hover-border-color: #4C5969;
+    --bs-btn-active-bg: #4C5969;
+    --bs-btn-active-border-color: #4C5969;
 }
 
-.container {
-    max-width: 1200px;
-}
-
-/* Header */
+/* Header/Navbar 통합 스타일 */
 .navbar {
-    background-color: #fff;
-    box-shadow: 0 2px 4px rgba(0,0,0,.05);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    padding: 1.5rem 1rem;
+}
+/* [★★핵심 수정 사항★★] bg-dark 클래스가 Dark Navy(--color-accent)를 사용하도록 강제합니다. */
+.navbar.bg-dark {
+    background-color: var(--color-accent) !important;
 }
 
-.navbar-brand {
-    font-weight: bold;
-    color: #007bff !important;
+/* 로고 이미지 스타일 */
+#logo {
+    width: 45px;
+    height: 45px;
 }
 
+/* 로고/브랜드 스타일 */
+.navbar-brand h1 {
+    font-size: 2.05rem;
+    font-weight: 700;
+    color: var(--color-secondary) !important;
+    transition: color 0.3s;
+}
+
+.navbar-brand h1:hover {
+    color: var(--color-point) !important;
+}
+
+/* 네비게이션 링크 스타일 */
 .nav-link {
-    color: #555 !important;
+    color: var(--color-secondary) !important;
+    font-size: 1.05rem;
+    padding: 0.75rem 1rem;
+    transition: color 0.3s, background-color 0.3s;
+    border-radius: 4px;
 }
 
-.nav-link.active {
-    color: #007bff !important;
-    font-weight: bold;
+/* Active 링크 스타일 및 Hover 효과 */
+.nav-link.active,
+.nav-link:hover {
+    color: var(--color-point) !important;
+    background-color: rgba(255, 255, 255, 0.05);
+    font-weight: 600;
 }
 
-/* Hero Section */
-.hero-section {
-    background-color: #e9ecef;
-    color: #333;
+/* 드롭다운 메뉴 스타일 */
+.dropdown-menu {
+    background-color: var(--color-accent);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.hero-section h1 {
-    color: #007bff;
+.dropdown-item {
+    color: var(--color-secondary);
+    transition: background-color 0.2s, color 0.2s;
 }
 
-/* Popular Destinations & Testimonials */
-.card {
-    border: none;
-    box-shadow: 0 4px 8px rgba(0,0,0,.1);
-    transition: transform 0.2s ease-in-out;
-}
-
-.card:hover {
-    transform: translateY(-5px);
-}
-
-.card-img-top {
-    width: 100%;
-    height: 200px; /* Fixed height for images */
-    object-fit: cover; /* Ensures images cover the area without distortion */
-    aspect-ratio: 3/2; /* Ensures a consistent aspect ratio for all images */
-}
-
-/* Features Section */
-.feature-icon {
-    width: 80px;
-    height: 80px;
-    line-height: 80px;
-    font-size: 2.5rem;
-    margin: 0 auto;
-    background-color: #007bff;
+.dropdown-item:hover {
+    background-color: var(--color-primary);
     color: #fff;
 }
 
-/* Footer */
-.footer {
-    background-color: #343a40;
-    color: #f8f9fa;
-    padding: 3rem 0;
+/* 우측 버튼 그룹 스타일 */
+.navbar .btn-outline-light {
+    color: var(--color-secondary);
+    border-color: var(--color-secondary);
+    transition: all 0.3s;
 }
 
-.footer a {
-    color: #f8f9fa;
+.navbar .btn-outline-light:hover {
+    background-color: var(--color-primary);
+    color: #fff;
+    border-color: var(--color-primary);
+}
+
+/* 포인트 색상(Terracotta Orange)을 활용한 버튼 스타일 재정의 */
+.navbar .btn-warning {
+    background-color: var(--color-point);
+    border-color: var(--color-point);
+    color: var(--color-accent);
+    font-weight: 600;
+}
+
+.navbar .btn-warning:hover {
+    background-color: #d17522;
+    border-color: #d17522;
+}
+
+/* 사용자 닉네임 텍스트 */
+.navbar-text {
+    color: var(--color-secondary) !important;
+}
+
+/* 모바일 토글러 아이콘 색상 조정 */
+.navbar-toggler {
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28242, 244, 247, 0.55%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+}
+
+/* Footer Styles */
+.footer-custom {
+    background-color: var(--color-accent);
+    color: var(--color-secondary);
+    box-shadow: 0 -4px 6px rgba(0,0,0,0.1);
+}
+
+.footer-custom h5 {
+    color: var(--color-secondary);
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.footer-custom p {
+    font-size: 0.9rem;
+}
+
+.footer-custom a {
+    color: var(--color-secondary);
     text-decoration: none;
+    transition: color 0.3s;
 }
 
-.footer a:hover {
-    color: #007bff;
+.footer-custom a:hover {
+    color: var(--color-point);
 }
 
-/* Language Switcher */
-.language-switcher {
-    margin-left: auto;
+.footer-custom .social-links a {
+    font-size: 1.5rem;
 }
 
-.language-switcher .btn {
-    color: #007bff;
-    border-color: #007bff;
-}
-
-.language-switcher .btn:hover {
-    background-color: #007bff;
-    color: #fff;
-}
-
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-    .hero-section h1 {
-        font-size: 2.5rem;
-    }
-    .hero-section p {
-        font-size: 1rem;
-    }
+.footer-custom hr {
+    background-color: var(--color-primary);
+    border: none;
+    height: 1px;
+    margin: 1.5rem 0;
 }

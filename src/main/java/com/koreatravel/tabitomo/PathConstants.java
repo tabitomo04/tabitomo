@@ -13,19 +13,16 @@ public interface PathConstants {
     public static final String MEMBER = BASE + "/member";
     public static final String MYPAGE = "/mypage";
     public static final String MEMBER_INFO = MEMBER + "/info";
-    public static final String MEMBER_UPDATE = MEMBER + "/update";
     public static final String MEMBER_DELETE = MEMBER + "/delete";
 
     // 질문 페이지
     public static final String QUESTION = BASE + "/question";
     public static final String QUESTION_START = QUESTION + "/start";
     public static final String QUESTION_FORM = QUESTION + "/form";
+    public static final String QUESTION_SUBMIT = QUESTION + "/submit";
     public static final String QUESTION_COMPLETE = QUESTION + "/complete";
 
     // 여행
-
-
-    // 여행 스토리북
     public static final String STORYBOOK = "/storybook";
     public static final String STORYBOOK_LIST = STORYBOOK + "/list";
     public static final String STORYBOOK_DETAIL = STORYBOOK + "/detail";

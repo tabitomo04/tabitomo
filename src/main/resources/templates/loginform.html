@@ -129,12 +129,12 @@
 
         <!-- 이메일 저장 및 자동 로그인 -->
         <div class="mb-3 form-check">
-          <input type="checkbox" class="form-check-input" id="rememberEmail" name="remember-email" th:checked="${rememberEmail != null ? rememberEmail : false}">
+          <input type="checkbox" class="form-check-input" id="rememberEmail" name="remember-email">
           <label class="form-check-label" for="rememberEmail" data-translatable>이메일 저장</label>
         </div>
         <div class="mb-4 form-check">
-          <input type="checkbox" class="form-check-input" id="autoLogin" name="remember-me">
-          <label class="form-check-label" for="autoLogin" data-translatable>자동 로그인</label>
+          <input type="checkbox" class="form-check-input" id="rememberMe" name="remember-me">
+          <label class="form-check-label" for="rememberMe" data-translatable>자동 로그인</label>
           <div class="form-text small text-muted" data-translatable>공용 컴퓨터에서는 사용을 권장하지 않습니다.</div>
         </div>
 
@@ -261,6 +261,7 @@ function handleLoginSubmit(event) {
     const loginButton = document.getElementById('loginButton');
     const loginSpinner = document.getElementById('loginSpinner');
     const loginText = document.getElementById('loginText');
+    const rememberEmail = document.getElementById('rememberEmail');
     
     // 간단한 유효성 검사
     if (!email) {
@@ -273,6 +274,15 @@ function handleLoginSubmit(event) {
         event.preventDefault();
         showError('비밀번호를 입력해주세요.', 'password');
         return false;
+    }
+    
+    // 이메일 저장 처리
+    if (rememberEmail && rememberEmail.checked) {
+        // 쿠키에 이메일 저장 (30일 유효기간)
+        document.cookie = `savedEmail=${encodeURIComponent(email)}; path=/; max-age=${60 * 60 * 24 * 30}; samesite=lax`;
+    } else {
+        // 저장된 이메일 쿠키 삭제
+        document.cookie = 'savedEmail=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; samesite=lax';
     }
     
     // 로딩 상태 표시
@@ -337,11 +347,25 @@ function showError(message, fieldId) {
     }
 }
 
+// 쿠키에서 값 가져오기
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
-    // 저장된 이메일이 있으면 포커스 이동
+    // 저장된 이메일이 있으면 필드에 설정
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
-    if (emailInput.value) {
+    const rememberEmailCheckbox = document.getElementById('rememberEmail');
+    
+    // 저장된 이메일이 있으면 필드에 설정하고 체크박스 체크
+    const savedEmail = getCookie('savedEmail');
+    if (savedEmail) {
+        emailInput.value = decodeURIComponent(savedEmail);
+        rememberEmailCheckbox.checked = true;
         passwordInput.focus();
     } else {
         emailInput.focus();
@@ -406,20 +430,26 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // 자동 로그인 체크박스 이벤트 리스너
-    const autoLoginCheckbox = document.getElementById('autoLogin');
     const rememberMeCheckbox = document.getElementById('rememberMe');
     
-    if (autoLoginCheckbox && rememberMeCheckbox) {
-        autoLoginCheckbox.addEventListener('change', function() {
-            if (this.checked) {
-                rememberMeCheckbox.checked = true;
+    // 이메일 저장 체크박스 변경 시 처리
+    if (rememberEmailCheckbox) {
+        rememberEmailCheckbox.addEventListener('change', function() {
+            // 이메일 저장을 해제하면 자동 로그인도 해제
+            if (!this.checked && rememberMeCheckbox) {
+                rememberMeCheckbox.checked = false;
             }
         });
-        
-        // 자동 로그인이 체크되어 있으면 로그인 상태 유지도 체크
-        if (autoLoginCheckbox.checked) {
-            rememberMeCheckbox.checked = true;
-        }
+    }
+    
+    // 자동 로그인 체크박스 변경 시 처리
+    if (rememberMeCheckbox) {
+        rememberMeCheckbox.addEventListener('change', function() {
+            // 자동 로그인을 체크하면 이메일 저장도 체크
+            if (this.checked && rememberEmailCheckbox) {
+                rememberEmailCheckbox.checked = true;
+            }
+        });
     }
 });
 </script>

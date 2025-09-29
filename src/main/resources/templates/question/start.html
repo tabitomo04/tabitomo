@@ -2,63 +2,101 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>여행 취향 설문 시작</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        .question-container {
-            max-width: 800px;
-            margin: 2rem auto;
-            padding: 2rem;
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-        }
-        .btn-start {
-            padding: 12px 30px;
-            font-size: 1.2rem;
-            font-weight: 600;
-            background-color: #4e73df;
-            border: none;
-            border-radius: 50px;
-            transition: all 0.3s;
-        }
-        .btn-start:hover {
-            background-color: #2e59d9;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(78, 115, 223, 0.3);
-        }
-    </style>
-</head>
+<!-- Head 프래그먼트로 교체하여 모든 CSS, JS, Meta 정보를 로드합니다. -->
+<head th:replace="~{fragments/header :: head}"></head>
 <body class="bg-light">
-    <div th:replace="fragments/header :: header"></div>
-    
-    <div class="container">
-        <div class="question-container text-center">
-            <h1 class="mb-4">여행 취향 설문 조사</h1>
-            <p class="lead mb-4">
-                당신의 여행 취향을 파악하여 맞춤형 여행 추천을 받아보세요.<br>
-                설문은 약 3분 정도 소요되며, 더 나은 서비스 제공을 위해 꼭 참여해 주세요!
-            </p>
-            <div class="my-5">
-                <i class="fas fa-4x fa-clipboard-check text-primary mb-4"></i>
-            </div>
-            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-                <a th:href="@{/question/form}" class="btn btn-primary btn-lg px-4 me-sm-3">
-                    <i class="fas fa-play me-2"></i> 시작하기
-                </a>
-                <a th:href="@{/}" class="btn btn-outline-secondary btn-lg px-4">
-                    <i class="fas fa-home me-2"></i> 나중에 하기
-                </a>
-            </div>
+<!-- 헤더 영역 (물결표 구문 적용) -->
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="container">
+    <div class="question-container text-center">
+        <h1 class="mb-4 text-accent fw-bold" data-translatable>여행 취향 설문 조사</h1>
+        <p class="lead mb-4 text-muted" data-translatable>
+            당신의 여행 취향을 파악하여 맞춤형 여행 추천을 받아보세요.<br>
+            설문은 약 3분 정도 소요되며, 더 나은 서비스 제공을 위해 꼭 참여해 주세요!
+        </p>
+        <div class="my-5">
+            <!-- 아이콘 색상을 Primary Color로 유지 -->
+            <i class="fas fa-4x fa-clipboard-check text-primary-tabitomo mb-4"></i>
+        </div>
+        <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+            <a th:href="@{/question/form}" class="btn btn-primary btn-start-primary" data-translatable>
+                <i class="fas fa-play me-2"></i> 시작하기
+            </a>
+            <a th:href="@{/}" class="btn btn-outline-secondary btn-start-outline" data-translatable>
+                <i class="fas fa-home me-2"></i> 나중에 하기
+            </a>
         </div>
     </div>
+</div>
 
-    <div th:replace="fragments/footer :: footer"></div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- 푸터 영역 (물결표 구문 적용) -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<!-- 추가적인 CSS 및 JS는 style.css와 header.html에서 로드된 것을 사용합니다. -->
+<style>
+    /*
+     * Tabitomo 색상 변수들은 header :: head 프래그먼트를 통해 로드된
+     * style.css 또는 bootstrap-fixes.css에서 정의된다고 가정합니다.
+     */
+
+    .bg-light {
+        background-color: var(--color-secondary) !important;
+    }
+
+    .question-container {
+        max-width: 800px;
+        margin: 5rem auto;
+        padding: 3rem;
+        background-color: #fff;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .text-accent {
+        color: var(--color-accent) !important;
+    }
+
+    /* 시작하기 버튼 (Point Color: Terracotta Orange 적용) */
+    .btn-start-primary {
+        padding: 15px 40px;
+        font-size: 1.2rem;
+        font-weight: 700;
+        background-color: var(--color-point) !important;
+        border-color: var(--color-point) !important;
+        color: #fff;
+        border-radius: 50px;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(232, 131, 38, 0.4);
+    }
+    .btn-start-primary:hover {
+        background-color: #d17522 !important;
+        border-color: #d17522 !important;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(232, 131, 38, 0.5);
+    }
+
+    /* 나중에 하기 버튼 (Primary Color: Urban Blue 아웃라인 적용) */
+    .btn-start-outline {
+        padding: 15px 40px;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--color-primary);
+        border-color: var(--color-primary);
+        background-color: transparent;
+        border-radius: 50px;
+        transition: all 0.3s;
+    }
+    .btn-start-outline:hover {
+        background-color: var(--color-primary);
+        color: #fff;
+    }
+
+    /* 아이콘 색상 (Primary Color 적용) */
+    .text-primary-tabitomo {
+        color: var(--color-primary) !important;
+    }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

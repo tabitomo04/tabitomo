@@ -4,7 +4,6 @@ import com.koreatravel.tabitomo.domain.dto.chat.ChatRequest;
 import com.koreatravel.tabitomo.domain.dto.chat.ChatResponse;
 import com.koreatravel.tabitomo.repository.chat.SynonymRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 // AnswerService.java

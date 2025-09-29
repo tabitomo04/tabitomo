@@ -20,22 +20,12 @@
             transform: translateY(-5px);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
-        .day-nav {
-            position: sticky;
-            top: 0;
-            background: white;
-            z-index: 1000;
-            padding: 1rem 0;
-            margin-bottom: 1rem;
-            border-bottom: 1px solid #eee;
-        }
     </style>
 </head>
 
 <body>
 
 <div th:replace="~{fragments/header :: header}"></div>
-<div th:replace="~{fragments/menu :: menu}"></div>
 
 <div class="container mt-4">
     <div class="progress mb-4">
@@ -46,35 +36,90 @@
     <div class="alert alert-info">
         <i class="fas fa-info-circle me-2"></i>
         <span th:if="${tripPlan != null}">
-            <span th:text="|${tripPlan.destination}|" data-translatable></span><span data-translatable>에서의</span> <span th:text="|${tripPlan.styles}|" data-translatable></span><span data-translatable> 여행을 위한 맞춤 추천입니다.</span>
+            <span th:text="|${tripPlan.destination}|"></span><span data-translatable>에서의</span> <span th:text="|${tripPlan.styles}|"></span><span data-translatable> 여행을 위한 맞춤 추천입니다.</span>
         </span>
         <span th:unless="${tripPlan != null}" data-translatable>여행 정보를 불러오는 중입니다...</span>
     </div>
 
-    <div class="card mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0" data-translatable>추천 여행지 지도</h5>
+    <div class="row">
+        <!-- Left column for itinerary -->
+        <div class="col-md-7">
+            <!-- Itinerary Content -->
+            <div id="itinerary-content">
+                <div th:each="daily : ${tripPlan.dailySchedules}">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5><span data-translatable>Day</span> <span th:text="${daily.day}">1</span> <span data-translatable>일정</span></h5>
+                        </div>
+                        <div class="card-body">
+                            <div th:if="${daily.schedules != null and not #lists.isEmpty(daily.schedules)}">
+                                <div th:each="item : ${daily.schedules}" class="card mb-2 itinerary-item">
+                                    <div class="card-body p-2">
+                                        <h6 class="card-title" th:text="${item.place}" data-translatable>장소 이름</h6>
+                                        <p class="card-text mb-1">
+                                            <small class="text-muted">
+                                                <i class="far fa-clock me-1"></i>
+                                                <span th:if="${item.startTime}" th:text="${item.startTime + ' - ' + (item.endTime != null ? item.endTime : '')}"></span>
+                                                <span th:unless="${item.startTime}" data-translatable>시간 정보 없음</span>
+                                            </small>
+                                        </p>
+                                        <p class="card-text mb-1" th:text="${item.description}" data-translatable>설명</p>
+                                        <p class="card-text mb-0">
+                                            <small class="text-muted">
+                                                <i class="fas fa-map-marker-alt me-1"></i>
+                                                <span th:text="${item.address}" data-translatable>주소</span>
+                                            </small>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div th:unless="${daily.schedules != null and not #lists.isEmpty(daily.schedules)}">
+                                <p class="text-muted" data-translatable>해당 날짜에 추천 일정이 없습니다.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="card-body p-0">
-            <div id="map" class="map-container"></div>
-        </div>
-    </div>
+        <!-- Right column for map and accommodation -->
+        <div class="col-md-5">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0" data-translatable>추천 여행지 지도</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div id="map" class="map-container"></div>
+                </div>
+            </div>
 
-    <div class="day-nav">
-        <ul class="nav nav-pills" id="dayTabs" role="tablist"></ul>
-    </div>
-
-    <div class="tab-content" id="dayTabsContent">
-        <!-- Itinerary panes will be rendered here by JS -->
-    </div>
-
-    <!-- Accommodation Section -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-hotel me-2"></i><span data-translatable>추천 숙소</span></h5>
-        </div>
-        <div class="card-body" id="accommodationArea">
-            <!-- Accommodations will be rendered here by JS -->
+            <!-- Accommodation Section -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-hotel me-2"></i><span data-translatable>추천 숙소</span></h5>
+                </div>
+                <div class="card-body" id="accommodationArea">
+                    <div th:if="${tripPlan.accommodation != null and tripPlan.accommodation.placeName != null}">
+                        <div class="card mb-3">
+                            <div class="row g-0">
+                                <div class="col-md-4">
+                                    <img th:src="${tripPlan.accommodation.imageUrl != null ? tripPlan.accommodation.imageUrl : 'https://via.placeholder.com/300x200'}" class="img-fluid rounded-start" th:alt="${tripPlan.accommodation.placeName}">
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="card-body">
+                                        <h5 class="card-title" th:text="${tripPlan.accommodation.placeName}" data-translatable>숙소 이름</h5>
+                                        <p class="card-text" th:text="${tripPlan.accommodation.description}" data-translatable>설명</p>
+                                        <p class="card-text"><small class="text-muted"><i class="fas fa-map-marker-alt me-1"></i><span th:text="${tripPlan.accommodation.address}" data-translatable>주소</span></small></p>
+                                        <p class="card-text"><small class="text-muted"><span data-translatable>예상 가격:</span> <span th:text="${tripPlan.accommodation.priceRange != null ? tripPlan.accommodation.priceRange : '정보 없음'}"></span></small></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:unless="${tripPlan.accommodation != null and tripPlan.accommodation.placeName != null}">
+                         <p class="text-muted" data-translatable>추천 숙소 정보가 없습니다.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -96,80 +141,6 @@
         if (!tripPlan) {
             console.error("Trip plan data is not available.");
             return;
-        }
-
-        function renderItineraryAndTabs() {
-            const dayTabsContainer = document.getElementById('dayTabs');
-            const tabContentContainer = document.getElementById('dayTabsContent');
-            dayTabsContainer.innerHTML = '';
-            tabContentContainer.innerHTML = '';
-
-            tripPlan.dailySchedules.forEach((daily, idx) => {
-                const li = document.createElement('li');
-                li.className = 'nav-item';
-                const btn = document.createElement('button');
-                btn.className = 'nav-link' + (idx === 0 ? ' active' : '');
-                btn.id = `day${daily.day}-tab`;
-                btn.type = 'button';
-                btn.setAttribute('data-bs-toggle', 'pill');
-                btn.setAttribute('data-bs-target', `#day-pane-${daily.day}`);
-                btn.innerHTML = `<span data-translatable>Day</span> ${daily.day}`;
-                li.appendChild(btn);
-                dayTabsContainer.appendChild(li);
-
-                const tabPane = document.createElement('div');
-                tabPane.className = 'tab-pane fade' + (idx === 0 ? ' show active' : '');
-                tabPane.id = `day-pane-${daily.day}`;
-                tabPane.setAttribute('role', 'tabpanel');
-
-                let html = `<div class="card mb-4"><div class="card-header"><h5><span data-translatable>Day</span> ${daily.day} <span data-translatable>일정</span></h5></div><div class="card-body">`;
-                if (daily.schedules && daily.schedules.length > 0) {
-                    daily.schedules.forEach(item => {
-                        const timeText = item.startTime ? `${item.startTime} - ${item.endTime || ''}` : `<span data-translatable>시간 정보 없음</span>`;
-                        html += `<div class="card mb-3 itinerary-item">
-                            <div class="card-body">
-                                <h5 class="card-title" data-translatable>${item.place || ''}</h5>
-                                <p class="card-text"><small class="text-muted"><i class="far fa-clock me-1"></i> ${timeText}</small></p>
-                                <p class="card-text" data-translatable>${item.description || ''}</p>
-                                <p class="card-text"><small class="text-muted"><i class="fas fa-map-marker-alt me-1"></i><span data-translatable>${item.address || ''}</span></small></p>
-                            </div>
-                        </div>`;
-                    });
-                } else {
-                    html += `<p class="text-muted" data-translatable>해당 날짜에 추천 일정이 없습니다.</p>`;
-                }
-                html += `</div></div>`;
-                tabPane.innerHTML = html;
-                tabContentContainer.appendChild(tabPane);
-            });
-            if (window.translationManager) window.translationManager.applyCurrentLanguage(document.body);
-        }
-
-        function renderAccommodations() {
-            const area = document.getElementById('accommodationArea');
-            const acc = tripPlan.accommodation;
-            if (!acc || !acc.placeName) {
-                area.innerHTML = '<p class="text-muted" data-translatable>추천 숙소 정보가 없습니다.</p>';
-            } else {
-                const priceText = acc.priceRange ? `<span data-translatable>${acc.priceRange}</span>` : `<span data-translatable>정보 없음</span>`;
-                let html = `<div class="card mb-3">
-                    <div class="row g-0">
-                        <div class="col-md-4">
-                            <img src="${acc.imageUrl || 'https://via.placeholder.com/300x200'}" class="img-fluid rounded-start" alt="${acc.placeName}">
-                        </div>
-                        <div class="col-md-8">
-                            <div class="card-body">
-                                <h5 class="card-title" data-translatable>${acc.placeName}</h5>
-                                <p class="card-text" data-translatable>${acc.description || ''}</p>
-                                <p class="card-text"><small class="text-muted"><i class="fas fa-map-marker-alt me-1"></i><span data-translatable>${acc.address || ''}</span></small></p>
-                                <p class="card-text"><small class="text-muted"><span data-translatable>예상 가격:</span> ${priceText}</small></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>`;
-                area.innerHTML = html;
-            }
-            if (window.translationManager) window.translationManager.applyCurrentLanguage(document.body);
         }
 
         function initMapWithTripData() {
@@ -205,8 +176,6 @@
             }
         }
 
-        renderItineraryAndTabs();
-        renderAccommodations();
         initMapWithTripData();
     });
 </script>

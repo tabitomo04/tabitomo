@@ -23,16 +23,7 @@
   <link rel="stylesheet" th:href="@{/css/style.css}">
   <link rel="stylesheet" th:href="@{/css/modal.css}">
 
-  <!--CKEditor js-->
-  <script src="https://cdn.ckeditor.com/ckeditor5/46.0.1/ckeditor5.umd.js" crossorigin></script>
-  <script src="https://cdn.ckeditor.com/ckeditor5/46.0.1/translations/ko.umd.js" crossorigin></script>
-  <script src="https://cdn.ckbox.io/ckbox/2.6.1/ckbox.js" crossorigin></script>
-
   <script th:src="@{/js/jquery-3.7.1.min.js}"></script>
-  <script th:src="@{/js/main.js}"></script>
-  <script th:src="@{/js/modal.js}"></script>
-
-
 
   <script>
     // 유튜브 출력 코드
@@ -77,10 +68,6 @@ document.addEventListener('click', function(e) {
 
 <!-- Header -->
 <div th:insert="~{fragments/header :: header}"></div>
-
-<!-- Navigation Menu -->
-<div th:insert="~{fragments/menu :: menu}"></div>
-
 
 <div class="story-container">
   <!-- 태그 -->

@@ -12,7 +12,7 @@
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background: #4e73df;
+    background: #5D6C7E;
     color: white;
     border: none;
     font-size: 24px;
@@ -24,7 +24,7 @@
     transition: all 0.3s ease;
 }
 .chatbot-toggle:hover {
-    background: #2e59d9;
+    background: #4A5B6F;
     transform: scale(1.1);
 }
 .chatbot-iframe-container {
@@ -49,7 +49,7 @@
     right: -15px;
     width: 30px;
     height: 30px;
-    background: #ff4d4f;
+    background: #E88326;
     color: white;
     border: 2px solid white;
     border-radius: 50%;
@@ -63,7 +63,7 @@
     transition: all 0.2s ease;
 }
 .chatbot-close-btn:hover {
-    background: #ff7875;
+    background: #E88326;
     transform: scale(1.1);
 }
 .chatbot-iframe {
@@ -112,7 +112,7 @@ body, html {
     font-family: 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: #f7f7f7;
+    background-color: #F2F4F7;
     display: flex;
     flex-direction: column;
     line-height: 1.5;
@@ -130,8 +130,8 @@ body, html {
 }
 
 .chat-header {
-    background-color: #4e73df;
-    color: white;
+    background-color: #293341;
+    color: #F2F4F7;
     padding: 15px 20px;
     display: flex;
     justify-content: space-between;
@@ -176,13 +176,13 @@ body, html {
 
 .message.user {
     align-self: flex-end;
-    background-color: #4e73df;
+    background-color: #E88326;
     color: white;
     border-bottom-right-radius: 4px;
     margin-right: 15px;
 }
 
-/* ✅ 핵심 수정: 봇 메시지 말풍선 스타일 */
+/* 봇 메시지 말풍선 스타일 */
 .message.bot {
     background-color: white;
     border-bottom-left-radius: 4px;
@@ -220,7 +220,7 @@ body, html {
 /* 프로필 이름 */
 .profile-name {
     font-weight: bold;
-    color: #4e73df;
+    color: #5D6C7E;
     font-size: 14px;
     margin: 0; /* 불필요한 마진 제거 */
 }
@@ -234,7 +234,7 @@ body, html {
 .loading-dot {
     width: 8px;
     height: 8px;
-    background-color: #4e73df;
+    background-color: #5D6C7E;
     border-radius: 50%;
     margin: 0 4px;
     animation: bounce 0.6s infinite ease-in-out;
@@ -279,13 +279,13 @@ body, html {
 }
 
 .chat-input input:focus {
-    border-color: #4e73df;
+    border-color: #5D6C7E;
 }
 
 .chat-input button {
-    background-color: #4e73df;
+    background-color: #5D6C7E;
     border: none;
-    color: white;
+    color: #F2F4F7;
     border-radius: 50%;
     width: 40px;
     height: 40px;
@@ -298,7 +298,7 @@ body, html {
 }
 
 .chat-input button:hover {
-    background-color: #2e59d9;
+    background-color: #4A5B6F;
 }
 
 .category-container {
@@ -379,7 +379,7 @@ body, html {
 }
 
 .category-buttons button, .question-list div {
-    background-color: #f0f2f5;
+    background-color: #F2F4F7;
     border: 1px solid #e0e2e5;
     border-radius: 20px;
     padding: 10px 15px;
@@ -390,14 +390,17 @@ body, html {
     flex-shrink: 0;
 }
 
+/* 카테고리 및 질문 버튼 호버 색상 변경 */
 .category-buttons button:hover, .question-list div:hover {
-    background-color: #e2e8f0;
+    background-color: #F2F4F7; /* 배경색은 그대로 유지 */
+    color: #E88326; /* 텍스트 색상 변경 */
+    border-color: #E88326; /* 테두리 색상 변경 */
 }
 
 /* 기타 UI 스타일 (모달, 피드백 등) */
 .feedback-area {
     padding: 5px 15px; /* 좌우 패딩을 추가하여 버튼이 너무 끝에 붙지 않도록 조정 */
-    background-color: #e6eefc;
+    background-color: #E6EAFC;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -416,8 +419,8 @@ body, html {
 
 .feedback-buttons button {
     background-color: transparent;
-    border: 1px solid #4e73df;
-    color: #4e73df;
+    border: 1px solid #5D6C7E;
+    color: #5D6C7E;
     padding: 4px 10px; /* 패딩을 줄여서 버튼 크기 조정 */
     border-radius: 16px;
     font-size: 12px; /* 폰트 크기 조정 */
@@ -427,14 +430,14 @@ body, html {
 }
 
 .feedback-buttons button:hover {
-    background-color: #4e73df;
+    background-color: #5D6C7E;
     color: white;
 }
 
 .feedback-area p {
     margin: 0;
     font-size: 14px;
-    color: #4e73df;
+    color: #5D6C7E;
     font-weight: 500;
 }
 /* 모달 오버레이 */
@@ -509,7 +512,7 @@ body, html {
 }
 
 .rating-stars .star-filled {
-    color: gold;
+    color: #FFD700;
     filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
 }
 
@@ -530,34 +533,34 @@ body, html {
 }
 
 #feedback-modal textarea:focus {
-    border-color: #4e73df;
-    box-shadow: 0 0 0 3px rgba(78, 115, 223, 0.1);
+    border-color: #E88326;
+    box-shadow: 0 0 0 3px rgba(232, 131, 38, 0.15); /* E88326에 투명도 적용 */
 }
 
 /* 피드백 제출 버튼 */
 #submit-feedback-btn {
     width: 100%;
     padding: 12px;
-    background-color: #4e73df;
-    color: white;
+    background-color: #5D6C7E;
+    color: #F2F4F7;
     border: none;
     border-radius: 8px;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 4px 15px rgba(78, 115, 223, 0.2);
+    box-shadow: 0 4px 15px rgba(93, 108, 126, 0.2);
 }
 
 #submit-feedback-btn:hover {
-    background-color: #2e59d9;
+    background-color: #4A5B6F;
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(78, 115, 223, 0.3);
+    box-shadow: 0 6px 20px rgba(93, 108, 126, 0.3);
 }
 
 #submit-feedback-btn:active {
     transform: translateY(0);
-    box-shadow: 0 2px 10px rgba(78, 115, 223, 0.2);
+    box-shadow: 0 2px 10px rgba(93, 108, 126, 0.2);
 }
 
 /* 모바일 반응형 */
@@ -571,9 +574,9 @@ body, html {
 }
 
 #language-select, #new-chat-btn {
-     background-color: white;
+     background-color: #F2F4F7;
         border: none; /* border 대신 box-shadow 사용 */
-        color: #4e73df;
+        color: #293341;
         border-radius: 8px;
         padding: 5px 10px;
         cursor: pointer;
@@ -586,7 +589,7 @@ body, html {
 }
 
 #language-select:hover, #new-chat-btn:hover {
-     background-color: #f0f2f5;
+     background-color: #E0E3E8;
         /* hover 시 그림자 강조 */
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2),
                     inset 0 1px 1px rgba(255, 255, 255, 0.9);
@@ -600,7 +603,7 @@ body, html {
     width: 30px;
     height: 30px;
     background-color: transparent;
-    color: #555;
+    color: #5D6C7E;
     border: none;
     border-radius: 50%;
     font-size: 20px;
@@ -616,6 +619,6 @@ body, html {
 
 /* ✅ 마우스 호버 시 회색 배경 효과 추가 */
 .category-close-btn:hover {
-    background-color: #f0f0f0;
+    background-color: #E0E3E8;
     transform: scale(1.1);
 }

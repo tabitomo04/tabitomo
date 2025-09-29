@@ -1,6 +1,5 @@
 package com.koreatravel.tabitomo.controller.member;
 
-import com.koreatravel.tabitomo.domain.dto.member.CountryDTO;
 import com.koreatravel.tabitomo.domain.dto.member.LanguageDTO;
 import com.koreatravel.tabitomo.domain.dto.member.MemberProfileDTO;
 import com.koreatravel.tabitomo.domain.dto.auth.SignUpDTO;
@@ -46,11 +45,10 @@ import com.koreatravel.tabitomo.service.member.MemberService;
 public class AuthController {
     private final AuthService authService;
     private final MemberService memberService;
+    private final UserDetailsService userDetailsService;
     @SuppressWarnings("unused")
     private final RestTemplate restTemplate;
-    private final UserDetailsService userDetailsService;
 
-    // 로그인 페이지 이동
     @GetMapping("/login")
     public String loginPage(@CookieValue(value = "savedEmail", required = false) String savedEmail,
                           @RequestParam(value = "error", required = false) String error,
@@ -70,12 +68,9 @@ public class AuthController {
 
     @GetMapping("/signup")
     public String signupPage(Model model) {
-        List<CountryDTO> countries = memberService.getAllCountries();
         List<LanguageDTO> languages = memberService.getAllLanguages();
-
-        model.addAttribute("countries", countries);
         model.addAttribute("languages", languages);
-        model.addAttribute("member", new SignUpDTO()); // SignUpDTO 추가
+        model.addAttribute("member", new SignUpDTO());
         return "signupform";
     }
 
@@ -87,18 +82,31 @@ public class AuthController {
             BindingResult result,
             Model model) {
         if (result.hasErrors()) {
-            model.addAttribute("countries", memberService.getAllCountries());
             model.addAttribute("languages", memberService.getAllLanguages());
             return "signupform";
         }
 
-        // Process the signup with country and language
-        authService.signup(member, countryId, languageId);
-        return "redirect:/auth/signup_success";
+        try {
+            // Process the signup with country and language
+            authService.signup(member, countryId, languageId);
+            // Redirect to success page with nickname as a parameter
+            return "redirect:/auth/signup_success?nickname=" + URLEncoder.encode(member.getNickname(), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            log.error("회원가입 처리 중 오류 발생: {}", e.getMessage(), e);
+            model.addAttribute("languages", memberService.getAllLanguages());
+            model.addAttribute("error", "회원가입 처리 중 오류가 발생했습니다.");
+            return "signupform";
+        }
     }
 
     @GetMapping("/signup_success")
-    public String signupSuccess() {
+    public String signupSuccess(@RequestParam(value = "nickname", required = false) String nickname, Model model) {
+        // If nickname is not provided in the URL, show a generic message
+        if (nickname == null || nickname.isEmpty()) {
+            model.addAttribute("nickname", "회원");
+        } else {
+            model.addAttribute("nickname", nickname);
+        }
         return "signup_success";
     }
 

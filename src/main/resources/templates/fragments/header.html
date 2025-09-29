@@ -104,10 +104,10 @@
                 <div class="dropdown" sec:authorize="isAuthenticated()">
                     <button class="btn btn-outline-light btn-sm dropdown-toggle d-flex align-items-center" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-user-circle me-2"></i>
-                        <span sec:authentication="principal.nickname">Nickname</span><span data-translatable>님</span>
+                        <span sec:authentication="principal.nickname">Nickname</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                        <li sec:authorize="hasAuthority('admin')">
+                        <li sec:authorize="hasAuthority('ROLE_ADMIN')">
                             <a class="dropdown-item" th:href="@{/admin}">
                                 <i class="fas fa-user-shield me-2"></i><span data-translatable>관리자 페이지</span>
                             </a>

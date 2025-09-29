@@ -7,7 +7,7 @@
     <title>마이페이지 - Tabitomo</title>
 
     <link rel="stylesheet" th:href="@{/css/mypage.css}">
-    <link rel="stylesheet" th:href="@{/css/modal.css}">
+    <!-- mypage.css에 모달 스타일을 통합했습니다. -->
 
     <!-- header, footer css-->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -17,9 +17,17 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script th:src="@{/js/translation.js}"></script>
     <style>
+        /* Tabitomo Color Variables */
+        :root {
+            --color-primary: #5D6C7E;
+            --color-point: #E88326;
+            --color-secondary: #F2F4F7;
+            --color-accent: #293341;
+        }
+
         .loader {
-            border: 4px solid #f3f3f3; /* Light grey */
-            border-top: 4px solid #3498db; /* Blue */
+            border: 4px solid var(--color-secondary);
+            border-top: 4px solid var(--color-point); /* Point 색상 */
             border-radius: 50%;
             width: 24px;
             height: 24px;
@@ -29,6 +37,35 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+
+        /* Toast Message Styling */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast-message {
+            background-color: var(--color-accent);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(100%);
+            transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .toast-message.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
         }
     </style>
 
@@ -44,68 +81,78 @@
 
 <!-- Main Content -->
 <main class="container py-5">
-    <h1 class="mb-4" data-translatable>마이페이지</h1>
+    <!-- H1 폰트 굵기 강화 -->
+    <h1 class="mb-5 text-center text-accent main-title" data-translatable>마이페이지</h1>
 
     <!-- Message Display -->
-    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show tabitomo-alert" role="alert">
         <span th:text="${successMessage}"></span>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 
-    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show tabitomo-alert" role="alert">
         <span th:text="${errorMessage}"></span>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 
     <div class="row">
         <!-- Left Column -->
-        <div class="col-md-6">
+        <div class="col-md-6 tabitomo-column">
             <!-- User Info -->
-            <section class="mb-5" sec:authorize="isAuthenticated()">
-                <h2 class="h3 mb-3" data-translatable>회원 정보</h2>
-                <div class="card">
-                    <div class="card-body">
-                        <p class="card-text">
-                            <strong data-translatable>닉네임:</strong>
-                            <span th:text="${profile.nickname}"></span>
-                        </p>
-                        <p class="card-text">
-                            <strong data-translatable>이메일:</strong>
-                            <span th:text="${profile.email}"></span>
-                        </p>
-                        <button type="button" class="btn btn-danger mt-3" data-bs-toggle="modal" data-bs-target="#withdrawalModal" data-translatable>
-                            회원 탈퇴
-                        </button>
+            <section class="tabitomo-section" sec:authorize="isAuthenticated()">
+                <h2 class="h3 mb-3 text-primary section-title" data-translatable>회원 정보</h2>
+                <div class="card tabitomo-card-info">
+                    <div class="card-body d-flex align-items-center">
+                        <!-- 프로필 이미지 -->
+                        <div class="profile-image-area me-4 flex-shrink-0">
+                            <img th:src="@{/image/profile.png}" alt="프로필 이미지" class="profile-img">
+                        </div>
+
+                        <!-- 닉네임, 이메일, 버튼 -->
+                        <div class="flex-grow-1">
+                            <p class="card-text">
+                                <strong data-translatable>닉네임:</strong>
+                                <span th:text="${profile.nickname}"></span>
+                            </p>
+                            <p class="card-text mb-3">
+                                <strong data-translatable>이메일:</strong>
+                                <span th:text="${profile.email}"></span>
+                            </p>
+                            <button type="button" class="btn btn-danger tabitomo-btn-danger" data-bs-toggle="modal" data-bs-target="#withdrawalModal" data-translatable>
+                                회원 탈퇴
+                            </button>
+                        </div>
                     </div>
                 </div>
             </section>
 
             <!-- 내 스토리북 -->
-            <section class="story-section py-3">
+            <section class="story-section tabitomo-section py-3">
                 <div class="section-header">
-                    <h2 class="h3 mb-3" data-translatable>내 스토리북</h2>
+                    <h2 class="h3 mb-3 text-primary section-title" data-translatable>내 스토리북</h2>
                     <div class="story-buttons">
-                        <a class="storybtn" id="templistBtn" data-translatable>임시저장본</a>
-                        <a class="storybtn primary" onclick="checkTemp()" th:href="@{'/storybook/write'}" data-translatable>새 스토리 작성</a>
+                        <!-- mypage.css에서 .storybtn 스타일을 변경했습니다. -->
+                        <a class="storybtn tabitomo-btn-outline" id="templistBtn" data-translatable>임시저장본</a>
+                        <a class="storybtn tabitomo-btn-point" onclick="checkTemp()" th:href="@{'/storybook/write'}" data-translatable>새 스토리 작성</a>
                     </div>
                 </div>
-                <div th:if="${storyPage == null}" class="alert alert-info" role="alert" data-translatable>당신의 여행 스토리북을 만들어보세요!</div>
+                <div th:if="${storyPage == null}" class="alert alert-info tabitomo-alert" role="alert" data-translatable>당신의 여행 스토리북을 만들어보세요!</div>
 
 
                 <!-- 리스트 -->
-                <div class="list-group" th:unless="${storyPage.empty}">
+                <div class="list-group tabitomo-list-group" th:unless="${storyPage.empty}">
                     <div th:each="story : ${storyPage}"
-                         class="list-group-item d-flex justify-content-between align-items-start">
+                         class="list-group-item d-flex justify-content-between align-items-start tabitomo-list-item">
                         <div class="flex-grow-1 me-3">
-                            <h6 class="mb-1 fw-bold fs-5" th:text="${story.title}" data-translatable>제목</h6>
-                            <small class="mb-1 fs-7 text-muted" th:text="${story.subtitle}" data-translatable>부제목</small>
+                            <h6 class="mb-1 fw-bold fs-5 text-accent" th:text="${story.title}" data-translatable>제목</h6>
+                            <small class="mb-1 fs-7 text-primary" th:text="${story.subtitle}" data-translatable>부제목</small>
                         </div>
 
-                        <div class="text-end d-flex flex-column justify-content-between">
-                            <div>
+                        <div class="text-end d-flex flex-column justify-content-between align-items-end">
+                            <div class="small fw-bold mb-1">
                                  <span th:text="'❤'"
-                                     th:style="${story.isLiked} ? 'color:red' : 'color:black'"></span>
-                                <span th:text="${story.likes}"></span>
+                                       th:style="${story.isLiked} ? 'color:var(--color-point)' : 'color:#ccc'"></span>
+                                <span class="text-secondary" th:text="${story.likes}"></span>
                             </div>
                             <small class="text-muted"
                                    th:text="${#temporals.format(story.createDate, 'yy.MM.dd')}">
@@ -118,7 +165,7 @@
 
                 <!-- Pagination -->
                 <nav th:if="${storyPage.totalPages > 1}" class="mt-4 d-flex justify-content-center">
-                    <ul class="pagination">
+                    <ul class="pagination tabitomo-pagination">
                         <li class="page-item" th:classappend="${storyPage.first} ? 'disabled'">
                             <a class="page-link" th:href="@{/member/mypage(storyPage=0)}" data-translatable>처음</a>
                         </li>
@@ -139,27 +186,27 @@
                         </li>
                     </ul>
                 </nav>
-        </section>
-    </div>
+            </section>
+        </div>
 
         <!-- Right Column -->
-        <div class="col-md-6">
+        <div class="col-md-6 tabitomo-column">
             <!-- My Trip Plans -->
-            <section>
-                <h2 class="h3 mb-3" data-translatable>나의 여행 계획</h2>
-                <div th:if="${tripsPage.empty}" class="alert alert-info" role="alert" data-translatable>
+            <section class="tabitomo-section">
+                <h2 class="h3 mb-3 text-primary section-title" data-translatable>나의 여행 계획</h2>
+                <div th:if="${tripsPage.empty}" class="alert alert-info tabitomo-alert" role="alert" data-translatable>
                     저장된 여행 계획이 없습니다.
                 </div>
 
-                <div class="list-group" th:unless="${tripsPage.empty}">
-                    <div th:each="trip : ${tripsPage.content}" class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="list-group tabitomo-list-group" th:unless="${tripsPage.empty}">
+                    <div th:each="trip : ${tripsPage.content}" class="list-group-item d-flex justify-content-between align-items-center tabitomo-list-item">
                         <a th:href="@{/trips/{id}(id=${trip.id})}" class="text-decoration-none text-reset flex-grow-1 me-3">
                             <div class="d-flex w-100 justify-content-between">
-                                <h5 class="mb-1" th:text="${trip.title}" data-translatable>여행 계획 이름</h5>
-                                <small th:if="${trip.startDate != null}"
+                                <h5 class="mb-1 text-accent" th:text="${trip.title}" data-translatable>여행 계획 이름</h5>
+                                <small class="text-primary fw-bold" th:if="${trip.startDate != null}"
                                        th:text="${#temporals.format(trip.startDate, 'yyyy.MM.dd')} + ' ~ ' + ${#temporals.format(trip.endDate, 'yyyy.MM.dd')}">여행 기간</small>
                             </div>
-                            <p class="mb-1">
+                            <p class="mb-1 small">
                                 <strong data-translatable>숙소:</strong>
                                 <span th:if="${trip.accommodation != null}" th:text="${trip.accommodation.name}" data-translatable>숙소 이름</span>
                                 <span th:unless="${trip.accommodation != null}" class="text-muted" data-translatable>정보 없음</span>
@@ -172,9 +219,9 @@
                             </div>
                         </a>
 
-                        <div class="d-flex align-items-center">
-                            <form th:action="@{/member/trips/{id}/toggle-visibility(id=${trip.id})}" method="post" class="me-2 visibility-toggle" th:id="'visibilityForm-' + ${trip.id}">
-                                <div class="form-check form-switch">
+                        <div class="d-flex align-items-center flex-shrink-0">
+                            <form th:action="@{/member/trips/{id}/toggle-visibility(id=${trip.id})}" method="post" class="me-3 visibility-toggle" th:id="'visibilityForm-' + ${trip.id}">
+                                <div class="form-check form-switch tabitomo-switch">
                                     <input class="form-check-input" type="checkbox" role="switch"
                                            th:id="'visibilitySwitch-' + ${trip.id}"
                                            th:checked="${'PUBLIC'.equals(trip.visibility)}"
@@ -183,9 +230,9 @@
                                            th:text="${'PUBLIC'.equals(trip.visibility) ? '공개' : '비공개'}" data-translatable></label>
                                 </div>
                             </form>
-                            <div class="loader" th:id="'loader-' + ${trip.id}" style="display: none;"></div>
+                            <div class="loader me-2" th:id="'loader-' + ${trip.id}" style="display: none;"></div>
                             <form th:action="@{/member/trips/{id}/delete(id=${trip.id})}" method="post" th:data-trip-id="${trip.id}" onsubmit="return confirmTripDeletion(this)">
-                                <button type="submit" class="btn btn-outline-danger btn-sm" data-translatable>삭제</button>
+                                <button type="submit" class="btn btn-sm tabitomo-btn-outline-danger" data-translatable>삭제</button>
                             </form>
                             <div class="loader" th:id="'delete-loader-trip-' + ${trip.id}" style="display: none; margin-left: 5px;"></div>
                         </div>
@@ -194,7 +241,7 @@
 
                 <!-- Trip Pagination -->
                 <nav th:if="${tripsPage.totalPages > 1}" class="mt-4 d-flex justify-content-center">
-                    <ul class="pagination">
+                    <ul class="pagination tabitomo-pagination">
                         <li class="page-item" th:classappend="${tripsPage.first} ? 'disabled'">
                             <a class="page-link" th:href="@{/member/mypage(tripPage=0, favPage=${favoritePlacesPage.number})}" data-translatable>처음</a>
                         </li>
@@ -215,20 +262,20 @@
             </section>
 
             <!-- Favorite Places -->
-            <section class="mt-5">
-                <h2 class="h3 mb-3" data-translatable>즐겨찾기한 장소</h2>
+            <section class="tabitomo-section">
+                <h2 class="h3 mb-3 text-primary section-title" data-translatable>즐겨찾기한 장소</h2>
                 <div id="favorite-places-container">
-                    <div th:if="${favoritePlacesPage.empty}" class="alert alert-info" role="alert" data-translatable>
+                    <div th:if="${favoritePlacesPage.empty}" class="alert alert-info tabitomo-alert" role="alert" data-translatable>
                         즐겨찾기한 장소가 없습니다.
                     </div>
-                    <div class="list-group" th:unless="${favoritePlacesPage.empty}">
-                        <div th:each="fav : ${favoritePlacesPage.content}" class="list-group-item d-flex justify-content-between align-items-center">
+                    <div class="list-group tabitomo-list-group" th:unless="${favoritePlacesPage.empty}">
+                        <div th:each="fav : ${favoritePlacesPage.content}" class="list-group-item d-flex justify-content-between align-items-center tabitomo-list-item">
                             <div>
-                                <h5 class="mb-1" th:text="${fav.place.name}" data-translatable>장소 이름</h5>
-                                <p class="mb-1 text-muted" th:text="${fav.place.address}" data-translatable>장소 주소</p>
+                                <h5 class="mb-1 text-accent" th:text="${fav.place.name}" data-translatable>장소 이름</h5>
+                                <p class="mb-1 text-primary small" th:text="${fav.place.address}" data-translatable>장소 주소</p>
                             </div>
                             <div class="d-flex align-items-center">
-                                <button class="btn btn-outline-danger btn-sm unfavorite-btn" th:data-place-id="${fav.place.id}" data-translatable>삭제</button>
+                                <button class="btn btn-sm unfavorite-btn tabitomo-btn-outline-danger" th:data-place-id="${fav.place.id}" data-translatable>삭제</button>
                                 <div class="loader" th:id="'delete-loader-fav-' + ${fav.place.id}" style="display: none; margin-left: 5px;"></div>
                             </div>
                         </div>
@@ -237,7 +284,7 @@
 
                 <!-- Favorite Places Pagination -->
                 <nav th:if="${favoritePlacesPage.totalPages > 1}" class="mt-4 d-flex justify-content-center">
-                    <ul class="pagination">
+                    <ul class="pagination tabitomo-pagination">
                         <li class="page-item" th:classappend="${favoritePlacesPage.first} ? 'disabled'">
                             <a class="page-link" th:href="@{/member/mypage(favPage=0, tripPage=${tripsPage.number})}" data-translatable>처음</a>
                         </li>
@@ -263,40 +310,40 @@
 <!-- Withdrawal Modal -->
 <div class="modal fade" id="withdrawalModal" tabindex="-1" aria-labelledby="withdrawalModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
+        <div class="modal-content tabitomo-modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="withdrawalModalLabel" data-translatable>회원 탈퇴</h5>
+                <h5 class="modal-title text-accent" id="withdrawalModalLabel" data-translatable>회원 탈퇴</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body text-primary">
                 <p data-translatable>정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없으며, 모든 정보가 영구적으로 삭제됩니다.</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-translatable>취소</button>
+                <button type="button" class="btn btn-secondary tabitomo-btn-outline" data-bs-dismiss="modal" data-translatable>취소</button>
                 <form th:action="@{/member/delete}" method="post" class="d-inline">
-                    <button type="submit" class="btn btn-danger" data-translatable>탈퇴하기</button>
+                    <button type="submit" class="btn btn-danger tabitomo-btn-danger" data-translatable>탈퇴하기</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
 
-<!-- 모달창 -->
+<!-- 임시저장본 모달창 -->
 <div id="templistModal" class="templistModal" style="display:none;">
     <div class="templistModal-content">
         <span id="closeBtn" class="close">&times;</span>
 
-        <h2 th:if="${templist != null and !templist.isEmpty()}" data-translatable>임시저장본 리스트</h2>
+        <h2 th:if="${templist != null and !templist.isEmpty()}" data-translatable class="text-accent">임시저장본 리스트</h2>
 
         <div th:if="${templist == null or templist.isEmpty()}">
             <img th:src="@{/image/pabicone.png}" alt="임시저장 없음" style="display:block; margin:0 auto 10px; width:100px; height:auto;">
-            <p data-translatable>임시저장한 스토리북이 존재하지 않습니다.</p>
+            <p data-translatable class="text-primary">임시저장한 스토리북이 존재하지 않습니다.</p>
         </div>
 
         <div th:if="${templist != null and !templist.isEmpty()}">
             <form action="/storybook/update" method="get" onsubmit="return checkRadio()">
-                <div class="table-container">
-                    <table id="temptable">
+                <div class="table-container tabitomo-table-container">
+                    <table id="temptable" class="tabitomo-table">
                         <tr>
                             <th class="col-select" data-translatable>선택</th>
                             <th class="col-title" data-translatable>제목</th>
@@ -307,21 +354,22 @@
 
                         <tr th:if="${templist}" th:each="templist : ${templist}">
                             <td class="col-select"><input type="radio" name="tempId" th:value="${templist.tempId}"></td>
-                            <td class="col-title" th:text="${templist.title}" data-translatable></td>
-                            <td class="col-subtitle" th:text="${templist.subtitle}" data-translatable></td>
+                            <td class="col-title text-accent" th:text="${templist.title}" data-translatable></td>
+                            <td class="col-subtitle text-primary" th:text="${templist.subtitle}" data-translatable></td>
                             <td class="col-date" th:text="${#temporals.format(templist.updateDate, 'yy.MM.dd')}"></td>
                             <td class="col-del del"><a th:href="@{'/storybook/tempdelete?tempId=' + ${templist.tempId}}"
-                                                       onclick="return confirm('정말 삭제할까요?')">&times;</a></td>
+                                                       onclick="return confirm('정말 삭제할까요?')" class="text-point">&times;</a></td>
                         </tr>
                     </table>
                 </div>
-                <button type="submit" class="tempbtn" data-translatable>불러오기</button>
+                <button type="submit" class="tempbtn tabitomo-btn-point" data-translatable>불러오기</button>
             </form>
         </div>
     </div>
 </div>
 
 <script>
+    // 기존 JavaScript 코드 유지
     const modal = document.querySelector('#templistModal');
     const closeBtn = document.querySelector('#closeBtn');
     const templistBtn = document.querySelector('#templistBtn');
@@ -342,13 +390,15 @@
         }
       });
 
+      // 기존 alert 대신 showToast 사용
       if (!checked) {
-        alert("임시저장본을 선택해주세요!");
+        showToast("임시저장본을 선택해주세요!");
         return false; // 제출 막기
       }
       return true; // 통과하면 제출됨
     }
 
+    // 로딩 스피너 및 비동기 제출 관리
     function toggleVisibility(tripId) {
         document.getElementById('loader-' + tripId).style.display = 'block';
         document.getElementById('visibilityForm-' + tripId).submit();
@@ -356,6 +406,7 @@
 
     function confirmTripDeletion(form) {
         const tripId = form.dataset.tripId;
+        // 기존 confirm 대신 showToast 사용을 위한 로직 변경 필요 (현재는 confirm 유지)
         if (confirm('정말로 이 여행 계획을 삭제하시겠습니까?')) {
             document.getElementById('delete-loader-trip-' + tripId).style.display = 'block';
             return true;
@@ -368,6 +419,7 @@
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 
 <script>
+    // Toast 및 즐겨찾기 삭제 로직 유지
     document.addEventListener('DOMContentLoaded', function () {
         function showToast(message) {
             const container = document.getElementById('toast-container');
@@ -388,6 +440,7 @@
                 }, 500);
             }, 3000);
         }
+        window.showToast = showToast; // 전역으로 노출하여 checkRadio 등에서 사용 가능하도록 함
 
         const favoritePlacesContainer = document.getElementById('favorite-places-container');
 

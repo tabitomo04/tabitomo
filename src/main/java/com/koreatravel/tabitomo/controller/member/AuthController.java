@@ -91,6 +91,7 @@ public class AuthController {
             Model model) {
         if (result.hasErrors()) {
             model.addAttribute("languages", memberService.getAllLanguages());
+            model.addAttribute("countries", memberService.getAllCountries());
             return "signupform";
         }
 
@@ -98,7 +99,8 @@ public class AuthController {
             // Process the signup with country and language
             authService.signup(member, countryId, languageId);
             // Redirect to success page with nickname as a parameter
-            return "redirect:/auth/signup_success?nickname=" + URLEncoder.encode(member.getNickname(), StandardCharsets.UTF_8);
+            String encodedNickname = URLEncoder.encode(member.getNickname() != null ? member.getNickname() : "", StandardCharsets.UTF_8);
+            return "redirect:/auth/signup_success?nickname=" + encodedNickname;
         } catch (Exception e) {
             log.error("회원가입 처리 중 오류 발생: {}", e.getMessage(), e);
             model.addAttribute("languages", memberService.getAllLanguages());

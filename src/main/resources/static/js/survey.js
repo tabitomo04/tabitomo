@@ -8,6 +8,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const surveyModal = document.getElementById('surveyModal');
     if (!surveyModal) return;
 
+    // Check if we've already run the questionnaire check in this session
+    if (sessionStorage.getItem('questionnaireCheckDone')) {
+        console.log('Questionnaire check already performed in this session');
+        return;
+    }
+
     // Function to check and update questionnaire status
     function checkQuestionnaireStatus() {
         // Add cache-busting parameter to prevent caching
@@ -32,6 +38,9 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             console.log('Session data:', data);
             
+            // Mark that we've performed the check for this session
+            sessionStorage.setItem('questionnaireCheckDone', 'true');
+            
             // Check if the user is authenticated and questionnaire data is available
             if (!data.isAuthenticated) {
                 console.log('User is not authenticated, skipping questionnaire check');
@@ -43,9 +52,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                    data.showQuestionnairePrompt === true && 
                                    data.questionnaireCompleted === false;
             
-            console.log('Should show questionnaire prompt:', showQuestionnaire, 
-                       'isAuthenticated:', data.isAuthenticated,
-                       'showPrompt:', data.showQuestionnairePrompt,
+            console.log('Questionnaire prompt status:', 
+                       'show:', showQuestionnaire, 
+                       'authenticated:', data.isAuthenticated,
+                       'prompt:', data.showQuestionnairePrompt,
                        'completed:', data.questionnaireCompleted);
             
             // Only show the modal if the user needs to complete the questionnaire

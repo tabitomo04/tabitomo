@@ -8,22 +8,20 @@
 <!-- 헤더 영역 (물결표 구문 적용) -->
 <div th:replace="~{fragments/header :: header}"></div>
 
-<div class="container">
-    <div class="question-container text-center">
-        <h1 class="mb-4 text-accent fw-bold" data-translatable>여행 취향 설문 조사</h1>
-        <p class="lead mb-4 text-muted" data-translatable>
-            당신의 여행 취향을 파악하여 맞춤형 여행 추천을 받아보세요.<br>
-            설문은 약 3분 정도 소요되며, 더 나은 서비스 제공을 위해 꼭 참여해 주세요!
-        </p>
-        <div class="my-5">
-            <!-- 아이콘 색상을 Primary Color로 유지 -->
-            <i class="fas fa-4x fa-clipboard-check text-primary-tabitomo mb-4"></i>
+<div class="container d-flex justify-content-center align-items-center min-vh-100">
+    <div class="question-container text-center w-100" style="max-width: 900px; padding: 4rem 3rem;">
+        <div class="smiley-container" style="max-width: 500px; margin: 0 auto 0.5rem auto;">
+            <img src="/image/smile.png" alt="Smile" class="smiley-image" style="width: 100%; height: auto; max-width: 500px;">
         </div>
-        <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
-            <a th:href="@{/question/form}" class="btn btn-primary btn-start-primary" data-translatable>
+        <p class="mb-3 text-muted" data-translatable style="font-size: 1.5rem; line-height: 1.6; font-weight: 500;">
+            안녕하세요, 토모에요!
+        </p>
+        <h1 class="mb-3 fw-bold text-accent" data-translatable style="font-size: 2rem;">당신에 대해 조금 더 알려주시겠어요?</h1>
+        <div class="start-page-buttons">
+            <a th:href="@{/question/form}" class="btn btn-tomo-start" data-translatable>
                 <i class="fas fa-play me-2"></i> 시작하기
             </a>
-            <a th:href="@{/}" class="btn btn-outline-secondary btn-start-outline" data-translatable>
+            <a th:href="@{/}" class="btn btn-tomo-later" data-translatable>
                 <i class="fas fa-home me-2"></i> 나중에 하기
             </a>
         </div>
@@ -46,55 +44,93 @@
 
     .question-container {
         max-width: 800px;
-        margin: 5rem auto;
-        padding: 3rem;
+        padding: 3rem 2rem;
         background-color: #fff;
         border-radius: 12px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        margin: 1rem;
+    }
+    
+    /* Scoped styles for start page */
+    .question-container .smiley-container {
+        width: 150px;
+        height: 150px;
+        margin: 0 auto 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .question-container .smiley-image {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
     }
 
-    .text-accent {
-        color: var(--color-accent) !important;
+    .question-container .text-accent {
+        color: var(--color-accent);
     }
 
-    /* 시작하기 버튼 (Point Color: Terracotta Orange 적용) */
-    .btn-start-primary {
-        padding: 15px 40px;
-        font-size: 1.2rem;
-        font-weight: 700;
-        background-color: var(--color-point) !important;
-        border-color: var(--color-point) !important;
+    /* Scoped styles for start page buttons */
+    .question-container .start-page-buttons {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.8rem;  /* Reduced gap between buttons */
+        margin-top: 2rem;
+        width: auto;
+    }
+    
+    /* Base button styles */
+    .question-container .btn-tomo-start,
+    .question-container .btn-tomo-later {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.8rem 3rem;
+        border-radius: 50px;  /* Fully rounded corners */
+        font-size: 1.1rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        text-align: center;
+        min-width: 240px;  /* Increased width for buttons */
+        height: 54px;  /* Increased height */
+        box-sizing: border-box;
+        box-sizing: border-box;
+    }
+    
+    /* Start Button (Orange) */
+    .question-container .btn-tomo-start {
+        background-color: var(--color-point);
+        border: 2px solid var(--color-point);
         color: #fff;
-        border-radius: 50px;
-        transition: all 0.3s;
-        box-shadow: 0 4px 15px rgba(232, 131, 38, 0.4);
     }
-    .btn-start-primary:hover {
-        background-color: #d17522 !important;
-        border-color: #d17522 !important;
+    
+    .question-container .btn-tomo-start:hover {
+        background-color: #d17522;
+        border-color: #d17522;
         transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(232, 131, 38, 0.5);
+        box-shadow: 0 4px 12px rgba(232, 131, 38, 0.3);
     }
-
-    /* 나중에 하기 버튼 (Primary Color: Urban Blue 아웃라인 적용) */
-    .btn-start-outline {
-        padding: 15px 40px;
-        font-size: 1.2rem;
-        font-weight: 700;
-        color: var(--color-primary);
-        border-color: var(--color-primary);
+    
+    /* Later Button (Outline) */
+    .question-container .btn-tomo-later {
         background-color: transparent;
-        border-radius: 50px;
-        transition: all 0.3s;
+        border: 2px solid #ddd;
+        color: #666;
     }
-    .btn-start-outline:hover {
-        background-color: var(--color-primary);
-        color: #fff;
+    
+    .question-container .btn-tomo-later:hover {
+        background-color: #f8f9fa;
+        border-color: #ccc;
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
     /* 아이콘 색상 (Primary Color 적용) */
-    .text-primary-tabitomo {
-        color: var(--color-primary) !important;
+    .question-container .text-primary-tabitomo {
+        color: var(--color-primary);
     }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

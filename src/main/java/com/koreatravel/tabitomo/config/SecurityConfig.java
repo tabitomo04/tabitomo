@@ -107,7 +107,8 @@ public class SecurityConfig {
             "/upload",
             "/question/start",
             "/question/form",
-            "/question/complete"
+            "/question/complete",
+            "/member/api/**"
         };
         
         // API 문서, 스웨거 등 개발 환경에서의 공개 엔드포인트

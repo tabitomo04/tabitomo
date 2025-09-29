@@ -1,114 +1,256 @@
+/* Tabitomo Color Variables (CSS 파일에서는 별도로 정의하지 않고 HTML :root 변수를 사용) */
+/* :root {
+    --color-primary: #5D6C7E;
+    --color-point: #E88326;
+    --color-secondary: #F2F4F7;
+    --color-accent: #293341;
+} */
 
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-    }
+.container {
+  max-width: 1200px; /* 더 넓게 확장 */
+  margin: 0 auto;
+  padding: 0 15px;
+}
+#listtitle {
+  text-align: center;
+  color: var(--color-accent); /* 강조 색상으로 변경 */
+  margin-bottom: 2.5rem !important;
+  font-weight: 800;
+  font-size: 2.5rem;
+}
+
+/* 검색창 */
+.search-box {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 25px;
+  gap: 10px;
+}
+.search-box input {
+  width: 450px;
+  max-width: 100%;
+  padding: 12px 15px;
+  font-size: 16px;
+  border: 2px solid var(--color-primary); /* Primary 색상 테두리 */
+  border-radius: 10px;
+  transition: border-color 0.3s;
+}
+.search-box input:focus {
+    border-color: var(--color-point); /* 포커스 시 Point 색상 */
+    outline: none;
+}
+.search-box button {
+  padding: 12px 20px;
+  border: none;
+  background: var(--color-primary); /* Primary 색상 배경 */
+  color: white;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: background-color 0.3s;
+}
+.search-box button:hover {
+  background: var(--color-accent); /* Dark Navy로 호버 */
+}
+
+/* HOT/NEW 및 작성 버튼 레이아웃 */
+.container.mb-3.position-relative {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.d-flex.justify-content-end.flex-wrap {
+    position: absolute; /* 절대 위치로 우측 상단 배치 */
+    top: -45px;
+    right: 15px;
+    gap: 8px; /* 버튼 간 간격 추가 */
+}
+.d-flex.justify-content-center.mb-2 {
+    margin-top: 10px;
+}
+
+/* 카드 그리드 스타일은 Bootstrap row/col을 사용하므로 생략 */
+/* .grid { ... } */
+
+.card {
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); /* 부드러운 그림자 */
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+}
+
+.card-img-top {
+    height: 200px; /* 썸네일 높이 고정 */
+    object-fit: cover;
+}
+
+.card-body {
+    padding: 18px;
+}
+.card-title {
+   font-size: 1.1rem;
+   font-weight: 700;
+   color: var(--color-accent); /* 제목은 Dark Navy */
+ }
+.card-text {
+  font-size: 0.95rem;
+  color: var(--color-primary); /* 부제목은 Urban Blue */
+  margin-top: 4px;
+}
+
+.card-footer {
+  padding: 12px 18px;
+  background-color: var(--color-secondary) !important; /* Light Gray 배경 */
+  border-top: 1px solid #e0e0e0;
+}
+
+.no-results {
+    text-align: center;
+    margin: 80px 0;
+}
+
+.no-results img {
+    width: 120px;
+    height: auto;
+    margin-bottom: 20px;
+    opacity: 0.7;
+}
+
+.no-results p {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--color-primary);
+}
+
+/* 모달창 스타일 (modal.css 내용 통합 및 테마 적용) */
+.templistModal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.6); /* 더 진한 배경 */
+}
+.templistModal-content {
+    background-color: #fff;
+    padding: 30px;
+    margin: 8% auto;
+    border-radius: 15px; /* 더 둥근 모서리 */
+    width: 650px;
+    max-height: 80vh;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+.templistModal-content h2 {
+    color: var(--color-accent);
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+.close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 30px;
+    font-weight: 300;
+    cursor: pointer;
+    color: #999;
+    transition: color 0.2s;
+}
+.close:hover {
+    color: var(--color-point);
+}
+
+/* 테이블 스타일 */
+.table-container {
+    flex: 1;
+    overflow-y: auto;
+    margin: 10px 0 20px;
+    border: 1px solid var(--color-secondary);
+    border-radius: 8px;
+    max-height: 400px;
+}
+#temptable {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 14px;
+}
+#temptable th {
+    border-bottom: 3px solid var(--color-primary); /* Primary 색상 구분선 */
+    background-color: var(--color-secondary);
+    text-align: center;
+    padding: 12px 8px;
+    position: sticky;
+    top: 0;
+    color: var(--color-accent);
+}
+#temptable td {
+    padding: 10px 8px;
+    border-bottom: 1px solid #e0e0e0;
+    vertical-align: middle;
+}
+#temptable tr:hover {
+    background-color: #fafafa;
+}
+
+.col-del.del a {
+    color: var(--color-point); /* 삭제 버튼 Point 색상 */
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.tempbtn {
+    padding: 10px 25px;
+    border: none;
+    background: var(--color-point); /* Point 색상 버튼 */
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+.tempbtn:hover {
+    background-color: #d17522;
+    box-shadow: 0 4px 10px rgba(232, 131, 38, 0.4);
+}
+
+/* 미디어 쿼리 for Mobile */
+@media (max-width: 768px) {
     #listtitle {
-      text-align: center;
-      color: #007bff;
-      margin-bottom: 1.5rem !important;
-      font-weight: 700;
+        font-size: 2rem;
+        margin-bottom: 2rem !important;
     }
     .search-box {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 16px;
-      gap: 8px;
+        flex-direction: column;
+        align-items: center;
     }
     .search-box input {
-      width: 400px;
-      padding: 10px;
-      font-size: 15px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
+        width: 100%;
+        max-width: 350px;
     }
-    .search-box button {
-      padding: 10px 18px;
-      border: 1px solid #333;
-      background: #fff;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 15px;
+    .d-flex.justify-content-end.flex-wrap {
+        position: static;
+        justify-content: center !important;
+        margin-top: 15px;
     }
-
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-    }
-    .card {
-      padding: 14px;
-      justify-content: space-between;
-      background: #fafafa;
-    }
-    .card .likes {
-      text-align: right;
-      font-size: 13px;
-      margin-bottom: 6px;
-    }
-    .card h3 {
-       font-size: 15px;
-       margin: 0 0 8px;
-       font-weight: bold;
-     }
-
-    .card p {
-      font-size: 13px;
-      color: #444;
-      margin: 0 0 10px;
-      line-height: 1.4;
-    }
-    .card .meta {
-      font-size: 12px;
-      color: #555;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .link {
-        display:block;
-        text-decoration: none;  /* 밑줄 제거 */
-        color: inherit;         /* 글자색 유지 */
-    }
-
-    .thumbnail {
-        width: 280px;
-        height: 158px;
-        overflow: hidden;
-        border-radius: 5px;
-        display: flex;               /* flexbox 적용 */
-        justify-content: center;     /* 가로 중앙 */
-        align-items: center;         /* 세로 중앙 */
-        margin: 0 auto;  /* 부모 기준으로 가로 중앙 */
-    }
-
-    .thumbnail img {
+    .templistModal-content {
         width: 90%;
-        height: 90%;
-        object-fit: cover;
-        object-position: center center;
+        margin: 5% auto;
     }
-
-    .no-results {
-        text-align: center;
-        margin: 50px 0;
+    .table-container {
+        max-height: 300px;
     }
-
-    .no-results img {
-        width: 150px;
-        height: auto;
-        margin-bottom: 20px;
-        max-width: 50%;
-    }
-
-    .no-results p {
-        font-size: 20px;
-        font-weight: bold;
-        color: #333;
-    }
-
-    #heart {
-        color: red;
-    }
-
+    .col-subtitle { display: none; } /* 모바일에서 부제목 숨김 */
+}

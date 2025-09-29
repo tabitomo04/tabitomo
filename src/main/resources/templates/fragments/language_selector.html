@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="language-selector">
+  <!-- Language Dropdown -->
+  <div class="dropdown me-3" id="translation-dropdown">
+    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
+            id="languageDropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+      <i class="fas fa-language"></i> <span data-translatable>Language</span>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdownMenuButton">
+      <li><a class="dropdown-item" href="#" data-lang="ko">한국어</a></li>
+      <li><a class="dropdown-item" href="#" data-lang="ja">日本語</a></li>
+      <li><a class="dropdown-item" href="#" data-lang="en">English</a></li>
+      <li><a class="dropdown-item" href="#" data-lang="zh-CN">中文(简体)</a></li>
+      <li><a class="dropdown-item" href="#" data-lang="zh-TW">中文(繁體)</a></li>
+      <li><a class="dropdown-item" href="#" data-lang="es">Español</a></li>
+      <li><a class="dropdown-item" href="#" data-lang="fr">Français</a></li>
+      <li><a class="dropdown-item" href="#" data-lang="de">Deutsch</a></li>
+    </ul>
+  </div>
+  
+  <!-- Add JavaScript for language switching -->
+  <script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+      // Language switching functionality
+      document.querySelectorAll('#translation-dropdown .dropdown-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+          e.preventDefault();
+          const lang = this.getAttribute('data-lang');
+          // Store the selected language in localStorage
+          localStorage.setItem('preferredLanguage', lang);
+          // Reload the page to apply the language
+          window.location.reload();
+        });
+      });
+      
+      // Set the active language in the dropdown
+      const currentLang = localStorage.getItem('preferredLanguage') || 'ko';
+      const activeItem = document.querySelector(`#translation-dropdown .dropdown-item[data-lang="${currentLang}"]`);
+      if (activeItem) {
+        activeItem.classList.add('active');
+        activeItem.innerHTML = `<i class="fas fa-check me-2"></i>${activeItem.textContent}`;
+      }
+    });
+  </script>
+</div>
+</html>

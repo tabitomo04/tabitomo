@@ -211,13 +211,14 @@ h2.section-title {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
+    display: none;
     justify-content: center;
     align-items: center;
 }
 .templistModal-content {
     background-color: #fff;
     padding: 30px;
+    margin: 10% auto;
     border-radius: 15px;
     width: 650px;
     max-height: 80vh;
@@ -239,6 +240,35 @@ h2.section-title {
 }
 .templistModal-content .close:hover {
     color: var(--color-point);
+}
+.table-container {
+      flex: 1;                     /* 남는 공간 차지 */
+      overflow-y: auto;            /* 리스트만 스크롤 */
+      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      max-height: 400px;
+    }
+
+.col-select { width: 10%; }
+.col-title { width: 30%; }
+.col-subtitle { width: 35%; }
+.col-date { width: 15%; }
+
+.tempbtn {
+    padding: 10px 25px;
+    border: none;
+    background: var(--color-point); /* Point 색상 버튼 */
+    color: black;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+.tempbtn:hover {
+    background-color: #d17522;
+    box-shadow: 0 4px 10px rgba(232, 131, 38, 0.4);
 }
 
 

@@ -3,24 +3,141 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       lang="ko">
 
-<head th:replace="~{fragments/header :: head}"></head>
+<head th:replace="~{fragments/header :: head}">
+    <title th:text="${trip.title}" data-translatable>여행 계획 상세</title>
+</head>
 
 <body>
 
 <style>
+    /* Tabitomo Color Variables */
+    :root {
+        --color-primary: #5D6C7E; /* Gray-blue */
+        --color-point: #E88326; /* Orange/Accent */
+        --color-secondary: #F2F4F7; /* Light Gray Background */
+        --color-accent: #293341; /* Dark Blue/Text */
+    }
+
+    /* === Custom Detail Styles === */
+
+    main.container {
+        max-width: 1100px;
+        padding: 0 20px;
+    }
+
+    /* 1. 제목 및 요약 스타일 */
+    .plan-summary h1 {
+        font-weight: 900;
+        letter-spacing: -0.5px;
+        color: var(--color-accent);
+    }
+    .plan-summary .lead strong {
+        color: var(--color-primary);
+        font-weight: 600;
+    }
+    .plan-summary a {
+        color: var(--color-point); /* 작성자 닉네임 포인트 색상 */
+        font-weight: 600;
+        text-decoration: none;
+    }
+    .plan-summary a:hover {
+        text-decoration: underline;
+    }
+
+    /* 2. 카드 스타일 (숙소, 일정) */
+    .card {
+        border: 1px solid var(--color-secondary);
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: box-shadow 0.3s;
+    }
+    .card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .card-header {
+        background-color: var(--color-secondary);
+        border-bottom: 1px solid var(--color-secondary);
+        border-radius: 10px 10px 0 0 !important;
+        padding: 12px 20px;
+    }
+    .card-header h5 {
+        font-weight: 700;
+        color: var(--color-primary);
+    }
+
+    /* 3. 상세 일정 스타일 */
+    .schedule-day-title {
+        border-bottom: 3px solid var(--color-point); /* 일차 구분선 강조 */
+        display: inline-block;
+        padding-bottom: 5px;
+        color: var(--color-accent);
+        font-weight: 800;
+    }
+
+    /* 개별 일정 카드 */
+    .schedule-item-card {
+        border: 1px solid var(--color-secondary);
+        border-left: 5px solid var(--color-primary); /* 포인트 색상으로 구분 */
+        border-radius: 8px;
+        box-shadow: none;
+        transition: background-color 0.2s;
+    }
+    .schedule-item-card:hover {
+        background-color: #fcfcfc;
+    }
+    .schedule-item-card .card-title {
+        font-weight: 600;
+        color: var(--color-accent);
+    }
+    .schedule-item-card .card-text small {
+        color: var(--color-primary) !important;
+        font-weight: 500;
+    }
+    .schedule-item-card .card-text i {
+        color: var(--color-point);
+    }
+
+    /* 4. 즐겨찾기 버튼 */
+    .favorite-btn {
+        transition: transform 0.2s, color 0.2s;
+    }
+    .favorite-btn:hover {
+        transform: scale(1.1);
+    }
+    .favorite-btn.fas {
+        color: #FFD700 !important; /* 채워진 별 - 골드 */
+    }
+    .favorite-btn.far {
+        color: #ccc !important; /* 빈 별 - 회색 */
+    }
+
+    /* 5. 버튼 스타일 */
+    .btn-primary {
+        background-color: var(--color-primary);
+        border-color: var(--color-primary);
+        font-weight: 600;
+        transition: background-color 0.2s, border-color 0.2s;
+    }
+    .btn-primary:hover {
+        background-color: var(--color-accent);
+        border-color: var(--color-accent);
+    }
+
+    /* 6. 토스트 스타일 */
     .toast-notification {
         position: fixed;
         bottom: 20px;
         left: 50%;
         transform: translateX(-50%);
-        background-color: #333;
-        color: #fff;
+        background-color: var(--color-accent); /* Dark background */
+        color: white;
         padding: 15px 20px;
-        border-radius: 5px;
+        border-radius: 8px;
         z-index: 10000;
         display: none;
         opacity: 0;
         transition: opacity 0.3s, bottom 0.3s;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     }
 
     .toast-notification.show {
@@ -28,10 +145,27 @@
         opacity: 1;
         bottom: 30px;
     }
+
+    /* 미디어 쿼리: 이미지 반응형 */
+    .img-fluid {
+        height: auto;
+        max-height: 300px; /* 적당한 높이 제한 */
+        object-fit: cover;
+    }
+    @media (max-width: 767px) {
+        .img-fluid {
+            max-height: 200px;
+        }
+    }
 </style>
 
 <!-- Header -->
 <div th:replace="~{fragments/header :: header}"></div>
+
+<!-- chatbot -->
+<div th:replace="~{fragments/chatbot-button :: chatbot-container}"></div>
+<link rel="stylesheet" href="/css/chatbot.css">
+<script th:src="@{/js/chatbot.js}"></script>
 
 <!-- Main Content -->
 <main class="container py-5">
@@ -41,12 +175,13 @@
             <!-- Region Image -->
             <div th:if="${trip.accommodation != null and trip.accommodation.region != null}" class="mb-4">
                 <th:block th:switch="${trip.accommodation.region}">
-                    <img th:case="'제주도'" th:src="@{/image/korean local image/제주도.jpeg}" class="img-fluid rounded" th:alt="${trip.accommodation.region}">
-                    <img th:case="'제주특별자치도'" th:src="@{/image/korean local image/제주도.jpeg}" class="img-fluid rounded" th:alt="${trip.accommodation.region}">
-                    <img th:case="'세종특별자치시'" th:src="@{/image/korean local image/세종특별자치시.jpg}" class="img-fluid rounded" th:alt="${trip.accommodation.region}">
-                    <img th:case="'서울특별시'" th:src="@{/image/korean local image/서울특별시.jpeg}" class="img-fluid rounded" th:alt="${trip.accommodation.region}">
-                    <img th:case="'경상남도'" th:src="@{/image/korean local image/경상남도.png}" class="img-fluid rounded" th:alt="${trip.accommodation.region}">
-                    <img th:case="*" th:src="@{/image/korean local image/{region}.jpg(region=${trip.accommodation.region})}" class="img-fluid rounded" th:alt="${trip.accommodation.region}" onerror="this.style.display='none'">
+                    <!-- Note: Images are relative paths, assumed to exist. onerror is used as fallback -->
+                    <img th:case="'제주도'" th:src="@{/image/korean local image/제주도.jpeg}" class="img-fluid rounded" th:alt="${trip.accommodation.region}" onerror="this.onerror=null; this.src='https://placehold.co/600x300/F2F4F7/5D6C7E?text=여행+대표+이미지';" >
+                    <img th:case="'제주특별자치도'" th:src="@{/image/korean local image/제주도.jpeg}" class="img-fluid rounded" th:alt="${trip.accommodation.region}" onerror="this.onerror=null; this.src='https://placehold.co/600x300/F2F4F7/5D6C7E?text=여행+대표+이미지';" >
+                    <img th:case="'세종특별자치시'" th:src="@{/image/korean local image/세종특별자치시.jpg}" class="img-fluid rounded" th:alt="${trip.accommodation.region}" onerror="this.onerror=null; this.src='https://placehold.co/600x300/F2F4F7/5D6C7E?text=여행+대표+이미지';" >
+                    <img th:case="'서울특별시'" th:src="@{/image/korean local image/서울특별시.jpeg}" class="img-fluid rounded" th:alt="${trip.accommodation.region}" onerror="this.onerror=null; this.src='https://placehold.co/600x300/F2F4F7/5D6C7E?text=여행+대표+이미지';" >
+                    <img th:case="'경상남도'" th:src="@{/image/korean local image/경상남도.png}" class="img-fluid rounded" th:alt="${trip.accommodation.region}" onerror="this.onerror=null; this.src='https://placehold.co/600x300/F2F4F7/5D6C7E?text=여행+대표+이미지';" >
+                    <img th:case="*" th:src="@{/image/korean local image/{region}.jpg(region=${trip.accommodation.region})}" class="img-fluid rounded" th:alt="${trip.accommodation.region}" onerror="this.onerror=null; this.src='https://placehold.co/600x300/F2F4F7/5D6C7E?text=여행+대표+이미지';">
                 </th:block>
             </div>
 
@@ -71,18 +206,18 @@
                 </div>
                 <div class="card-body">
                     <div th:if="${trip.accommodation != null}">
-                        <h5 th:text="${trip.accommodation.name}" data-translatable>숙소 이름</h5>
-                        <p class="mb-1" th:if="${trip.accommodation.address != null}">
-                            <i class="fas fa-map-marker-alt me-1 text-muted"></i>
+                        <h5 th:text="${trip.accommodation.name}" data-translatable class="text-primary fw-bold">숙소 이름</h5>
+                        <p class="mb-1 mt-2" th:if="${trip.accommodation.address != null}">
+                            <i class="fas fa-map-marker-alt me-2" style="color: var(--color-point);"></i>
                             <span th:text="${trip.accommodation.address}" data-translatable>주소</span>
                         </p>
                         <p class="mb-0 text-muted" th:if="${trip.accommodation.description != null}">
-                            <i class="fas fa-info-circle me-1"></i>
+                            <i class="fas fa-info-circle me-2" style="color: var(--color-primary);"></i>
                             <span th:text="${trip.accommodation.description}" data-translatable>설명</span>
                         </p>
                     </div>
                     <div th:unless="${trip.accommodation != null}">
-                        <p class="mb-0" data-translatable>저장된 추천 숙소 정보가 없습니다.</p>
+                        <p class="mb-0 text-muted" data-translatable>저장된 추천 숙소 정보가 없습니다.</p>
                     </div>
                 </div>
             </div>
@@ -101,9 +236,16 @@
                     </div>
                     <div th:unless="${schedules.isEmpty()}">
                         <div th:each="schedule, iterStat : ${schedules}" th:with="isNewDay=${iterStat.index == 0 or schedules[iterStat.index - 1].day != schedule.day}">
-                            <h4 class="mt-4 mb-3" th:if="${isNewDay}"><span th:text="${schedule.day}"></span><span data-translatable>일차</span></h4>
-                            <div class="card mb-3">
-                                <div class="card-body">
+                            <!-- Day Title with accent -->
+                            <h4 class="mt-4 mb-3" th:if="${isNewDay}">
+                                <span class="schedule-day-title">
+                                    <span th:text="${schedule.day}"></span>
+                                    <span data-translatable>일차</span>
+                                </span>
+                            </h4>
+                            <!-- Schedule Item Card -->
+                            <div class="card mb-3 schedule-item-card">
+                                <div class="card-body py-3">
                                     <div class="d-flex justify-content-between align-items-start">
                                         <div>
                                             <h5 class="card-title mb-1" th:text="${schedule.place.name}" data-translatable>장소 이름</h5>
@@ -121,7 +263,8 @@
                                             </p>
                                         </div>
                                         <span sec:authorize="isAuthenticated()">
-                                            <i class="far fa-star favorite-btn" th:data-place-id="${schedule.place.id}" style="cursor: pointer; font-size: 1.5rem; color: #FFD700;"></i>
+                                            <!-- Favorite Button with custom styling -->
+                                            <i class="far fa-star favorite-btn" th:data-place-id="${schedule.place.id}" style="cursor: pointer; font-size: 1.5rem;"></i>
                                         </span>
                                     </div>
                                 </div>
@@ -133,8 +276,8 @@
         </div>
     </div>
 
-    <div class="mt-4">
-        <a th:href="@{/trips/public}" class="btn btn-primary" data-translatable>목록으로 돌아가기</a>
+    <div class="mt-5">
+        <a th:href="@{/trips/public}" class="btn btn-primary px-4 py-2" data-translatable>목록으로 돌아가기</a>
     </div>
 </main>
 
@@ -143,75 +286,109 @@
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    function showToast(messageKey, defaultText) {
-        const toastNotification = document.getElementById('toastNotification');
-        if (!toastNotification) return;
+    document.addEventListener('DOMContentLoaded', function () {
+        // Helper function to show Toast Notification
+        function showToast(messageKey, defaultText) {
+            const toastNotification = document.getElementById('toastNotification');
+            if (!toastNotification) return;
 
-        const toastSpan = toastNotification.querySelector('span');
-        toastSpan.setAttribute('data-translatable', messageKey);
-        toastSpan.textContent = defaultText;
+            const toastSpan = toastNotification.querySelector('span');
+            toastSpan.setAttribute('data-translatable', messageKey);
+            toastSpan.textContent = defaultText;
 
-        if(window.translationManager) {
-            window.translationManager.applyCurrentLanguage(toastNotification);
+            if(window.translationManager) {
+                // Assume translationManager exists for applying language changes
+                window.translationManager.applyCurrentLanguage(toastNotification);
+            }
+
+            toastNotification.classList.add('show');
+
+            setTimeout(() => {
+                toastNotification.classList.remove('show');
+            }, 3000);
         }
 
-        toastNotification.classList.add('show');
+        const favoriteButtons = document.querySelectorAll('.favorite-btn');
 
-        setTimeout(() => {
-            toastNotification.classList.remove('show');
-        }, 3000);
-    }
-
-    const favoriteButtons = document.querySelectorAll('.favorite-btn');
-
-    favoriteButtons.forEach(btn => {
-        const placeId = btn.dataset.placeId;
-        fetch(`/api/favorites/status?placeId=${placeId}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.isFavorite) {
-                    btn.classList.remove('far');
-                    btn.classList.add('fas');
-                }
-            })
-            .catch(() => {});
-    });
-
-    favoriteButtons.forEach(btn => {
-        btn.addEventListener('click', function () {
-            const placeId = this.dataset.placeId;
-            const isFavorite = this.classList.contains('fas');
-
-            fetch('/api/favorites', {
-                method: isFavorite ? 'DELETE' : 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ placeId: placeId })
-            })
-            .then(response => {
-                if (response.ok) {
-                    this.classList.toggle('far');
-                    this.classList.toggle('fas');
-                    if (isFavorite) {
-                        showToast('favorite.removed', '즐겨찾기에서 삭제되었습니다.');
-                    } else {
-                        showToast('favorite.added', '즐겨찾기에 추가되었습니다.');
+        // 1. Initial Favorite Status Check
+        favoriteButtons.forEach(btn => {
+            const placeId = btn.dataset.placeId;
+            fetch(`/api/favorites/status?placeId=${placeId}`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to fetch favorite status');
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.isFavorite) {
+                        btn.classList.remove('far');
+                        btn.classList.add('fas');
                     }
-                } else {
-                    response.json().then(err => {
-                        showToast('favorite.error', '즐겨찾기 작업 중 오류가 발생했습니다.');
+                })
+                .catch(error => {
+                     console.error('Error checking favorite status:', error);
+                     // Gracefully continue without marking it
+                });
+        });
+
+        // 2. Click Listener for Toggling Favorite Status
+        favoriteButtons.forEach(btn => {
+            btn.addEventListener('click', function () {
+                const placeId = this.dataset.placeId;
+                const isFavorite = this.classList.contains('fas');
+                const method = isFavorite ? 'DELETE' : 'POST';
+
+                // Function for exponential backoff retry logic
+                const maxRetries = 3;
+                const initialDelay = 1000; // 1 second
+
+                function attemptFetch(retryCount) {
+                    fetch('/api/favorites', {
+                        method: method,
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ placeId: placeId })
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            // Success: Toggle classes and show toast
+                            btn.classList.toggle('far');
+                            btn.classList.toggle('fas');
+                            if (isFavorite) {
+                                showToast('favorite.removed', '즐겨찾기에서 삭제되었습니다.');
+                            } else {
+                                showToast('favorite.added', '즐겨찾기에 추가되었습니다.');
+                            }
+                        } else if (response.status === 429 && retryCount < maxRetries) {
+                            // Rate limit error (429), retry with backoff
+                            const delay = initialDelay * Math.pow(2, retryCount);
+                            setTimeout(() => attemptFetch(retryCount + 1), delay);
+                        } else {
+                            // Other errors or max retries reached
+                            return response.json().then(err => {
+                                console.error('API Error:', err);
+                                showToast('favorite.error', '즐겨찾기 작업 중 오류가 발생했습니다.');
+                            }).catch(() => {
+                                 showToast('favorite.error', '즐겨찾기 작업 중 오류가 발생했습니다.');
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        // Network errors
+                        if (retryCount < maxRetries) {
+                            const delay = initialDelay * Math.pow(2, retryCount);
+                            setTimeout(() => attemptFetch(retryCount + 1), delay);
+                        } else {
+                            console.error('Network Error after retries:', error);
+                            showToast('favorite.network.error', '네트워크 오류가 발생했습니다.');
+                        }
                     });
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('favorite.network.error', '네트워크 오류가 발생했습니다.');
+
+                attemptFetch(0); // Start the initial fetch attempt
             });
         });
     });
-});
 </script>
 
 </body>

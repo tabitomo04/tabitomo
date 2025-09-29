@@ -6,6 +6,14 @@
 <body>
 
 <style>
+    /* Tabitomo Color Variables (My Page CSS에서 가져옴) */
+    :root {
+        --color-primary: #5D6C7E;
+        --color-point: #E88326;
+        --color-secondary: #F2F4F7;
+        --color-accent: #293341;
+    }
+
     /* Toast notification styles */
     .toast-notification {
         position: fixed;
@@ -27,6 +35,110 @@
         opacity: 1;
         bottom: 30px;
     }
+
+    /* === Custom Styles from My Page CSS applied to this page === */
+    /* 기본 설정 */
+    main.container {
+        max-width: 1100px; /* 최대 너비 확장 */
+        padding: 0 20px;
+    }
+
+    /* 1. 제목 굵기 강화 및 간격 조정 */
+    h1.main-title {
+        font-weight: 900; /* 더 굵게 */
+        letter-spacing: -0.5px;
+    }
+
+    /* 버튼 테마 */
+    .storybtn {
+        padding: 8px 15px;
+        cursor: pointer;
+        border-radius: 6px;
+        font-size: 14px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .tabitomo-btn-point {
+        background: var(--color-point);
+        color: white;
+        border: 1px solid var(--color-point);
+    }
+    .tabitomo-btn-point:hover {
+        background: #d17522; /* darker point */
+        border-color: #d17522;
+    }
+
+    /* 리스트 그룹 (여행 정보 리스트) */
+    .tabitomo-list-group {
+        border: none;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+    .tabitomo-list-item {
+        padding: 15px 20px;
+        border-left: 4px solid transparent;
+        border-bottom: 1px solid var(--color-secondary);
+        transition: background-color 0.2s, border-left 0.2s;
+        position: relative;
+    }
+    .tabitomo-list-item:hover {
+        background-color: var(--color-secondary);
+        border-left: 4px solid var(--color-point); /* 호버 시 포인트 색상으로 변경 */
+    }
+    .tabitomo-list-item h5 {
+        margin-bottom: 5px !important;
+        font-weight: 700;
+        color: var(--color-accent);
+    }
+    .tabitomo-list-item strong {
+        color: var(--color-accent);
+        font-weight: 700;
+    }
+    .tabitomo-list-item small {
+        color: var(--color-primary) !important;
+        font-weight: 500;
+    }
+    .tabitomo-list-item p.text-muted {
+        font-size: 0.95rem;
+        line-height: 1.4;
+    }
+
+    /* 즐겨찾기 별 아이콘 색상 테마 적용 */
+    .favorite-btn.fas {
+        color: var(--color-point) !important;
+    }
+
+    /* 페이징 */
+    .tabitomo-pagination .page-item a {
+        color: var(--color-primary);
+        border-color: var(--color-secondary);
+        transition: all 0.2s;
+    }
+    .tabitomo-pagination .page-item a:hover {
+        background-color: var(--color-secondary);
+        color: var(--color-accent);
+    }
+    .tabitomo-pagination .page-item.active a {
+        background-color: var(--color-primary);
+        border-color: var(--color-primary);
+        color: white;
+    }
+    .tabitomo-pagination .page-item.disabled a {
+        color: #ccc;
+    }
+    /* 미디어 쿼리 for Mobile */
+    @media (max-width: 768px) {
+        .filters-form {
+            flex-direction: column;
+            align-items: stretch !important;
+        }
+        .filter-group {
+            width: 100%;
+        }
+    }
+
 </style>
 
 <div th:replace="~{fragments/header :: header}"></div>
@@ -36,8 +148,8 @@
 <link rel="stylesheet" href="/css/chatbot.css">
 <script th:src="@{/js/chatbot.js}"></script>
 
-<div class="container">
-    <h1 class="my-4" data-translatable>국내 여행 정보</h1>
+<main class="container">
+    <h1 class="main-title my-4" data-translatable>국내 여행 정보</h1>
 
     <!-- Filters -->
     <div class="filters-container card card-body mb-4">
@@ -56,30 +168,34 @@
                     <option th:each="cat : ${categories}" th:value="${cat}" th:text="${cat}" th:selected="${cat == selectedCategoryCode}"></option>
                 </select>
             </div>
-            <div class="filter-group" style="display: flex; flex-direction: column;">
+            <div class="filter-group" style="display: flex; flex-direction: column; flex-grow: 1;">
                 <label for="keyword-input" class="form-label" data-translatable>검색어</label>
                 <input id="keyword-input" type="text" name="keyword" class="form-control" placeholder="장소, 주소, 설명 등" th:value="${keyword}" data-translatable-placeholder>
             </div>
-            <button type="submit" class="btn btn-primary" data-translatable>검색</button>
+            <!-- Custom Button Styling Applied -->
+            <button type="submit" class="storybtn tabitomo-btn-point" data-translatable>검색</button>
         </form>
     </div>
 
     <!-- Place List -->
     <div class="row">
         <div class="col-md-12">
-            <ul class="list-group">
-                <li class="list-group-item place-item" th:each="place : ${placesPage.content}">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <h3 th:text="${place.name}" data-translatable>장소 이름</h3>
-                            <p><strong data-translatable>주소:</strong> <span th:text="${place.address}" data-translatable>주소</span></p>
-                            <p><strong data-translatable>카테고리:</strong> <span th:text="${place.categoryCode}" data-translatable>카테고리</span></p>
-                            <p th:text="${place.description}" data-translatable>설명</p>
-                        </div>
-                        <span sec:authorize="isAuthenticated()">
-                            <i class="far fa-star favorite-btn" th:data-place-id="${place.id}" style="cursor: pointer; color: #FFD700; font-size: 1.5rem;"></i>
-                        </span>
+            <!-- Custom List Group Styling Applied -->
+            <ul class="tabitomo-list-group">
+                <!-- Custom List Item Styling Applied -->
+                <li class="tabitomo-list-item d-flex justify-content-between align-items-center" th:each="place : ${placesPage.content}">
+                    <div class="w-100">
+                        <!-- Heading size and margin adjusted for list item -->
+                        <h5 class="mb-1" th:text="${place.name}" data-translatable>장소 이름</h5>
+                        <!-- Text shrunk and styled with custom small class -->
+                        <small><strong data-translatable>주소:</strong> <span th:text="${place.address}" data-translatable>주소</span></small>
+                        <small class="ms-3"><strong data-translatable>카테고리:</strong> <span th:text="${place.categoryCode}" data-translatable>카테고리</span></small>
+                        <p class="mt-2 text-muted" th:text="${place.description}" data-translatable>설명</p>
                     </div>
+                    <!-- Star icon styling adjusted to use theme point color -->
+                    <span sec:authorize="isAuthenticated()" class="flex-shrink-0 ms-3">
+                        <i class="far fa-star favorite-btn" th:data-place-id="${place.id}" style="cursor: pointer; color: var(--color-point); font-size: 1.8rem;"></i>
+                    </span>
                 </li>
             </ul>
         </div>
@@ -87,7 +203,8 @@
 
     <!-- Pagination -->
     <nav th:if="${placesPage.totalPages > 1}" class="mt-4">
-        <ul class="pagination justify-content-center">
+        <!-- Custom Pagination Styling Applied -->
+        <ul class="pagination justify-content-center tabitomo-pagination">
             <li class="page-item" th:classappend="${placesPage.first} ? 'disabled'">
                 <a class="page-link" th:href="@{/tripinformation/places(page=0, region=${selectedRegion}, categoryCode=${selectedCategoryCode}, keyword=${keyword})}" data-translatable>처음</a>
             </li>
@@ -109,7 +226,7 @@
         </ul>
     </nav>
 
-</div>
+</main>
 
 <!-- Toast Notification -->
 <div class="toast-notification" id="toastNotification">
@@ -119,81 +236,81 @@
 <div th:replace="~{fragments/footer :: footer}"></div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    // Special handling for placeholder translation
-    const translatablePlaceholders = document.querySelectorAll('[data-translatable-placeholder]');
-    translatablePlaceholders.forEach(el => {
-        el.dataset.originalText = el.placeholder;
-    });
+    document.addEventListener('DOMContentLoaded', function () {
+        // Special handling for placeholder translation
+        const translatablePlaceholders = document.querySelectorAll('[data-translatable-placeholder]');
+        translatablePlaceholders.forEach(el => {
+            el.dataset.originalText = el.placeholder;
+        });
 
-    function showToast(messageKey, defaultText) {
-        const toastNotification = document.getElementById('toastNotification');
-        if (!toastNotification) return;
+        function showToast(messageKey, defaultText) {
+            const toastNotification = document.getElementById('toastNotification');
+            if (!toastNotification) return;
 
-        const toastSpan = toastNotification.querySelector('span');
-        toastSpan.setAttribute('data-translatable', messageKey);
-        toastSpan.textContent = defaultText;
+            const toastSpan = toastNotification.querySelector('span');
+            toastSpan.setAttribute('data-translatable', messageKey);
+            toastSpan.textContent = defaultText;
 
-        if(window.translationManager) {
-            window.translationManager.applyCurrentLanguage(toastNotification);
+            if(window.translationManager) {
+                window.translationManager.applyCurrentLanguage(toastNotification);
+            }
+
+            toastNotification.classList.add('show');
+
+            setTimeout(() => {
+                toastNotification.classList.remove('show');
+            }, 3000);
         }
 
-        toastNotification.classList.add('show');
+        const favoriteButtons = document.querySelectorAll('.favorite-btn');
 
-        setTimeout(() => {
-            toastNotification.classList.remove('show');
-        }, 3000);
-    }
-
-    const favoriteButtons = document.querySelectorAll('.favorite-btn');
-
-    favoriteButtons.forEach(btn => {
-        const placeId = btn.dataset.placeId;
-        fetch(`/api/favorites/status?placeId=${placeId}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.isFavorite) {
-                    btn.classList.remove('far');
-                    btn.classList.add('fas');
-                }
-            })
-            .catch(() => {});
-    });
-
-    favoriteButtons.forEach(btn => {
-        btn.addEventListener('click', function () {
-            const placeId = this.dataset.placeId;
-            const isFavorite = this.classList.contains('fas');
-
-            fetch('/api/favorites', {
-                method: isFavorite ? 'DELETE' : 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ placeId: placeId })
-            })
-            .then(response => {
-                if (response.ok) {
-                    this.classList.toggle('far');
-                    this.classList.toggle('fas');
-                    if (isFavorite) {
-                        showToast('favorite.removed', '즐겨찾기에서 삭제되었습니다.');
-                    } else {
-                        showToast('favorite.added', '즐겨찾기에 추가되었습니다.');
+        favoriteButtons.forEach(btn => {
+            const placeId = btn.dataset.placeId;
+            fetch(`/api/favorites/status?placeId=${placeId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.isFavorite) {
+                        btn.classList.remove('far');
+                        btn.classList.add('fas');
                     }
-                } else {
-                    response.json().then(err => {
-                        showToast('favorite.error', '즐겨찾기 작업 중 오류가 발생했습니다.');
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('favorite.network.error', '네트워크 오류가 발생했습니다.');
+                })
+                .catch(() => {});
+        });
+
+        favoriteButtons.forEach(btn => {
+            btn.addEventListener('click', function () {
+                const placeId = this.dataset.placeId;
+                const isFavorite = this.classList.contains('fas');
+
+                fetch('/api/favorites', {
+                    method: isFavorite ? 'DELETE' : 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ placeId: placeId })
+                })
+                .then(response => {
+                    if (response.ok) {
+                        this.classList.toggle('far');
+                        this.classList.toggle('fas');
+                        if (isFavorite) {
+                            showToast('favorite.removed', '즐겨찾기에서 삭제되었습니다.');
+                        } else {
+                            showToast('favorite.added', '즐겨찾기에 추가되었습니다.');
+                        }
+                    } else {
+                        response.json().then(err => {
+                            showToast('favorite.error', '즐겨찾기 작업 중 오류가 발생했습니다.');
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('favorite.network.error', '네트워크 오류가 발생했습니다.');
+                });
             });
         });
     });
-});
 </script>
 
 </body>

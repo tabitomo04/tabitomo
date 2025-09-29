@@ -5,6 +5,141 @@
     <title data-translatable>공개된 여행 - Tabitomo</title>
 </head>
 <body>
+
+<style>
+    /* Tabitomo Color Variables */
+    :root {
+        --color-primary: #5D6C7E; /* Gray-blue */
+        --color-point: #E88326; /* Orange/Accent */
+        --color-secondary: #F2F4F7; /* Light Gray Background */
+        --color-accent: #293341; /* Dark Blue/Text */
+    }
+
+    /* === Custom Styles from My Page CSS applied === */
+    /* 기본 설정 */
+    main.container {
+        max-width: 1100px; /* 최대 너비 확장 */
+        padding: 0 20px;
+    }
+
+    /* 1. 제목 굵기 강화 및 간격 조정 */
+    h1.main-title {
+        font-weight: 900; /* 더 굵게 */
+        letter-spacing: -0.5px;
+    }
+
+    /* 버튼 테마 */
+    .storybtn {
+        padding: 8px 15px;
+        cursor: pointer;
+        border-radius: 6px;
+        font-size: 14px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s;
+        white-space: nowrap; /* 버튼 내용 줄바꿈 방지 */
+    }
+    .tabitomo-btn-point {
+        background: var(--color-point);
+        color: white;
+        border: 1px solid var(--color-point);
+    }
+    .tabitomo-btn-point:hover {
+        background: #d17522; /* darker point */
+        border-color: #d17522;
+    }
+
+    /* 리스트 그룹 (여행 정보 리스트) */
+    .tabitomo-list-group {
+        border: none;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+    .tabitomo-list-item {
+        padding: 18px 25px; /* 패딩 증가 */
+        border-left: 4px solid transparent;
+        border-bottom: 1px solid var(--color-secondary);
+        transition: background-color 0.2s, border-left 0.2s;
+        position: relative;
+        color: inherit; /* <a> 태그 색상 상속 */
+        text-decoration: none; /* <a> 태그 밑줄 제거 */
+    }
+    .tabitomo-list-item:hover {
+        background-color: var(--color-secondary);
+        border-left: 4px solid var(--color-point); /* 호버 시 포인트 색상으로 변경 */
+    }
+    .tabitomo-list-item h5 {
+        margin-bottom: 5px !important;
+        font-weight: 700;
+        color: var(--color-accent);
+        font-size: 1.15rem;
+    }
+    .tabitomo-list-item strong {
+        color: var(--color-primary); /* 작성자 강조 색상 */
+        font-weight: 600;
+        margin-right: 5px;
+    }
+    .tabitomo-list-item small.trip-date {
+        color: var(--color-primary);
+        font-weight: 500;
+    }
+    .tabitomo-list-item small.created-date {
+        color: #999;
+        font-weight: 400;
+        font-size: 0.8rem;
+    }
+    .tabitomo-list-item .detail-link {
+        color: var(--color-point);
+        font-weight: 500;
+    }
+
+    /* 페이징 */
+    .tabitomo-pagination .page-item a {
+        color: var(--color-primary);
+        border-color: var(--color-secondary);
+        transition: all 0.2s;
+    }
+    .tabitomo-pagination .page-item a:hover {
+        background-color: var(--color-secondary);
+        color: var(--color-accent);
+    }
+    .tabitomo-pagination .page-item.active a {
+        background-color: var(--color-primary);
+        border-color: var(--color-primary);
+        color: white;
+    }
+    .tabitomo-pagination .page-item.disabled a {
+        color: #ccc;
+    }
+
+    /* 미디어 쿼리 for Mobile */
+    @media (max-width: 768px) {
+        .input-group > .form-select {
+            margin-bottom: 10px;
+            max-width: 100% !important;
+        }
+        .input-group {
+             flex-direction: column;
+        }
+        .input-group .form-control, .input-group .storybtn {
+            width: 100%;
+        }
+        .tabitomo-list-item {
+            padding: 15px;
+        }
+        .tabitomo-list-item .w-100 {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .tabitomo-list-item small:last-child {
+            align-self: flex-start;
+        }
+    }
+
+</style>
+
 <!-- Header -->
 <div th:replace="~{fragments/header :: header}"></div>
 
@@ -15,7 +150,8 @@
 
 <!-- Main Content -->
 <main class="container py-5">
-    <h1 class="mb-4" data-translatable>모두의 여행</h1>
+    <!-- Title updated with custom class -->
+    <h1 class="main-title mb-2" data-translatable>모두의 여행</h1>
     <p class="text-muted mb-4" data-translatable>다른 여행자들이 공유한 멋진 여행 계획을 둘러보세요.</p>
 
     <!-- Search Form -->
@@ -25,8 +161,9 @@
                 <option value="title" th:selected="${param.searchType == 'title'}" data-translatable>여행 계획</option>
                 <option value="nickname" th:selected="${param.searchType == 'nickname'}" data-translatable>작성자</option>
             </select>
-            <input type="text" name="keyword" class="form-control" placeholder="검색어를 입력하세요..." th:value="${param.keyword}" data-translatable="placeholder">
-            <button class="btn btn-primary" type="submit" data-translatable>검색</button>
+            <input type="text" name="keyword" class="form-control" placeholder="검색어를 입력하세요..." th:value="${param.keyword}" data-translatable-placeholder>
+            <!-- Custom Button Styling Applied -->
+            <button class="storybtn tabitomo-btn-point" type="submit" data-translatable>검색</button>
         </div>
     </form>
 
@@ -35,21 +172,30 @@
             아직 공개된 여행 계획이 없습니다.
         </div>
 
-        <div class="list-group" th:unless="${trips == null or trips.empty}">
-            <!-- Iterate over public trips -->
-            <a th:each="trip : ${trips.content}" th:href="@{/public-trips/{id}(id=${trip.id})}" class="list-group-item list-group-item-action flex-column align-items-start">
-                <div class="d-flex w-100 justify-content-between">
-                    <h5 class="mb-1" th:text="${trip.title}">여행 계획 이름</h5>
-                    <small th:if="${trip.startDate != null}" 
+        <!-- Custom List Group Styling Applied -->
+        <div class="tabitomo-list-group" th:unless="${trips == null or trips.empty}">
+            <!-- Iterate over public trips - Custom List Item Styling Applied -->
+            <a th:each="trip : ${trips.content}" th:href="@{/public-trips/{id}(id=${trip.id})}" class="tabitomo-list-item d-block">
+
+                <div class="d-flex w-100 justify-content-between align-items-baseline">
+                    <!-- Trip Title -->
+                    <h5 class="mb-1 me-3" th:text="${trip.title}">여행 계획 이름</h5>
+                    <!-- Trip Dates -->
+                    <small class="trip-date flex-shrink-0" th:if="${trip.startDate != null}"
                            th:text="${#temporals.format(trip.startDate, 'yyyy.MM.dd')} + ' ~ ' + ${#temporals.format(trip.endDate, 'yyyy.MM.dd')}">여행 기간</small>
                 </div>
-                <p class="mb-1">
+
+                <!-- Author -->
+                <p class="mb-1 mt-1">
                     <strong data-translatable>작성자:</strong>
                     <span th:text="${trip.member.nickname}">작성자 닉네임</span>
                 </p>
-                <div class="d-flex w-100 justify-content-between">
-                    <small class="text-muted" data-translatable>여기를 클릭하여 상세 내용을 확인하세요.</small>
-                    <small class="text-muted" th:if="${trip.createdAt != null}"><span data-translatable>작성일:</span> [[${#temporals.format(trip.createdAt, 'yyyy.MM.dd')}]]</small>
+
+                <div class="d-flex w-100 justify-content-between mt-2">
+                    <!-- Detail Link -->
+                    <small class="detail-link" data-translatable>여기를 클릭하여 상세 내용을 확인하세요.</small>
+                    <!-- Creation Date -->
+                    <small class="created-date" th:if="${trip.createdAt != null}"><span data-translatable>작성일:</span> [[${#temporals.format(trip.createdAt, 'yyyy.MM.dd')}]]</small>
                 </div>
             </a>
         </div>
@@ -57,7 +203,8 @@
 
     <!-- Pagination -->
     <nav th:if="${trips.totalPages > 0}" aria-label="Page navigation" class="d-flex justify-content-center mt-4">
-        <ul class="pagination">
+        <!-- Custom Pagination Styling Applied -->
+        <ul class="pagination tabitomo-pagination">
             <li class="page-item" th:classappend="${trips.first} ? 'disabled'">
                 <a class="page-link" th:href="@{/trips/public(page=${trips.number - 1}, searchType=${param.searchType}, keyword=${param.keyword})}" aria-label="Previous">
                     <span aria-hidden="true">&laquo;</span>

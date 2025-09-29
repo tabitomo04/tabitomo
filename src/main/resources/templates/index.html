@@ -36,7 +36,7 @@
             </div>
 
             <h1 class="display-3 fw-bolder mb-3 text-white" data-translatable>당신의 완벽한 여행을 찾아보세요</h1>
-            <p class="lead mb-5 text-light-emphasis" data-translatable>Tabitomo와 함께라면 여행 계획이 한결 쉽고 특별해집니다. AI 비서와 함께 **맞춤형 여정**을 바로 시작하세요.</p>
+            <p class="lead mb-5 text-light-emphasis" data-translatable>Tabitomo와 함께라면 여행 계획이 한결 쉽고 특별해집니다. AI 비서와 함께 <strong>맞춤형 여정</strong>을 바로 시작하세요.</p>
 
             <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
                 <!-- 여행지 추천 버튼 (Point Color: Terracotta Orange) -->
@@ -381,6 +381,7 @@
     // 전역 변수로 모달 상태 추적
     let isModalInitialized = false;
     let currentModal = null;
+    let modalShown = sessionStorage.getItem('surveyModalShown') === 'true';
 
     // 모달 초기화 함수
     function initSurveyModal() {
@@ -390,12 +391,14 @@
         if (isModalInitialized || 
             !appData.isAuthenticated || 
             appData.questionnaireCompleted || 
-            !appData.showQuestionnairePrompt) {
+            !appData.showQuestionnairePrompt ||
+            modalShown) {
             console.log('Survey modal initialization skipped. Conditions:', {
                 isModalInitialized,
                 isAuthenticated: appData.isAuthenticated,
                 questionnaireCompleted: appData.questionnaireCompleted,
-                showQuestionnairePrompt: appData.showQuestionnairePrompt
+                showQuestionnairePrompt: appData.showQuestionnairePrompt,
+                modalShown: modalShown
             });
             return;
         }
@@ -473,6 +476,7 @@
                 
                 console.log('Modal cleanup complete');
                 isModalInitialized = false;
+                modalShown = true; // 모달이 닫혔으므로 표시 상태 유지
             });
         };
 
@@ -482,11 +486,29 @@
         // 모달 표시 (짧은 지연 후)
         setTimeout(() => {
             try {
+                // 모달이 이미 표시 중인지 다시 확인
+                if (document.querySelector('.modal-backdrop')) {
+                    console.log('Modal is already shown, skipping...');
+                    return;
+                }
+                
                 currentModal.show();
+                modalShown = true;
+                sessionStorage.setItem('surveyModalShown', 'true');
                 console.log('Survey modal shown successfully');
+
+                // 5초 후에 모달이 여전히 열려있으면 자동으로 닫기
+                setTimeout(() => {
+                    if (currentModal) {
+                        currentModal.hide();
+                    }
+                }, 5000); // 5초 후 자동 닫기
+                
             } catch (e) {
                 console.error('Error showing survey modal:', e);
                 isModalInitialized = false;
+                modalShown = false;
+                sessionStorage.removeItem('surveyModalShown');
             }
         }, 500);
     }

@@ -374,122 +374,122 @@
         if (modal) {
             modal.hide();
         }
-
         // 설문조사 페이지로 이동
         window.location.href = '/question/start';
     }
+
+    // 전역 변수로 모달 상태 추적
+    let isModalInitialized = false;
+    let currentModal = null;
 
     // 모달 초기화 함수
     function initSurveyModal() {
         console.log('Initializing survey modal with data:', appData);
 
-        // 인증된 사용자이고, 설문조사를 완료하지 않았고, 프롬프트가 true인 경우에만 모달 표시
-        if (appData.isAuthenticated === true &&
-            appData.questionnaireCompleted === false &&
-            appData.showQuestionnairePrompt === true) {
+        // 이미 모달이 초기화되었거나, 조건에 맞지 않으면 중단
+        if (isModalInitialized || 
+            !appData.isAuthenticated || 
+            appData.questionnaireCompleted || 
+            !appData.showQuestionnairePrompt) {
+            console.log('Survey modal initialization skipped. Conditions:', {
+                isModalInitialized,
+                isAuthenticated: appData.isAuthenticated,
+                questionnaireCompleted: appData.questionnaireCompleted,
+                showQuestionnairePrompt: appData.showQuestionnairePrompt
+            });
+            return;
+        }
 
-            const modalElement = document.getElementById('surveyModal');
-            if (!modalElement) {
-                console.error('Survey modal element not found');
+        const modalElement = document.getElementById('surveyModal');
+        if (!modalElement) {
+            console.error('Survey modal element not found');
+            return;
+        }
+
+        // 모달이 이미 표시 중이면 중복 실행 방지
+        if (document.querySelector('.modal-backdrop')) {
+            console.log('Modal is already shown');
+            return;
+        }
+
+        // 모달 상태 초기화
+        isModalInitialized = true;
+        
+        // Bootstrap 모달 초기화
+        currentModal = new bootstrap.Modal(modalElement, {
+            backdrop: true,
+            keyboard: true
+        });
+
+        // 모달이 닫힐 때 이벤트 핸들러
+        const handleModalClose = () => {
+            console.log('Modal close handler triggered');
+            
+            // CSRF 토큰 가져오기
+            const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+
+            if (!csrfToken || !csrfHeader) {
+                console.error('CSRF token not found');
                 return;
             }
 
-            console.log('Showing survey modal for user:', appData.email);
-
-            // Bootstrap 5 모달 초기화
-            // 모달 옵션 설정 (backdrop: true로 설정하여 배경 클릭 시 닫히도록 함)
-            const modalOptions = {
-                backdrop: true,  // 배경 클릭 시 모달이 닫히도록 설정
-                keyboard: true   // ESC 키로 모달이 닫히도록 설정
-            };
-            
-            // Bootstrap 모달 초기화
-            const modal = new bootstrap.Modal(modalElement, modalOptions);
-            let isModalClosing = false;
-
-            // 모달이 닫힐 때 이벤트 핸들러
-            const handleModalClose = () => {
-                // 이미 닫는 중이면 무시
-                if (isModalClosing) return;
-                isModalClosing = true;
+            // 서버에 프롬프트 제거 요청
+            fetch('/auth/remove-questionnaire-prompt', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    [csrfHeader]: csrfToken
+                },
+                credentials: 'same-origin'
+            }).then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                console.log('Prompt removed from session');
+            }).catch(error => {
+                console.error('Error removing prompt from session:', error);
+            }).finally(() => {
+                // 모달 정리
+                if (currentModal) {
+                    currentModal.dispose();
+                    currentModal = null;
+                }
                 
-                console.log('Modal closed, removing prompt from session');
-
-                // CSRF 토큰 가져오기
-                const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
-                const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
-
-                if (!csrfToken || !csrfHeader) {
-                    console.error('CSRF token not found');
-                    return;
+                // 모달 배경 제거
+                const backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) {
+                    backdrop.remove();
                 }
-
-                // 서버에 프롬프트 제거 요청
-                fetch('/auth/remove-questionnaire-prompt', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        [csrfHeader]: csrfToken
-                    },
-                    credentials: 'same-origin'
-                }).then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    console.log('Prompt removed from session');
-                }).catch(error => {
-                    console.error('Error removing prompt from session:', error);
-                }).finally(() => {
-                    // 모달 완전히 제거
-                    modal.dispose();
-                    // 모달 배경 제거
-                    const backdrop = document.querySelector('.modal-backdrop');
-                    if (backdrop) {
-                        backdrop.remove();
-                    }
-                    // body에서 modal-open 클래스 제거
-                    document.body.classList.remove('modal-open');
-                    document.body.style.overflow = '';
-                    document.body.style.paddingRight = '';
-                    isModalClosing = false;
-                });
-            };
-
-            // 모달 이벤트 리스너 등록
-            modalElement.addEventListener('hidden.bs.modal', handleModalClose);
-
-            // 모달 표시 (짧은 지연 후)
-            setTimeout(() => {
-                try {
-                    modal.show();
-                    console.log('Survey modal shown successfully');
-                } catch (e) {
-                    console.error('Error showing survey modal:', e);
-                }
-            }, 500);
-        } else {
-            console.log('Survey modal not shown. Conditions:', {
-                isAuthenticated: appData.isAuthenticated,
-                showQuestionnairePrompt: appData.showQuestionnairePrompt,
-                questionnaireCompleted: appData.questionnaireCompleted
+                
+                // body 스타일 정리
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
+                
+                // 모달 요소 숨기기
+                modalElement.style.display = 'none';
+                modalElement.setAttribute('aria-hidden', 'true');
+                
+                console.log('Modal cleanup complete');
+                isModalInitialized = false;
             });
-        }
+        };
+
+        // 모달 이벤트 리스너 등록
+        modalElement.addEventListener('hidden.bs.modal', handleModalClose);
+
+        // 모달 표시 (짧은 지연 후)
+        setTimeout(() => {
+            try {
+                currentModal.show();
+                console.log('Survey modal shown successfully');
+            } catch (e) {
+                console.error('Error showing survey modal:', e);
+                isModalInitialized = false;
+            }
+        }, 500);
     }
-
-    // 페이지 로드 시 초기화
-    document.addEventListener('DOMContentLoaded', function() {
-        // 툴팁 초기화
-        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.forEach(function(tooltipTriggerEl) {
-            new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-
-        // 모달 초기화 함수 호출 (지연 실행)
-        setTimeout(initSurveyModal, 300);
-
-        // ** 새로 추가된 히어로 슬라이더 초기화 **
-        initHeroSlider();
-    });
 
     /**
      * 히어로 섹션 배경 이미지 슬라이더를 초기화하고 실행합니다.

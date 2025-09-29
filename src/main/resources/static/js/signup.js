@@ -355,6 +355,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     resultDiv.className = 'validation-message success';
                 }
             }
+
+
+
+
+
+
+
+
         });
     }
 });
@@ -674,6 +682,7 @@ function handleSubmit(event) {
     // 국가 선택 검증
     const countryId = document.getElementById('countryId').value;
     if (!countryId) {
+
         return false;
     }
     

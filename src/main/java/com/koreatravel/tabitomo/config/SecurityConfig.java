@@ -91,9 +91,8 @@ public class SecurityConfig {
             "/api/favorites/status",
             "/api/public/",
             "/api/places/",
-            "/auth/",
-            "/login",
-            "/signup",
+            "/auth/login",
+            "/auth/signup",
             "/api/auth/",
             "/api/email/",
             "/member/api/",
@@ -212,7 +211,7 @@ public class SecurityConfig {
             
             // 3. 인증 관련 (모두 허용)
             authorize.requestMatchers(
-                "/auth/**", "/login", "/signup",
+                "/auth/**",
                 "/api/auth/**", "/api/email/**",
                 "/auth/reset-password"
             ).permitAll();

@@ -1,6 +1,7 @@
 package com.koreatravel.tabitomo.controller.member;
 
 import com.koreatravel.tabitomo.domain.dto.member.LanguageDTO;
+import com.koreatravel.tabitomo.domain.dto.member.CountryDTO;
 import com.koreatravel.tabitomo.domain.dto.member.MemberProfileDTO;
 import com.koreatravel.tabitomo.domain.dto.auth.SignUpDTO;
 import lombok.RequiredArgsConstructor;
@@ -68,10 +69,17 @@ public class AuthController {
 
     @GetMapping("/signup")
     public String signupPage(Model model) {
-        List<LanguageDTO> languages = memberService.getAllLanguages();
-        model.addAttribute("languages", languages);
-        model.addAttribute("member", new SignUpDTO());
-        return "signupform";
+        try{
+            List<LanguageDTO> languages = memberService.getAllLanguages();
+            List<CountryDTO> countries = memberService.getAllCountries();
+            model.addAttribute("languages", languages);
+            model.addAttribute("countries", countries);
+            model.addAttribute("member", new SignUpDTO());
+            return "signupform";
+        }catch(Exception e){
+            log.error("회원가입 페이지 접근 중 오류 발생: {}", e.getMessage(), e);
+            return "error";
+        }
     }
 
     // 회원가입 처리

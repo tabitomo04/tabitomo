@@ -77,14 +77,19 @@ function checkEmail() {
         return;
     }
     
+    // CSRF 토큰 가져오기
+    const csrfToken = document.querySelector('meta[name="_csrf"]')?.content || '';
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content || 'X-CSRF-TOKEN';
+    
     // 이메일 중복 확인
     fetch('/member/api/check-email', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.content || ''
+            [csrfHeader]: csrfToken
         },
+        credentials: 'same-origin',
         body: JSON.stringify({ email: email })
     })
     .then(response => {
@@ -125,64 +130,243 @@ function checkEmail() {
         showMessage('emailCheckResult', error.message || '이메일 확인 중 오류가 발생했습니다.', 'error');
     })
     .finally(() => {
-        checkBtn.disabled = false;
-        checkBtn.innerHTML = originalText;
+        const checkBtn = document.getElementById('emailCheckBtn');
+        if (checkBtn) {
+            checkBtn.disabled = false;
+            checkBtn.innerHTML = '중복확인';
+        }
     });
 }
 
 // 닉네임 중복 확인
 function checkNickname() {
-    const nickname = document.getElementById('nickname').value.trim();
+    const nicknameInput = document.getElementById('nickname');
+    const nickname = nicknameInput ? nicknameInput.value.trim() : '';
     
     if (!nickname) {
         showMessage('nicknameCheckResult', '닉네임을 입력해주세요.', 'error');
+        isNicknameChecked = false;
         return false;
     }
     
     // 로딩 상태 표시
     const checkBtn = document.getElementById('nicknameCheckBtn');
-    const originalText = checkBtn.textContent;
+    const originalText = checkBtn.innerHTML;
     checkBtn.disabled = true;
     checkBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 확인 중...';
     
-    fetch('/member/api/check-nickname', {
+    // 결과 메시지 초기화
+    const resultDiv = document.getElementById('nicknameCheckResult');
+    if (resultDiv) {
+        resultDiv.textContent = '';
+        resultDiv.className = 'validation-message';
+    }
+    
+    // CSRF 토큰 가져오기
+    const csrfToken = document.querySelector('meta[name="_csrf"]')?.content || '';
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content || 'X-CSRF-TOKEN';
+    
+    // 중복 확인 요청
+    return fetch('/member/api/check-nickname', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
+            'X-Requested-With': 'XMLHttpRequest',
+            [csrfHeader]: csrfToken
         },
+        credentials: 'same-origin',
         body: JSON.stringify({ nickname: nickname })
     })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('닉네임 확인 중 오류가 발생했습니다.');
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => {
+                throw new Error(err.message || '닉네임 확인 중 오류가 발생했습니다.');
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (!data.available) {
+            // 닉네임이 이미 사용 중인 경우
+            const errorMessage = data.message || '이미 사용 중인 닉네임입니다.';
+            showMessage('nicknameCheckResult', errorMessage, 'error');
+            isNicknameChecked = false;
+            
+            // 실패 시 버튼 스타일 초기화
+            const checkBtn = document.getElementById('nicknameCheckBtn');
+            if (checkBtn) {
+                checkBtn.classList.remove('btn-success');
+                checkBtn.innerHTML = '중복 확인';
+                checkBtn.disabled = false;
             }
-            return response.json();
-        })
-        .then(data => {
-            if (!data.success) {
-                throw new Error(data.message || '닉네임 확인 중 오류가 발생했습니다.');
+            
+            // 세션 스토리지에서 이전에 저장된 닉네임 제거
+            sessionStorage.removeItem('lastCheckedNickname');
+            
+            return false;
+        } else {
+            // 닉네임 사용 가능한 경우
+            isNicknameChecked = true;
+            
+            // 성공 메시지 표시
+            const resultDiv = document.getElementById('nicknameCheckResult');
+            if (resultDiv) {
+                resultDiv.textContent = data.message || '사용 가능한 닉네임입니다.';
+                resultDiv.className = 'validation-message success';
             }
-            if (!data.available) {
-                showMessage('nicknameCheckResult', data.message, 'error');
-                isNicknameChecked = false;
-            } else {
-                showMessage('nicknameCheckResult', data.message, 'success');
-                isNicknameChecked = true;
+            
+            // 버튼 스타일 변경
+            const checkBtn = document.getElementById('nicknameCheckBtn');
+            if (checkBtn) {
+                checkBtn.classList.add('btn-success', 'text-white');
+                checkBtn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> 확인 완료';
+                checkBtn.style.color = 'white';
+                checkBtn.disabled = false;
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showMessage('nicknameCheckResult', error.message || '닉네임 확인 중 오류가 발생했습니다.', 'error');
-        })
-        .finally(() => {
+            
+            // 성공한 닉네임 저장
+            sessionStorage.setItem('lastCheckedNickname', nickname);
+            
+            return true;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showMessage('nicknameCheckResult', error.message || '닉네임 확인 중 오류가 발생했습니다.', 'error');
+        isNicknameChecked = false;
+        
+        // 에러 발생 시 버튼 상태 초기화
+        const checkBtn = document.getElementById('nicknameCheckBtn');
+        if (checkBtn) {
             checkBtn.disabled = false;
-            checkBtn.innerHTML = originalText;
-        });
+            checkBtn.innerHTML = '중복 확인';
+            checkBtn.classList.remove('btn-success');
+        }
+        
+        // 세션 스토리지에서 이전에 저장된 닉네임 제거
+        sessionStorage.removeItem('lastCheckedNickname');
+        
+        return false;
+    });
 }
+
+// 이메일 확인 상태 초기화
+function resetEmailCheck() {
+    isEmailChecked = false;
+    isEmailVerified = false;
+    const emailVerifyBtn = document.getElementById('emailVerifyBtn');
+    if (emailVerifyBtn) {
+        emailVerifyBtn.style.display = 'none';
+    }
+    const verifyCompleteBtn = document.getElementById('verifyCompleteBtn');
+    if (verifyCompleteBtn) {
+        verifyCompleteBtn.style.display = 'none';
+    }
+    const emailCheckResult = document.getElementById('emailCheckResult');
+    if (emailCheckResult) {
+        emailCheckResult.textContent = '';
+        emailCheckResult.className = 'validation-message';
+    }
+    sessionStorage.removeItem('lastVerifiedEmail');
+}
+
+// 닉네임 확인 상태 초기화
+function resetNicknameCheck() {
+    isNicknameChecked = false;
+    const checkBtn = document.getElementById('nicknameCheckBtn');
+    if (checkBtn) {
+        checkBtn.classList.remove('btn-success');
+        checkBtn.innerHTML = '중복 확인';
+    }
+    const resultDiv = document.getElementById('nicknameCheckResult');
+    if (resultDiv) {
+        resultDiv.textContent = '';
+        resultDiv.className = 'validation-message';
+    }
+    sessionStorage.removeItem('lastCheckedNickname');
+}
+
+// 페이지 로드 시 이벤트 리스너 등록
+document.addEventListener('DOMContentLoaded', function() {
+    // 이메일 인증 버튼 클릭 이벤트 리스너 등록
+    const emailVerifyBtn = document.getElementById('emailVerifyBtn');
+    if (emailVerifyBtn) {
+        // 기존에 등록된 이벤트 리스너 제거 (중복 방지)
+        emailVerifyBtn.replaceWith(emailVerifyBtn.cloneNode(true));
+        
+        // 새 이벤트 리스너 등록
+        document.getElementById('emailVerifyBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            requestEmailVerification();
+        });
+    }
+    
+    // 닉네임 입력 필드에 변경 이벤트 리스너 추가
+    const nicknameInput = document.getElementById('nickname');
+    if (nicknameInput) {
+        // 페이지 로드 시 이전에 확인한 닉네임이 있으면 상태 복원
+        const lastCheckedNickname = sessionStorage.getItem('lastCheckedNickname');
+        if (lastCheckedNickname && nicknameInput.value.trim() === lastCheckedNickname) {
+            isNicknameChecked = true;
+            const checkBtn = document.getElementById('nicknameCheckBtn');
+            if (checkBtn) {
+                checkBtn.classList.add('btn-success');
+                checkBtn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> 확인 완료';
+            }
+            const resultDiv = document.getElementById('nicknameCheckResult');
+            if (resultDiv) {
+                resultDiv.textContent = '사용 가능한 닉네임입니다.';
+                resultDiv.className = 'validation-message success';
+            }
+        }
+        
+        // 닉네임이 변경되면 중복 확인 상태 초기화
+        nicknameInput.addEventListener('input', function() {
+            const currentNickname = this.value.trim();
+            const lastCheckedNickname = sessionStorage.getItem('lastCheckedNickname');
+            
+            // 이전에 확인한 닉네임과 다른 경우에만 상태 초기화
+            if (lastCheckedNickname && currentNickname !== lastCheckedNickname) {
+                isNicknameChecked = false;
+                const checkBtn = document.getElementById('nicknameCheckBtn');
+                if (checkBtn) {
+                    checkBtn.classList.remove('btn-success');
+                    checkBtn.innerHTML = '중복 확인';
+                }
+                
+                // 결과 메시지 초기화
+                const resultDiv = document.getElementById('nicknameCheckResult');
+                if (resultDiv) {
+                    resultDiv.textContent = '';
+                    resultDiv.className = 'validation-message';
+                }
+            } else if (lastCheckedNickname && currentNickname === lastCheckedNickname) {
+                // 이전에 확인한 닉네임과 같은 경우 상태 복원
+                isNicknameChecked = true;
+                const checkBtn = document.getElementById('nicknameCheckBtn');
+                if (checkBtn) {
+                    checkBtn.classList.add('btn-success');
+                    checkBtn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> 확인 완료';
+                }
+                const resultDiv = document.getElementById('nicknameCheckResult');
+                if (resultDiv) {
+                    resultDiv.textContent = '사용 가능한 닉네임입니다.';
+                    resultDiv.className = 'validation-message success';
+                }
+            }
+        });
+    }
+});
 
 // 이메일 인증 요청
 function requestEmailVerification() {
+    // 이미 요청 중인 경우 중복 실행 방지
+    if (window.isEmailVerificationInProgress) {
+        console.log('이미 이메일 인증 요청이 진행 중입니다.');
+        return;
+    }
+    
     const email = window.currentEmail || combineEmail();
     
     // 이메일 형식 검증
@@ -200,9 +384,14 @@ function requestEmailVerification() {
     
     // 로딩 상태 표시
     const verifyBtn = document.getElementById('emailVerifyBtn');
+    if (!verifyBtn) return;
+    
     const originalText = verifyBtn.innerHTML;
     verifyBtn.disabled = true;
     verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 전송 중...';
+    
+    // 요청 중 상태 표시
+    window.isEmailVerificationInProgress = true;
     
     // 서버에 인증 이메일 요청
     console.log('Sending verification email to:', email);
@@ -351,8 +540,24 @@ function verifyEmail() {
         // 모달 닫기
         const modalEl = document.getElementById('emailVerificationModal');
         if (modalEl) {
-            const modal = bootstrap.Modal.getInstance(modalEl);
-            if (modal) modal.hide();
+            const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            modal.hide();
+            
+            // 모달이 완전히 닫힌 후 실행
+            modalEl.addEventListener('hidden.bs.modal', function onModalHidden() {
+                // 백드롭(모달 배경) 제거
+                const backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) {
+                    backdrop.remove();
+                }
+                // body에서 모달 관련 클래스 제거
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
+                
+                // 이벤트 리스너 제거
+                modalEl.removeEventListener('hidden.bs.modal', onModalHidden);
+            }, { once: true });
         }
         
         // 인증 완료 상태 저장
@@ -446,22 +651,29 @@ function handleSubmit(event) {
     }
     
     // 닉네임 검증
-    const nickname = document.getElementById('nickname').value.trim();
+    const nicknameInput = document.getElementById('nickname');
+    const nickname = nicknameInput ? nicknameInput.value.trim() : '';
+    
     if (!nickname) {
         showMessage('nicknameCheckResult', '닉네임을 입력해주세요.', 'error');
         return false;
     }
     
     // 닉네임 중복 확인 여부 검증
-    if (!isNicknameChecked) {
+    const lastCheckedNickname = sessionStorage.getItem('lastCheckedNickname');
+    if (!lastCheckedNickname || lastCheckedNickname !== nickname) {
         showMessage('nicknameCheckResult', '닉네임 중복 확인을 해주세요.', 'error');
+        // 중복 확인 버튼이 있다면 포커스 이동
+        const checkBtn = document.getElementById('nicknameCheckBtn');
+        if (checkBtn) {
+            checkBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return false;
     }
     
     // 국가 선택 검증
     const countryId = document.getElementById('countryId').value;
     if (!countryId) {
-        alert('국가를 선택해주세요.');
         return false;
     }
     
@@ -496,7 +708,18 @@ function handleSubmit(event) {
     })
     .then(response => {
         if (response.redirected) {
-            window.location.href = response.url;
+            // Get the nickname from the form
+            const nicknameInput = document.getElementById('nickname');
+            const nickname = nicknameInput ? encodeURIComponent(nicknameInput.value.trim()) : '';
+            
+            // Add nickname as a query parameter to the redirect URL
+            const redirectUrl = new URL(response.url, window.location.origin);
+            if (nickname) {
+                redirectUrl.searchParams.append('nickname', nickname);
+            }
+            
+            // Redirect to the URL with the nickname parameter
+            window.location.href = redirectUrl.toString();
         } else {
             return response.text().then(html => {
                 document.documentElement.innerHTML = html;

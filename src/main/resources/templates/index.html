@@ -397,53 +397,72 @@
             console.log('Showing survey modal for user:', appData.email);
 
             // Bootstrap 5 모달 초기화
-            const modal = new bootstrap.Modal(modalElement, {
-                backdrop: 'static',
-                keyboard: false
-            });
+            // 모달 옵션 설정 (backdrop: true로 설정하여 배경 클릭 시 닫히도록 함)
+            const modalOptions = {
+                backdrop: true,  // 배경 클릭 시 모달이 닫히도록 설정
+                keyboard: true   // ESC 키로 모달이 닫히도록 설정
+            };
+            
+            // Bootstrap 모달 초기화
+            const modal = new bootstrap.Modal(modalElement, modalOptions);
+            let isModalClosing = false;
+
+            // 모달이 닫힐 때 이벤트 핸들러
+            const handleModalClose = () => {
+                // 이미 닫는 중이면 무시
+                if (isModalClosing) return;
+                isModalClosing = true;
+                
+                console.log('Modal closed, removing prompt from session');
+
+                // CSRF 토큰 가져오기
+                const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+                const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+
+                if (!csrfToken || !csrfHeader) {
+                    console.error('CSRF token not found');
+                    return;
+                }
+
+                // 서버에 프롬프트 제거 요청
+                fetch('/auth/remove-questionnaire-prompt', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        [csrfHeader]: csrfToken
+                    },
+                    credentials: 'same-origin'
+                }).then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    console.log('Prompt removed from session');
+                }).catch(error => {
+                    console.error('Error removing prompt from session:', error);
+                }).finally(() => {
+                    // 모달 완전히 제거
+                    modal.dispose();
+                    // 모달 배경 제거
+                    const backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) {
+                        backdrop.remove();
+                    }
+                    // body에서 modal-open 클래스 제거
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                    isModalClosing = false;
+                });
+            };
+
+            // 모달 이벤트 리스너 등록
+            modalElement.addEventListener('hidden.bs.modal', handleModalClose);
 
             // 모달 표시 (짧은 지연 후)
             setTimeout(() => {
                 try {
                     modal.show();
                     console.log('Survey modal shown successfully');
-
-                    // 모달이 닫힐 때 이벤트 리스너 추가
-                    const handleModalClose = () => {
-                        console.log('Modal closed, removing prompt from session');
-
-                        // CSRF 토큰 가져오기
-                        const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
-                        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
-
-                        if (!csrfToken || !csrfHeader) {
-                            console.error('CSRF token not found');
-                            return;
-                        }
-
-                        // 서버에 프롬프트 제거 요청
-                        fetch('/auth/remove-questionnaire-prompt', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                [csrfHeader]: csrfToken
-                            },
-                            credentials: 'same-origin'
-                        }).then(response => {
-                            if (!response.ok) {
-                                throw new Error(`HTTP error! status: ${response.status}`);
-                            }
-                            console.log('Prompt removed from session');
-                            // 이벤트 리스너 제거
-                            modalElement.removeEventListener('hidden.bs.modal', handleModalClose);
-                        }).catch(error => {
-                            console.error('Error removing prompt from session:', error);
-                        });
-                    };
-
-                    // 모달이 닫힐 때 이벤트 리스너 등록
-                    modalElement.addEventListener('hidden.bs.modal', handleModalClose);
-
                 } catch (e) {
                     console.error('Error showing survey modal:', e);
                 }

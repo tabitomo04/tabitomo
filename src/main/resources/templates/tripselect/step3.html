@@ -36,7 +36,7 @@
     <div class="alert alert-info">
         <i class="fas fa-info-circle me-2"></i>
         <span th:if="${tripPlan != null}">
-            <span th:text="|${tripPlan.destination}|"></span><span data-translatable>에서의</span> <span th:text="|${tripPlan.styles}|"></span><span data-translatable> 여행을 위한 맞춤 추천입니다.</span>
+            <span th:text="|${tripPlan.destination}|" data-translatable></span><span data-translatable>에서의</span> <span th:text="|${tripPlan.styles}|" data-translatable></span><span data-translatable> 여행을 위한 맞춤 추천입니다.</span>
         </span>
         <span th:unless="${tripPlan != null}" data-translatable>여행 정보를 불러오는 중입니다...</span>
     </div>

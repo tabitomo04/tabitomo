@@ -90,7 +90,7 @@ public interface StorybookRepository extends JpaRepository<StorybookEntity, Inte
     Page<StorybookListDTO> hotORnewPage(@Param("memberId") UUID memberId, @Param("sort") String sort, Pageable pageable);
 
     // 검색
-    @Query(value = "SELECT " +
+    @Query(value = "SELECT DISTINCT" +
             "    s.book_num AS booknum, " +
             "    s.title AS title, " +
             "    s.subtitle AS subtitle, " +
@@ -113,6 +113,8 @@ public interface StorybookRepository extends JpaRepository<StorybookEntity, Inte
             "JOIN tag_master tm ON st.tag_id = tm.tag_id " +
             "JOIN member m ON s.member_id = m.id " +
             "WHERE tm.tag_name LIKE CONCAT('%', :keyword, '%') " +
+            "OR s.title LIKE CONCAT('%', :keyword, '%') " +
+            "OR s.subtitle LIKE CONCAT('%', :keyword, '%') " +
             "ORDER BY s.created_at DESC",
             nativeQuery = true)
     Page<StorybookListDTO> findbykeyword(@Param("loginUserId") UUID loginUserId, @Param("keyword") String keyword, Pageable pageable);

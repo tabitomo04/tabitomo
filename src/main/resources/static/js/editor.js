@@ -105,7 +105,14 @@ const editorConfig = {
 		Underline
 	],
 	fontFamily: {
-		supportAllValues: true
+		options:[
+                    'default',
+                    'Noto Sans, sans-serif',
+                    'Nanum Gothic, sans-serif',
+                    'Jua, sans-serif',
+                    'Gowun Dodum, sans-serif'
+                  ],
+        supportAllValues: true
 	},
 	fontSize: {
 		options: [10, 12, 14, 'default', 18, 20, 22],

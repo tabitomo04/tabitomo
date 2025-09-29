@@ -18,10 +18,10 @@
   <link rel="stylesheet" th:href="@{/css/editor.css}">
   <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/46.0.1/ckeditor5.css" crossorigin>
 
-<!--  &lt;!&ndash; 번역 파일 &ndash;&gt;-->
-<!--  <script src="https://cdn.ckeditor.com/ckeditor5/46.0.1/translations/ko.umd.js" crossorigin></script>-->
-<!--  <script src="https://cdn.ckeditor.com/ckeditor5/46.0.1/translations/ja.umd.js" crossorigin></script>-->
-<!--  <script src="https://cdn.ckeditor.com/ckeditor5/46.0.1/translations/en.umd.js" crossorigin></script>-->
+  <!--ckeditor font Family-->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&family=Noto+Sans&family=Nanum+Gothic&display=swap" rel="stylesheet">
 
 
 
@@ -75,11 +75,11 @@
       <h1 style="font-size: 40px;" data-translatable>스토리북 작성하기</h1>
 
       <!-- 상단: 여행 계획 선택 -->
-      <div class="d-flex align-items-center mb-3">
+      <div class="d-flex align-items-center mb-3" th:if="${tripsList != null and #lists.size(tripsList) > 0}">
         <label class="me-2 fw-bold" data-translatable>여행 계획:</label>
 
         <!-- 기본 선택: 최근 여행 계획 -->
-        <div class="dropdown">
+        <div class="dropdown" >
           <button class="btn btn-outline-primary dropdown-toggle" type="button" id="planDropdown" data-bs-toggle="dropdown" aria-expanded="false">
             <span id="selectedPlanTitle" th:text="${tripsList[0].title}" data-translatable>최근 여행 계획</span>
           </button>

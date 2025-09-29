@@ -23,12 +23,15 @@ public class uploadController {
     public Map<String, Object> uploadImage(@RequestParam("upload") MultipartFile file) {
         this.file = file;
         Map<String, Object> response = new HashMap<>();
+        System.out.println(System.getProperty("user.dir"));
 
         try {
-            // 업로드 폴더가 없으면 생성
+
             File uploadDir = new File(UPLOAD_DIR);
-            if (!uploadDir.exists()) {
-                uploadDir.mkdirs();
+            if (!uploadDir.exists() || !uploadDir.isDirectory()) {
+                response.put("uploaded", false);
+                response.put("error", "업로드 폴더가 존재하지 않습니다.");
+                return response;
             }
 
             // 파일명 고유화 (중복 방지)

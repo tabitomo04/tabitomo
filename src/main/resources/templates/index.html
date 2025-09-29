@@ -76,7 +76,7 @@
                         <div class="card-body">
                             <h5 class="card-title fw-bold text-primary" th:text="${city.city}" data-translatable>도시명</h5>
                             <p class="card-text text-muted" th:text="${city.description}" data-translatable>도시 설명이 여기에 표시됩니다.</p>
-                            <a th:href="@{/travel/} + ${city.city}" class="btn btn-sm custom-sm-btn" data-translatable>탐험하기</a>
+                            <a th:href="@{/tripselect/step1(destination=${city.city})}" class="btn btn-sm custom-sm-btn" data-translatable>탐험하기</a>
                         </div>
                     </div>
                 </div>

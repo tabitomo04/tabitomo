@@ -340,4 +340,3 @@ let editorInstance;
 
     });
 
-

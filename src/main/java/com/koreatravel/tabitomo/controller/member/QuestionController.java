@@ -145,7 +145,6 @@ public class QuestionController {
     
     @PostMapping("/api" + PathConstants.QUESTION_SUBMIT)
     @ResponseBody
-    @Transactional(rollbackFor = Exception.class, noRollbackFor = {BusinessException.class})
     public Object submitAnswers(
             @RequestBody(required = false) Map<String, Object> requestBody,
             @ModelAttribute(value = "questionAnswers", binding = false) QuestionAnswersDTO formAnswers,

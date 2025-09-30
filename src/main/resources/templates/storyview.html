@@ -102,10 +102,10 @@ document.addEventListener('click', function(e) {
       <button class="urlbtn" data-tooltip="복사되었습니다!" onclick="clip()" data-translatable>URL 공유</button>
       <!-- 로그인 상태에 따라 좋아요 버튼 표시 -->
       <div th:if="${#authentication?.isAuthenticated()}">
-        <button class="likeBtn" onclick="toggleLike()"><span>❤   </span><span class="like-count" th:text="${post.likes}"></span></button>
+        <button class="likeBtn" onclick="toggleLike()"><span th:style="'font-family: Arial, sans-serif;'">❤   </span><span class="like-count" th:text="${post.likes}"></span></button>
       </div>
       <div th:unless="${#authentication?.isAuthenticated()}" class="like-login-prompt">
-        <button class="likeBtn" onclick="toggleLike()"><span>❤   </span><span class="like-count" th:text="${post.likes}"></span></button>
+        <button class="likeBtn" onclick="toggleLike()"><span th:style="'font-family: Arial, sans-serif;'">❤   </span><span class="like-count" th:text="${post.likes}"></span></button>
       </div>
     </div>
   </div>

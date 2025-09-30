@@ -207,7 +207,6 @@ let editorInstance;
 
     ClassicEditor.create(document.querySelector('#input-contents'), {
         ...editorConfig,
-        spellcheck: false,
         simpleUpload:{
             uploadUrl : 'http://localhost:8080/upload'
         },

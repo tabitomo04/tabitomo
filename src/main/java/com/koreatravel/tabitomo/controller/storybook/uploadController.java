@@ -26,7 +26,6 @@ public class uploadController {
         System.out.println(System.getProperty("user.dir"));
 
         try {
-
             File uploadDir = new File(UPLOAD_DIR);
             if (!uploadDir.exists() || !uploadDir.isDirectory()) {
                 response.put("uploaded", false);

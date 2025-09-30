@@ -96,7 +96,9 @@
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <h5 class="card-title mb-0 fs-6 text-accent" th:text="${story.title}" data-translatable>제목</h5>
                             <span class="d-flex align-items-center gap-1 small fw-bold">
-                            <span th:text="'❤'" th:style="${story.isLiked} ? 'color:var(--color-point)' : 'color:#ccc'"></span>
+                            <span th:text="'❤'"
+                                  th:style="${story.isLiked} ? 'color:var(--color-point); font-family: Arial, sans-serif;' : 'color:#ccc; font-family: Arial, sans-serif;'">
+                            </span>
                             <span class="text-secondary" th:text="${story.likes}"></span>
                         </span>
                         </div>
@@ -138,7 +140,9 @@
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <h5 class="card-title mb-0 fs-6 text-accent" th:text="${page.title}" data-translatable>제목</h5>
                             <span class="d-flex align-items-center gap-1 small fw-bold">
-                            <span th:text="'❤'" th:style="${page.isLiked} ? 'color:var(--color-point)' : 'color:#ccc'"></span>
+                           <span th:text="'❤'"
+                                 th:style="${page.isLiked} ? 'color:var(--color-point); font-family: Arial, sans-serif;' : 'color:#ccc; font-family: Arial, sans-serif;'">
+                            </span>
                             <span class="text-secondary" th:text="${page.likes}"></span>
                         </span>
                         </div>

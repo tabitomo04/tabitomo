@@ -33,6 +33,7 @@ public interface StorybookRepository extends JpaRepository<StorybookEntity, Inte
             "JOIN member m ON s.member_id = m.id " +
             "WHERE m.id = :memberId " +
             "ORDER BY s.created_at DESC",
+            countQuery = "SELECT COUNT(*) FROM storybook s JOIN member m ON s.member_id = m.id WHERE m.id = :memberId",
             nativeQuery = true)
     Page<StorybookListDTO> StorybookList(@Param("memberId") UUID memberId, Pageable pageable);
 

@@ -88,6 +88,15 @@ public class MemberController {
         Page<StorybookListDTO> storyPage = editorService.getMyStorybookList(memberId, storyPageable);
         model.addAttribute("storyPage", storyPage);
 
+        int currentPage = storyPage.getNumber(); // 0부터 시작
+        int totalPages = storyPage.getTotalPages();
+
+        int startStoryPage = Math.max(0, currentPage - 2);
+        int endStoryPage = Math.min(totalPages - 1, currentPage + 2);
+
+        model.addAttribute("startStoryPage", startStoryPage);
+        model.addAttribute("endStoryPage", endStoryPage);
+
         // 임시저장 리스트
         List<TempsaveDTO> tempsaveList = editorService.getTempsaveList(email);
         model.addAttribute("templist", tempsaveList);

@@ -301,7 +301,8 @@ public class SecurityConfig {
                         "style-src 'self' 'unsafe-inline' https: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://cdn.ckeditor.com https://fonts.googleapis.com; " +
                         "img-src 'self' data: https: *.tile.openstreetmap.org; " +
                         "font-src 'self' https: https://fonts.gstatic.com data:; " +
-                        "connect-src 'self' http://localhost:8080 https://cdn.jsdelivr.net https://cdn.tailwindcss.com https://cdn.ckeditor.com https://cdn.ckbox.io https://proxy-event.ckeditor.com;"
+                        "connect-src 'self' http://localhost:8080 https://cdn.jsdelivr.net https://cdn.tailwindcss.com https://cdn.ckeditor.com https://cdn.ckbox.io https://proxy-event.ckeditor.com; " +
+                        "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com;"
                     )
                 );
         });

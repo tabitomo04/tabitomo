@@ -112,13 +112,17 @@ public class GeminiAIService {
         String modelId = "gpt-4o-mini";
 
         StringBuilder promptBuilder = new StringBuilder();
-        String durationText = duration;
+        String durationText;
         try {
-            int nights = Integer.parseInt(duration);
-            int days = nights + 1;
-            durationText = String.format("%d박 %d일", nights, days);
-        } catch (Exception e) {
-            // Ignore
+            int days = Integer.parseInt(duration);
+            if (days <= 1) {
+                durationText = "당일치기";
+            } else {
+                int nights = days - 1;
+                durationText = String.format("%d박 %d일", nights, days);
+            }
+        } catch (NumberFormatException e) {
+            durationText = duration;
         }
         promptBuilder.append(String.format(
                 "사용자가 요청한 여행지, 기간, 테마에 맞춰서 상세한 여행 코스와 숙소를 추천해줘. 숙소 추천은 필수야. 각 장소에 대한 설명을 포함하고, 반드시 지도에서 검색 가능한 실제 장소 이름과 대한민국 행정안전부에서 제공하는 공식 도로명 주소 형식의 정확한 전체 주소를 사용해줘. 주소는 절대 꾸며내지 말고, 검증된 실제 주소여야만 해. '(가상)'이라는 단어는 이름에 넣지마.\n" +

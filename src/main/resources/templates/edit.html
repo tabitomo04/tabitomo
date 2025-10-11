@@ -70,7 +70,6 @@
 
 <div class="center-div">
   <h1 style="font-size: 40px;" data-translatable>스토리북 수정</h1>
-  <a th:href="@{'/mypage'}">다른 페이지로 이동 (모달창 테스트용)</a>
   <!-- post 글이면 post.booknum, temp 글이면 hidden으로 tempId -->
   <input type="hidden" id="booknum" th:value="${post != null} ? ${post.booknum} : ''" >
   <input type="hidden" id="tempId" th:if="${temp != null}" th:value="${temp.tempId}" >

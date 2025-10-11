@@ -100,7 +100,6 @@ public class AddInfoService {
             } else {
                 log.error("Member not found with ID: {}", memberId);
             }
-            
         } catch (Exception e) {
             log.error("Error saving answers for member {}: {}", memberId, e.getMessage(), e);
             throw new BusinessException("Failed to save answers: " + e.getMessage());
@@ -117,141 +116,54 @@ public class AddInfoService {
         // Delete existing MBTI
         memberAddInfoRepository.deleteByMemberIdAndInfoHighNum(memberId, 2);
         
-        // Save new MBTI
-        int mbtiId = getMbtiId(mbti);
-        saveMemberAddInfo(memberId, 2, mbtiId);
-        
-        log.info("Successfully saved MBTI for member: {}", memberId);
+        try {
+            // Try to find existing MBTI
+            int mbtiId = Integer.parseInt(mbti);
+            
+            // Verify the MBTI exists in add_info table
+            Optional<AddInfoEntity> existingMbti = addInfoRepository.findByInfoHighNumAndInfoLowNum(2, mbtiId);
+            if (existingMbti.isEmpty()) {
+                log.error("Invalid MBTI ID provided: {}", mbtiId);
+                throw new BusinessException("유효하지 않은 MBTI 값입니다.");
+            }
+            
+            // Save the reference in member_add_info
+            saveMemberAddInfo(memberId, 2, mbtiId);
+            log.info("Successfully saved MBTI for member: {}", memberId);
+            
+        } catch (NumberFormatException e) {
+            log.error("Invalid MBTI format: {}", mbti, e);
+            throw new BusinessException("MBTI 형식이 올바르지 않습니다.");
+        }
     }
     
     // Internal method without @Transactional
     private void saveCategoryInternal(UUID memberId, int category, List<Long> items) {
         if (items == null || items.isEmpty()) {
-            log.warn("No items provided for category: {}", category);
             return;
         }
         
-        // Delete existing entries for this category
+        // Delete existing items for this category
         memberAddInfoRepository.deleteByMemberIdAndInfoHighNum(memberId, category);
         
         // Save new items
         for (Long itemId : items) {
-            try {
+            // Verify the item exists in add_info table
+            Optional<AddInfoEntity> existingItem = addInfoRepository.findByInfoHighNumAndInfoLowNum(category, itemId.intValue());
+            if (existingItem.isPresent()) {
                 saveMemberAddInfo(memberId, category, itemId.intValue());
-            } catch (Exception e) {
-                log.error("Error saving item {} for member: {}, category: {}", 
-                        itemId, memberId, category, e);
-                throw new BusinessException("Failed to save category " + category + ": " + e.getMessage());
+            } else {
+                log.warn("Invalid item ID {} for category {} provided by member {}", itemId, category, memberId);
             }
         }
     }
-
-    public List<MemberAddInfoEntity> getMemberAddInfo(UUID memberId) {
-        log.info("Fetching additional info for member: {}", memberId);
-        return memberAddInfoRepository.findByMemberId(memberId);
-    }
-
-    @Transactional
-    public void deleteMemberAddInfo(UUID memberId, int infoHighNum) {
-        log.info("Deleting additional info for member: {}, category: {}", memberId, infoHighNum);
-        memberAddInfoRepository.deleteByMemberIdAndInfoHighNum(memberId, infoHighNum);
-    }
-
-    public boolean hasMemberAddInfo(UUID memberId) {
-        return memberAddInfoRepository.existsByMemberId(memberId);
-    }
-
-    @Transactional
-    public void saveOrUpdateMemberAddInfo(UUID memberId, int infoHighNum, int infoLowNum) {
-        if (memberAddInfoRepository.existsByMemberIdAndInfoHighNumAndInfoLowNum(
-                memberId, infoHighNum, infoLowNum)) {
-            log.info("Member add info already exists - memberId: {}, infoHighNum: {}, infoLowNum: {}", 
-                    memberId, infoHighNum, infoLowNum);
-            return;
-        }
-        saveMemberAddInfo(memberId, infoHighNum, infoLowNum);
-    }
-
-    @Transactional
-    public void saveNewMemberAddInfo(UUID memberId, int infoHighNum, int infoLowNum) {
-        saveMemberAddInfo(memberId, infoHighNum, infoLowNum);
-    }
-
-    public void updateMemberAddInfo(UUID memberId, int infoHighNum, int infoLowNum) {
-        try {
-            deleteMemberAddInfo(memberId, infoHighNum);
-            saveMemberAddInfo(memberId, infoHighNum, infoLowNum);
-        } catch (Exception e) {
-            log.error("Error updating member add info - memberId: {}, infoHighNum: {}, infoLowNum: {}: {}", 
-                    memberId, infoHighNum, infoLowNum, e.getMessage(), e);
-            throw new BusinessException("Failed to update member add info: " + e.getMessage());
-        }
-    }
-
+    
+    // Save member add info
     private void saveMemberAddInfo(UUID memberId, int infoHighNum, int infoLowNum) {
-        log.info("Saving member add info - memberId: {}, infoHighNum: {}, infoLowNum: {}", 
-                memberId, infoHighNum, infoLowNum);
-        
-        try {
-            // Check if the record already exists
-            if (memberAddInfoRepository.existsByMemberIdAndInfoHighNumAndInfoLowNum(
-                    memberId, infoHighNum, infoLowNum)) {
-                log.info("Member add info already exists - memberId: {}, infoHighNum: {}, infoLowNum: {}", 
-                        memberId, infoHighNum, infoLowNum);
-                return;
-            }
-            
-            // Find or create the corresponding AddInfoEntity
-            AddInfoEntity addInfo = addInfoRepository
-                .findByInfoHighNumAndInfoLowNum(infoHighNum, infoLowNum)
-                .orElseGet(() -> {
-                    // Create a new AddInfoEntity if it doesn't exist
-                    AddInfoEntity newAddInfo = AddInfoEntity.builder()
-                        .infoHighNum(infoHighNum)
-                        .infoLowNum(infoLowNum)
-                        .infoName("Auto-generated " + infoHighNum + "-" + infoLowNum)
-                        .content("Automatically generated entry")
-                        .build();
-                    return addInfoRepository.save(newAddInfo);
-                });
-            
-            // Create and save the new entity
-            MemberAddInfoEntity entity = MemberAddInfoEntity.builder()
-                    .memberId(memberId)
-                    .infoHighNum(infoHighNum)
-                    .infoLowNum(infoLowNum)
-                    .addInfo(addInfo)
-                    .build();
-            
-            memberAddInfoRepository.save(entity);
-            log.info("Successfully saved member add info - memberId: {}, infoHighNum: {}, infoLowNum: {}", 
-                    memberId, infoHighNum, infoLowNum);
-            
-        } catch (Exception e) {
-            log.error("Error saving member add info - memberId: {}, infoHighNum: {}, infoLowNum: {}: {}", 
-                    memberId, infoHighNum, infoLowNum, e.getMessage(), e);
-            throw new BusinessException("Failed to save member add info: " + e.getMessage());
-        }
-    }
-    
-    @Deprecated
-    public void saveCategory(UUID memberId, int category, List<Long> items) {
-        saveCategoryInternal(memberId, category, items);
-    }
-    
-    @Deprecated
-    public void saveMbti(UUID memberId, String mbti) {
-        saveMbtiInternal(memberId, mbti);
-    }
-
-    private int getMbtiId(String mbti) {
-        // This is a simplified example - you should implement your own logic to map MBTI to IDs
-        // For now, we'll use a simple hash of the MBTI string to generate a consistent ID
-        return Math.abs(mbti.trim().toUpperCase().hashCode() % 100);
-    }
-
-    @Transactional
-    protected void saveMemberAddInfoInNewTransaction(UUID memberId, int infoHighNum, int infoLowNum) {
-        saveMemberAddInfo(memberId, infoHighNum, infoLowNum);
+        MemberAddInfoEntity entity = new MemberAddInfoEntity();
+        entity.setMemberId(memberId);
+        entity.setInfoHighNum(infoHighNum);
+        entity.setInfoLowNum(infoLowNum);
+        memberAddInfoRepository.save(entity);
     }
 }

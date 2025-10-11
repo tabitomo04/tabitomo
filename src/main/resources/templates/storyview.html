@@ -23,6 +23,8 @@
   <link rel="stylesheet" th:href="@{/css/style.css}">
   <link rel="stylesheet" th:href="@{/css/modal.css}">
 
+  <script th:src="@{/js/modal.js}"></script>
+
   <script th:src="@{/js/jquery-3.7.1.min.js}"></script>
 
   <script>
@@ -61,6 +63,8 @@ document.addEventListener('click', function(e) {
     if (!e.target.closest('.more-btn')) {
         document.querySelectorAll('.dropdown-content').forEach(m => m.style.display = 'none');
     }
+
+
 });
   </script>
 </head>

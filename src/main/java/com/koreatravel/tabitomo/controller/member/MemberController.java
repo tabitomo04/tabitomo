@@ -2,7 +2,6 @@ package com.koreatravel.tabitomo.controller.member;
 
 import com.koreatravel.tabitomo.config.security.UserDetailsImpl;
 import com.koreatravel.tabitomo.domain.dto.member.MemberProfileDTO;
-import com.koreatravel.tabitomo.domain.dto.storybook.StorybookDTO;
 import com.koreatravel.tabitomo.domain.dto.storybook.StorybookListDTO;
 import com.koreatravel.tabitomo.domain.dto.storybook.TempsaveDTO;
 import com.koreatravel.tabitomo.domain.entity.trip.FavoritePlace;

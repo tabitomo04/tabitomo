@@ -1,4 +1,4 @@
-# 🚀 Tabitomo: 한국형 AI 여행 플랫폼
+# 🚀 Tabitomo: 한국 AI 여행 플랫폼
 💡 tabitomo는 인공지능 기술을 활용하여 사용자에게 최적화된 한국 여행 일정과 맞춤형 추천을 제공하는 혁신적인 플랫폼입니다. 기존의 정형화된 여행 정보가 아닌, 사용자의 선호도와 상황에 기반한 개인화된 여행 친구가 되어 드립니다.
 
 🌟 주요 기능 (Features)
@@ -19,3 +19,5 @@ AI 기반 맞춤 일정 추천: 사용자의 관심사, 예산, 동행자 등을
 <img src="https://img.shields.io/badge/JPA-white?style=for-the-badge&logo=hibernate&logoColor=59666C"/>
 <img src="https://img.shields.io/badge/Gradle-02303A?style=for-the-badge&logo=gradle&logoColor=white"/>
 </div>
+
+# 🚀 Tabitomo: 韓国AI旅行プラットフォーム

@@ -7,6 +7,7 @@ Project Duration: Aug 12, 2025 – Oct 1, 2025
 Team Size: 5 members
 
 🌟 Features
+
 🤖 AI-Based Personalized Itinerary
 
 Automatically generates optimized travel itineraries by analyzing user preferences, budget, companions, and travel style, while considering efficient routes and themes.

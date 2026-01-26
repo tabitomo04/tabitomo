@@ -1,4 +1,5 @@
 # 🚀 Tabitomo: AI-Powered Travel Platform for Korea
+<img width="1229" height="860" alt="스크린샷 2026-01-26 오후 2 43 37" src="https://github.com/user-attachments/assets/942ac120-1021-486b-a0bc-396f0bbac087" />
 
 💡 Tabitomo is an AI-powered travel platform that provides personalized travel itineraries and tailored recommendations for trips in Korea.
 Instead of offering standardized travel information, Tabitomo acts as a personal travel companion, adapting to each user’s preferences, budget, and travel context.
